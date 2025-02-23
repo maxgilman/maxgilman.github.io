@@ -58,7 +58,8 @@ class newEnemy {
         this.room= new newPoint((x+doorLength)/(roomWidth+(doorLength*2)),(y+doorLength)/(roomHeight+(doorLength*2)));
         this.lastRoom=new newPoint(0,0);
         this.gunCoolDownMax=gunCoolDownMax;
-        this.gunCooldown=Math.floor(((Math.random()/2)+.5)*gunCoolDownMax);
+        //this.gunCooldown=Math.floor(((Math.random()/2)+.5)*gunCoolDownMax);
+        this.gunCooldown=Math.floor(Math.random()*gunCoolDownMax);
         this.health=health;
         this.lastPosition=new newPoint(x,y);
         this.maxHealth = health;
@@ -135,7 +136,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy =new newEnemy(pos.x,pos.y,10,20,'blue',1,target,30,5,'',undefined,1,1.5,1,15);
         break
         case 2:
-            enemy = new newEnemy(pos.x,pos.y,0,0,'white',2,target,0,Infinity,'');
+            enemy = new newEnemy(pos.x,pos.y,0,20,'black',2,target,75-(enemyPower),2+(enemyPower/2),'');
         break
         case 3:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'grey',3,target,30-(enemyPower*2.5),3+(enemyPower/5),'');
@@ -144,7 +145,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy = new newEnemy(pos.x,pos.y,3,20,'green',4,target,45-(enemyPower*3),1+(enemyPower),'');
         break
         case 5:
-            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/3),20,'lime',5,target,70-(enemyPower*3),3+(enemyPower/4),'');
+            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/3),20,'lime',5,target,70-(enemyPower*3),1+(2*Math.pow(2,enemyPower/4)),'');
         break
         //here speed will be used as a placeholder for power
         case 6:
@@ -158,11 +159,14 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             })
         break
         case 7:
-            enemy = new newEnemy(pos.x,pos.y,power,10,'yellow',6,target,2000,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
-                touchedEnemy.health+=1;
-                enemiesToRemove.push(thisEnemy);
-                if (touchedEnemy.health>touchedEnemy.maxHealth){
-                    touchedEnemy.health=touchedEnemy.maxHealth;
+            enemy = new newEnemy(pos.x,pos.y,power,10,'yellow',6,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+                //gunMaxCoolDown is a timer until it despawns on this one
+                if (touchedEnemy.PFType===1){
+                    touchedEnemy.health+=1;
+                    enemiesToRemove.push(thisEnemy);
+                    if (touchedEnemy.health>touchedEnemy.maxHealth){
+                        touchedEnemy.health=touchedEnemy.maxHealth;
+                    }
                 }
             })
         break
@@ -213,13 +217,33 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 15:
             //boss
-            enemy = new newEnemy(pos.x,pos.y,3,40,'black',4,target,-(enemyPower*5),1+(enemyPower*5),'',undefined,Math.floor(enemyPower/1.5));
+            enemy = new newEnemy(pos.x,pos.y,3,40,'black',4,target,45-(enemyPower*5),1+(2*Math.pow(2,enemyPower/2)),'',undefined,Math.floor(enemyPower/1.5));
         break
         case 16:
             //money
             enemy = new newEnemy(pos.x,pos.y,0,10,'green',6,target,Infinity,Infinity,'$',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 money++;
                 enemiesToRemove.push(thisEnemy);
+            });
+        break
+        case 17:
+            enemy = new newEnemy(pos.x,pos.y,2+(enemyPower/2),20,'turquoise',17,target,45-(enemyPower*3),1+(2*Math.pow(2,enemyPower/5)),'');
+        break
+        case 18:
+            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower*1.5),20,'#800020',0,target,60,1+(enemyPower),'',function(touchedEnemy,thisEnemy,enemiesToRemove,alreadyRan){
+                if ((touchedEnemy.invinceable<1)&&(touchedEnemy===thisEnemy.target)){
+                    /*let enemyRoom = enemyRooms.find((room)=>sameRoomPos(room,turnIntoRoomPos(thisEnemy)));
+                    console.log(enemyRoom);
+                    enemyWallCollision(enemyRoom);
+                    if (alreadyRan===undefined){
+                        if (findDis(thisEnemy,touchedEnemy)<(thisEnemy.size+touchedEnemy.size)){
+                            thisEnemy.effect(touchedEnemy,thisEnemy,enemiesToRemove,true);
+                        }
+                    }else{*/
+                        touchedEnemy.health--;
+                        touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                    //}
+                }
             });
         break
     }
@@ -281,6 +305,7 @@ class newWall {
     }
 }
 //wallsExport is to be able to export and import "walls" as a string, not an array of objects
+//I could've just used JSON.stringify and JSON.parse
 let wallsExport = '';
 let tilesExport = '';
 //let wallsImport = ",50.700.50.50,1350.700.50.700,1350.50.1350.700,50.50.1350.50,350.550.350.50,550.250.550.700,450.300.350.550,350.50.450.300,400.550.550.250,550.700.400.550,600.50.400.150,850.550.600.50,750.550.750.700,800.450.800.50,900.50.850.550,1150.600.850.550,900.50.1150.600";
@@ -290,12 +315,18 @@ let wallsImport = '';
 //let tilesImport = ",665.-35,700.-35,0.315,0.350,0.385,665.735,700.735,1400.315,1400.350,1400.385";
 let tilesImport = "";
 //,100.310.200.310
-let roomOptionsImport = '//,550.200.550.650,800.450.800.0,1000.550.1000.300,350.450.350.100,350.450.100.450/,850.400.850.650,450.500.450.650,450.400.450.250,200.250.850.250,200.400.200.250,200.500.0.500,1050.400.850.400,850.100.850.250,400.0.400.150';
-let spawnPointsImport = '//,300.400,500.600,1150.150,1150.600/,950.500,100.600,350.300,450.50,1250.50,100.100,700.150';
+//,450.350.600.350,600.300.600.350,600.250.600.300,450.250.600.250,700.350.700.250,850.250.700.250,850.350.700.350,700.250.700.300,700.350.700.300,850.350.700.350
+let roomOptionsImport = '//,800.100.500.100,100.450.100.200,1200.450.1200.200,800.550.500.550,350.250.350.150,350.500.350.400,950.250.950.150,950.500.950.400/,550.200.550.650,800.450.800.0,1000.550.1000.300,350.450.350.100,350.450.100.450/,850.400.850.650,450.500.450.650,450.400.450.250,200.250.850.250,200.400.200.250,200.500.0.500,1050.400.850.400,850.100.850.250,400.0.400.150';
+let spawnPointsImport = '///,300.400,500.600,1150.150,1150.600/,950.500,100.600,350.300,450.50,1250.50,100.100,700.150';
 let roomOptions = [];
 let walls = [];
 let editorSpawnPoints = [];
 let shop = new newPoint(Infinity,Infinity);
+let sheild = {
+    angle:0,
+    width:100,
+    height:20,
+};
 let PFBoxes = [];//path finding boxes
 let boxSize = 35;
 const doorWidth = 100;
@@ -392,6 +423,8 @@ let wallsCopy = [];
 }*/
 //this is the player
 enemies.push(newEnemyPreset(new newPoint(roomWidth/2,roomHeight-200),1));
+let maximumDashCoolDown = 30;
+let dashCooldown = 0;
 //enemies.push(new newEnemy(roomWidth/2,roomHeight,null,20,'brown',1,2,5));
 let camTarget = new newPoint(c.width/2,c.height/2);
 let collisionRepeat = 1;
@@ -498,7 +531,7 @@ function offSetByCam(point,passedCam){
     if (passedCam===undefined){
         passedCam=cam;
     }
-    return new newPoint((point.x-passedCam.x)*cam.zoom,(point.y-passedCam.y)*cam.zoom)
+    return new newPoint((point.x-cam.x)*cam.zoom,(point.y-cam.y)*cam.zoom)
 }
 function drawPic(x,y,xScale,yScale,image1){
     base_image = new Image();
@@ -515,9 +548,10 @@ function wait(timeMs){
     }
 }
 function removeFromEnemyRooms(enemy){
-    let enemyRoom = enemyRooms.find((enemyRoomDuplicate) => isSamePoint(floorPoint(enemy.room,1),floorPoint(enemyRoomDuplicate,1)))
+    let enemyRoom = enemyRooms.find((enemyRoomDuplicate) => sameRoomPos(enemyRoomDuplicate,enemy.lastRoom));
     if (enemyRoom!=undefined){
         let enemyIndex = enemyRoom.enemies.findIndex((enemy2) => enemy===enemy2);
+        //console.log(enemyRoom);
         if (enemyIndex>-1){
             enemyRoom.enemies.splice(enemyIndex,1);
         }
@@ -541,6 +575,13 @@ function drawEnemies(cam){
             ctx.fillStyle = enemy.color;
             ctx.fill();
             ctx.stroke();
+            
+            //draws a line between lastpos and current pos
+            /*ctx.beginPath();
+            ctx.moveTo(offSetByCam(enemy.lastPosition).x,offSetByCam(enemy.lastPosition).y);
+            ctx.lineTo(offSetByCam(enemy).x,offSetByCam(enemy).y);
+            ctx.strokeStyle='black';
+            ctx.stroke();*/
             //ctx.drawImage(smileImage,screenEnemyPos.x-(cam.zoom*enemy.size),screenEnemyPos.y-(cam.zoom*enemy.size),enemy.size*2,enemy.size*2);
             if (keysToggle['i']){
                 ctx.fillStyle='black';
@@ -563,6 +604,11 @@ function drawEnemies(cam){
                 message=enemy.label;
             }
             ctx.fillText(message,screenEnemyPos.x-(cam.zoom*((13*message.length)/2)),screenEnemyPos.y-(cam.zoom*40));
+            /*if (enemy===enemies[0]){
+                ctx.strokeStyle = 'blue';
+                ctx.beginPath();
+                ctx.moveTo(enemy.x+Math.sin(sheild.angle),enemy.y+Math.cos(angle));
+            }*/
             //this would draw a box/circle over the player that indicates their health or could be used to indicate reload time
             if (enemy===enemies[0]&&false){
                 ctx.beginPath();
@@ -594,11 +640,12 @@ function findMidPoint(point1,point2){
 }
 function drawWalls(cam,draw3d){
     let i = 0;
-    for (enemyRoom of enemyRooms){
-        for (wall of enemyRoom.walls){
+    //for (enemyRoom of enemyRooms){
+        for (wall of walls){
             i++;
             //this is for debug
             //drawCircle(wall.first.x,wall.first.y,'red');
+            //drawCircle(wall.second.x,wall.second.y,'red');
             let mid = findMidPoint(wall.first,wall.second);
             /*ctx.beginPath();
             ctx.moveTo((((mid.x)-cam.x)*cam.zoom),((mid.y)-cam.y)*cam.zoom);
@@ -630,7 +677,7 @@ function drawWalls(cam,draw3d){
                 ctx.stroke();
             }
         }
-    }
+    //}
 }
 function enemyWallCollision(enemyRoom){
     if (enemyRoom===undefined){
@@ -638,9 +685,20 @@ function enemyWallCollision(enemyRoom){
             enemyWallCollision(targetEnemyRoom);
         }
     }else{
-        for (enemy of enemyRoom.enemies){
+        let enemyRoomIndex = enemyRooms.findIndex((checkEnemyRoom)=>checkEnemyRoom===enemyRoom);
+        let wallsCheck = enemyRoom.walls;
+        let enemiesCheck = enemyRoom.enemies;
+        if (enemyRoomIndex>0){
+            wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex-1].walls);
+            enemiesCheck = enemiesCheck.concat(enemyRooms[enemyRoomIndex-1].enemies);
+        }
+        if (enemyRoomIndex<enemyRooms.length-1){
+            wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex+1].walls);
+            enemiesCheck = enemiesCheck.concat(enemyRooms[enemyRoomIndex+1].enemies);
+        }
+        for (enemy of enemiesCheck){
             for (let i=0;i<2;i++){
-                for (wall of enemyRoom.walls){
+                for (wall of wallsCheck){
                     let boundingPassed = false;
                     //this makes it so it checks each x or y movement individualy (kind of)
                     if (i===0){
@@ -935,9 +993,9 @@ function editor(){
     }
     if (keys['v']){
         let i = 0
-        for (wall of enemyRoom.walls){
+        for (wall of walls){
             if ((wall.first.x===roundedMouse.x&&wall.first.y===roundedMouse.y)||(wall.second.x===roundedMouse.x&&wall.second.y===roundedMouse.y)){
-                enemyRoom.walls.splice(i,1);
+                walls.splice(i,1);
                 break
             }
             i++;
@@ -1085,6 +1143,8 @@ function shiftWallsBy(wallsList,x,y){
     }
     return wallsList
 }
+let powerUpsSpawned = [];
+const eligiblePowerUps = [6,8,9,11,13];
 function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,difficulty){
     //let enemiesPerRoom = 0;
     //this makes a new list with a placeholder enemy that will always be in the room
@@ -1099,11 +1159,13 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRooms.push(enemyRoom);
     //enemies.push(enemyRooms[enemyRooms.length-1][0]);
     let roomOption = 0;
-    if (roomNum===1||(roomNum%10)===0){
+    if (roomNum===1){
         roomOption = roomOptions[0];
+    }else if ((roomNum%10)===0){
+        roomOption = roomOptions[1];
     }else{
-        //the ones are there to skip the first item which is just a blank room
-        roomOption = roomOptions[Math.floor(Math.random()*(roomOptions.length-1))+1];
+        //the ones are there to skip the first and second item which is just a blank room and boss rome rescectively
+        roomOption = roomOptions[Math.floor(Math.random()*(roomOptions.length-2))+2];
     } 
     enemyRoom.walls = JSON.parse(JSON.stringify(roomOption.walls));
     let room = enemyRoom.walls;
@@ -1115,24 +1177,19 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         numOfEnemies = Math.floor(((Math.random()/2)+.5)*(difficulty))+1;
     }
     const enemyPosition = addToPoint(roomPos,roomWidth/2,roomHeight/2);
-    let powerUpSeed = Math.random();
-    let powerUpType=null;
-    if (powerUpSeed<.2){
-        powerUpType=6;
-    }else if(powerUpSeed<.4){
-        powerUpType=8
-    }else if (powerUpSeed<.6){
-        powerUpType=9;
-    }else if (powerUpSeed<.8){
-        powerUpType=11;
-    }else{
-        powerUpType=13;
-    }
-    let power = 2;
-    /*if (deadEnd){
-        power=2;
-    }*/
     if (roomNum!=1){
+        let powerUpSeed = Math.random();
+        let powerUpType=null;
+        let currentPowerUpOptions = [...eligiblePowerUps];
+        let powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===powerUpsSpawned[powerUpsSpawned.length-1])
+        currentPowerUpOptions.splice(powerUpToRemove,1);
+        if (undefined===powerUpsSpawned.find((powerUpOption)=>powerUpOption===9)){
+            powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===11);
+            currentPowerUpOptions.splice(powerUpToRemove,1);
+        }
+        powerUpType=currentPowerUpOptions[Math.floor(powerUpSeed*currentPowerUpOptions.length)];
+        powerUpsSpawned.push(powerUpType);
+        let power = 2;
         enemies.push(newEnemyPreset(enemyPosition,powerUpType,power,undefined,0));
         //enemyRooms[enemyRooms.length-1].push(enemies[enemies.length-1]);
         enemyRoom.enemies.push(enemies[enemies.length-1]);
@@ -1148,16 +1205,36 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         let enemyRandomNum = Math.random();
         let enemyType = 4;
         let scaledRandomNum = ((-Math.pow(3,-((enemyRandomNum*difficulty))))+1);
-        if (scaledRandomNum<.7){
-            enemyType = 4;
-        }else if (scaledRandomNum<.85){
-            enemyType = 10;
-        }else if (scaledRandomNum<.90){
-            enemyType = 3;
-        }else if (scaledRandomNum<.95){
-            enemyType = 0;
+        if (roomNum===2){
+            enemyType=2;
+        }else if (roomNum<5){
+            if (scaledRandomNum<.3){
+                enemyType=2
+            }else{
+                enemyType=4;
+            }
+        }else if(roomNum<6){
+            if (scaledRandomNum<.7){
+                enemyType = 4;
+            }else {
+                enemyType = 10;
+            }
         }else{
-            enemyType = 5;
+            if (scaledRandomNum<.6){
+                enemyType = 4;
+            }else if (scaledRandomNum<.85){
+                enemyType = 10;
+            }else if (scaledRandomNum<.90){
+                enemyType = 3;
+            }else if (scaledRandomNum<.95){
+                enemyType = 0;
+            }else if (scaledRandomNum<.98){
+                enemyType = 5;
+            }else if (scaledRandomNum<.99){
+                enemyType=18;
+            }else{
+                enemyType = 17;
+            }
         }
         enemies.push(newEnemyPreset(addTwoPoints(enemyPos,roomPos),enemyType,undefined,undefined,difficulty));
         //enemyRooms[enemyRooms.length-1].push(enemies[enemies.length-1]);
@@ -1170,11 +1247,12 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,300),14,0,'Dash with the Space Bar'));
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,350),14,0,'Hit the space bar with your left hand thumb you psycho'));
     }
+    //door length is twice as long to cover the entire wall and make a seamless wall
     if (topOpen){
         room.push(new newWall(0,0,roomWidth/2-(doorWidth/2),0));
         room.push(new newWall(roomWidth/2+(doorWidth/2),0,roomWidth,0));
-        room.push(new newWall(roomWidth/2-(doorWidth/2),0,roomWidth/2-(doorWidth/2),-doorLength));
-        room.push(new newWall(roomWidth/2+(doorWidth/2),0,roomWidth/2+(doorWidth/2),-doorLength));
+        room.push(new newWall(roomWidth/2-(doorWidth/2),0,roomWidth/2-(doorWidth/2),-(doorLength)));
+        room.push(new newWall(roomWidth/2+(doorWidth/2),0,roomWidth/2+(doorWidth/2),-(doorLength)));
         //these tiles only work with a specific room size and boxSize
         /*savedwallBoxes.push(new newPoint(roundTo(roomWidth/2+roomPos.x,boxSize),roundTo(-35+roomPos.y,boxSize)));
         savedwallBoxes.push(new newPoint(roundTo(roomWidth/2-boxSize+roomPos.x,boxSize),roundTo(-35+roomPos.y,boxSize)));*/
@@ -1184,8 +1262,8 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (rightOpen){
         room.push(new newWall(roomWidth,0,roomWidth,roomHeight/2-(doorWidth/2)));
         room.push(new newWall(roomWidth,roomHeight/2+(doorWidth/2),roomWidth,roomHeight));
-        room.push(new newWall(roomWidth,roomHeight/2-(doorWidth/2),roomWidth+doorLength,roomHeight/2-(doorWidth/2)));
-        room.push(new newWall(roomWidth,roomHeight/2+(doorWidth/2),roomWidth+doorLength,roomHeight/2+(doorWidth/2)));
+        room.push(new newWall(roomWidth,roomHeight/2-(doorWidth/2),roomWidth+(doorLength),roomHeight/2-(doorWidth/2)));
+        room.push(new newWall(roomWidth,roomHeight/2+(doorWidth/2),roomWidth+(doorLength),roomHeight/2+(doorWidth/2)));
         //these tiles only work with a specific room size and boxSize
         //savedwallBoxes.push(new newPoint(1330+roomPos.x,280+roomPos.y));
         //savedwallBoxes.push(new newPoint(1330+roomPos.x,315+roomPos.y));
@@ -1197,8 +1275,8 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (bottomOpen){
         room.push(new newWall(0,roomHeight,roomWidth/2-(doorWidth/2),roomHeight));
         room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight,roomWidth,roomHeight));
-        room.push(new newWall(roomWidth/2-(doorWidth/2),roomHeight,roomWidth/2-(doorWidth/2),roomHeight+doorLength));
-        room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight,roomWidth/2+(doorWidth/2),roomHeight+doorLength));
+        room.push(new newWall(roomWidth/2-(doorWidth/2),roomHeight,roomWidth/2-(doorWidth/2),roomHeight+(doorLength)));
+        room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight,roomWidth/2+(doorWidth/2),roomHeight+(doorLength)));
         //these tiles only work with a specific room size and boxSize
         /*savedwallBoxes.push(new newPoint(roundTo(roomWidth/2+roomPos.x,boxSize),roundTo(roomHeight+roomPos.y,boxSize)));
         savedwallBoxes.push(new newPoint(roundTo(roomWidth/2-boxSize+roomPos.x,boxSize),roundTo(roomHeight+roomPos.y,boxSize)));*/
@@ -1208,8 +1286,8 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (leftOpen){
         room.push(new newWall(0,0,0,roomHeight/2-(doorWidth/2)));
         room.push(new newWall(0,roomHeight/2+(doorWidth/2),0,roomHeight));
-        room.push(new newWall(0,roomHeight/2-(doorWidth/2),-doorLength,roomHeight/2-(doorWidth/2)));
-        room.push(new newWall(0,roomHeight/2+(doorWidth/2),-doorLength,roomHeight/2+(doorWidth/2)));
+        room.push(new newWall(0,roomHeight/2-(doorWidth/2),-(doorLength),roomHeight/2-(doorWidth/2)));
+        room.push(new newWall(0,roomHeight/2+(doorWidth/2),-(doorLength),roomHeight/2+(doorWidth/2)));
         //these tiles only work with a specific room size and boxSize
         /*savedwallBoxes.push(new newPoint(roundTo(-35+roomPos.x,boxSize),roundTo(roomHeight/2+roomPos.y,boxSize)));
         savedwallBoxes.push(new newPoint(roundTo(-35+roomPos.x,boxSize),roundTo(roomHeight/2-boxSize+roomPos.y,boxSize)));*/
@@ -1220,6 +1298,10 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRoom.wallBoxes=generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes);
     return enemyRoom.walls;
 }
+let finishedRooms=null;
+let roomsToMake=null;
+let offLimitRooms = [];
+let repeatedNum=0;
 function generateRooms(targetNumOfRooms,finalDifficulty){
     //the actual nomber of rooms will be 0-3 more than than targetNumOfRooms sometimes
     //if the targetNumOfRooms is big, it will take a while to generate, it has probbally not crashed
@@ -1229,13 +1311,12 @@ function generateRooms(targetNumOfRooms,finalDifficulty){
     //this clears the walls list and adds a cap to the beggining, but only on the bottom, if the beggining is different, the numbers need to change
     //walls = [new newWall(700,700,600,700)];
     walls = [];
-    let roomsToMake = [{
+    roomsToMake = [{
         x:0,
         y:0,
         parentDirection:null
     }];
-    //this is set to something so rooms don't generate directally above the beginning
-    let finishedRooms = [{x:0,y:0,parentDirection:0}];
+    finishedRooms = [];
     //this is set to one because the first room exists as a room
     let numOfRooms = 1;
     let done = false;
@@ -1258,58 +1339,32 @@ function generateRooms(targetNumOfRooms,finalDifficulty){
         }
         let notOptions = [];
         notOptions.push(room.parentDirection);
-        for (roomCheck of finishedRooms){
-            for (let i=0;i<4;i++){
-                let prospectRoom = {...room};
-                switch(i){
-                    case 0: prospectRoom.y-=1;
-                    break;
-                    case 1:prospectRoom.x+=1;
-                    break;
-                    case 2:prospectRoom.y+=1
-                    break;
-                    case 3:prospectRoom.x-=1;
-                    break;
-                }
-                if ((prospectRoom.x===roomCheck.x)&&(prospectRoom.y===roomCheck.y)){
-                    if (roomCheck.y>room.y){
-                        notOptions.push(2);
-                    }else if (roomCheck.y<room.y){
-                        notOptions.push(0);
-                    }else if (roomCheck.x>room.x){
-                        notOptions.push(1);
-                    }else if (roomCheck.x<room.x){
-                        notOptions.push(3);
-                    }else{
-                        console.log('error');
+        let listofListCheck = [finishedRooms,roomsToMake,offLimitRooms];
+        for (listCheck of listofListCheck){
+            for (roomCheck of listCheck){
+                for (let i=0;i<4;i++){
+                    let prospectRoom = {...room};
+                    switch(i){
+                        case 0: prospectRoom.y-=1;
+                        break;
+                        case 1:prospectRoom.x+=1;
+                        break;
+                        case 2:prospectRoom.y+=1
+                        break;
+                        case 3:prospectRoom.x-=1;
+                        break;
                     }
-                }
-            }
-        }
-        for (roomCheck of roomsToMake){
-            for (let i=0;i<4;i++){
-                let prospectRoom = {...room};
-                switch(i){
-                    case 0: prospectRoom.y-=1;
-                    break;
-                    case 1:prospectRoom.x+=1;
-                    break;
-                    case 2:prospectRoom.y+=1
-                    break;
-                    case 3:prospectRoom.x-=1;
-                    break;
-                }
-                if ((prospectRoom.x===roomCheck.x)&&(prospectRoom.y===roomCheck.y)){
-                    if (roomCheck.y>room.y){
-                        notOptions.push(2);
-                    }else if (roomCheck.y<room.y){
-                        notOptions.push(0);
-                    }else if (roomCheck.x>room.x){
-                        notOptions.push(1);
-                    }else if (roomCheck.x<room.x){
-                        notOptions.push(3);
-                    }else{
-                        console.log('errr');
+                    if ((prospectRoom.x===roomCheck.x)&&(prospectRoom.y===roomCheck.y)){
+                        if (roomCheck.y>room.y){
+                            notOptions.push(2);
+                        }else if (roomCheck.y<room.y){
+                            notOptions.push(0);
+                        }else if (roomCheck.x>room.x){
+                            notOptions.push(1);
+                        }else if (roomCheck.x<room.x){
+                            notOptions.push(3);
+                        }else{
+                        }
                     }
                 }
             }
@@ -1326,21 +1381,25 @@ function generateRooms(targetNumOfRooms,finalDifficulty){
         let numOfDoors = Math.floor(Math.random()*(options.length+1));
         //lot of other changes would need to be made to make more sprawling room generation, mostly making it so rooms are added to the back of the list using .push, nit the front
         //Right now it generates the first path, then generates all the side dead ends, which makes it so there aren't long paths the break off that don't lead anywhere
-        if (targetNumOfRooms>numOfRooms){
-            //numOfDoors = Math.floor(Math.random()*(options.length))+1;
-            numOfDoors=1;
-        }else if (targetNumOfRooms<=numOfRooms){
-            numOfDoors = 0;
-        }else if (roomsToMake.length===1){
-            //this is so the maze never fizzles out by pure chance before it wants to, also catches the first room
-            numOfDoors = Math.floor(Math.random()*(options.length))+1;
+        if (options.length>0){
+            if (targetNumOfRooms>numOfRooms){
+                //numOfDoors = Math.floor(Math.random()*(options.length))+1;
+                numOfDoors=1;
+            }else if (targetNumOfRooms<=numOfRooms){
+                numOfDoors = 0;
+            }else if (roomsToMake.length===1){
+                //this is so the maze never fizzles out by pure chance before it wants to, also catches the first room
+                numOfDoors = Math.floor(Math.random()*(options.length))+1;
+            }
+        }else{
+            numOfDoors=0;
         }
         if (numOfRooms>500){
             numOfDoors=0;
         }
         numOfRooms+=numOfDoors;
         for(let i=0;i<numOfDoors;i++){
-            let randomNum = Math.floor(Math.random()*options.length);
+            let randomNum = Math.floor(Math.random()*(options.length));
             let doorPos = options[randomNum];
             notOptions.push(randomNum);
             options.splice(randomNum,1);
@@ -1373,45 +1432,90 @@ function generateRooms(targetNumOfRooms,finalDifficulty){
         }
         let roomPos = new newPoint((roomWidth+(doorLength*2))*room.x,(roomHeight+(doorLength*2))*room.y);
         let deadEnd = numOfDoors===0;
-        //dead ends should be purely for debug
+        roomsToMake[numOfDoors].roomPos=roomPos;
+        roomsToMake[numOfDoors].up=up;
+        roomsToMake[numOfDoors].right=right;
+        roomsToMake[numOfDoors].down=down;
+        roomsToMake[numOfDoors].left=left;
+        roomsToMake[numOfDoors].deadEnd=deadEnd;
         if (deadEnd){
             deadEnds.push(dupPoint(room));
         }
-        walls = walls.concat(generateRoom(up,right,down,left,roomPos,finishedRooms.length,((numOfRooms/targetNumOfRooms)*(finalDifficulty-1))+1));
-        //num of doors should be 0
-        //fyi these splices change the lists
-        if (numOfDoors===0){
-            finishedRooms.push(roomsToMake.splice(0,1)[0]);
+        repeatedNum++;
+        if (deadEnd&&numOfRooms<targetNumOfRooms&&repeatedNum<10000){
+            //this still might not work and the maze might end early if it can't back out of a deadend
+            console.log('stepped in: '+numOfRooms);
+            roomsToMake.splice(numOfDoors,1)[0];
+            offLimitRooms.push(finishedRooms.pop());
+            roomsToMake.push(finishedRooms.pop());
+            numOfRooms-=2;
+            /*let roomIndex = finishedRooms.length-1;
+            while(finishedRooms[roomIndex].deadEnd){
+                roomIndex--;
+                numOfRooms--;
+                if (roomIndex<0){
+                    console.log('too low index');
+                }else{
+                    roomsToMake.push(finishedRooms.pop());
+                }
+            }*/
+            //console.log(JSON.parse(JSON.stringify(finishedRooms)));
         }else{
             finishedRooms.push(roomsToMake.splice(numOfDoors,1)[0]);
         }
+        //fyi these splices change the lists
         /*finishedRooms.push(roomsToMake[0]);
         roomsToMake.splice(0,1);*/
         if (roomsToMake.length<=0){
             done = true;
         }
     }
+    let i=0;
+    for (room of finishedRooms){
+        i++;
+        walls = walls.concat(generateRoom(room.up,room.right,room.down,room.left,room.roomPos,i,((i/targetNumOfRooms)*(finalDifficulty-1))+1));
+    }
     for (let i=0;i<originalLength;i++){
         addToEnemyRooms(enemies[i]);
     }
-    //console.log(numOfRooms);
+    if (numOfRooms!=targetNumOfRooms){
+        console.log(numOfRooms);
+    }
     //console.log(deadEnds);
 }
-function camControl(snapToRooms,target,updateScreenSize){
+function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScreen){
     if (updateScreenSize){
-        //cam.zoom=Math.min(window.innerHeight/((doorLength*2)+roomHeight),window.innerWidth/((doorLength*2)+roomWidth));
-        //margin= new newPoint(30,10);
-        c.width=(window.innerWidth-20)-((margin.x)*2);
-        c.height=(window.innerHeight-20)-((margin.y)*2);
+        if (keepAspectRatio){
+            const aspectRatio = 1400/750;
+            if ((window.innerWidth/1400)<(window.innerHeight/750)){
+                c.width=(window.innerWidth-20)-((margin.x)*2)-((margin.y*aspectRatio)*2);
+                c.height=((window.innerWidth/aspectRatio)-20)-((margin.y)*2);
+            }else{
+                c.width=((window.innerHeight*aspectRatio)-20)-((margin.x)*2)-((margin.y*aspectRatio)*2);
+                c.height=((window.innerHeight)-20)-((margin.y)*2);
+            }
+        }else{
+            //cam.zoom=Math.min(window.innerHeight/((doorLength*2)+roomHeight),window.innerWidth/((doorLength*2)+roomWidth));
+            //margin= new newPoint(30,10);
+            c.width=(window.innerWidth-20)-((margin.x)*2);
+            c.height=(window.innerHeight-20)-((margin.y)*2);
+        }
+        screenSize= Math.min(c.height/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
+        cam.zoom=screenSize;
+        c.style.margin = margin.y+"px "+margin.x+"px";
+    }
+    if (resetScreen){
+        c.width=1400;
+        c.height=750;
         screenSize= Math.min(c.height/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
         cam.zoom=screenSize;
         c.style.margin = margin.y+"px "+margin.x+"px";
     }
     if (keys['u']){
-        cam.zoom*=1.1;
+        cam.zoom*=1+(.1*deltaTime);
     }
     if (keys['y']){
-        cam.zoom/=1.1;
+        cam.zoom/=1+(.1*deltaTime);
     } 
     if (enemies.length===0){
         cam.x=0;
@@ -1526,10 +1630,10 @@ function rayCast1(start,otherPosition,checkBounding,enemyRoom){
         }
     }
 }
-function rayCast(start,otherPosition,checkBounding,enemyRoom){
+function rayCast(start,otherPosition,checkBounding,enemyRoomWalls){
     if (enemyRoom===undefined){
         for (trueEnemyRoom of enemyRooms){
-            return rayCast(start,otherPosition,trueEnemyRoom);
+            return rayCast(start,otherPosition,trueEnemyRoom.walls);
         }
     }else{
         let disMoved = findDis(start,otherPosition);
@@ -1542,7 +1646,7 @@ function rayCast(start,otherPosition,checkBounding,enemyRoom){
         for (i=0;i<timesToRepeat;i++){
             corner =  start;
             oldCorner = otherPosition;
-            for (wall of enemyRoom.walls){
+            for (wall of enemyRoomWalls){
                 if (!checkBounding||boundingBox(wall.first,wall.second,enemy,enemy.size+disMoved,enemy.size+disMoved)){
                     if (wall.first.y===wall.second.y){
                         yIntercept = wall.first.y;
@@ -1566,8 +1670,18 @@ function rayCast(start,otherPosition,checkBounding,enemyRoom){
 }
 function boxCollision(checkBounding){
     for(enemyRoom of enemyRooms){
+
+        let enemyRoomIndex = enemyRooms.findIndex((checkEnemyRoom)=>checkEnemyRoom===enemyRoom);
+        let wallsCheck = enemyRoom.walls;
+        if (enemyRoomIndex>0){
+            wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex-1].walls);
+        }
+        if (enemyRoomIndex<enemyRooms.length-1){
+            wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex+1].walls);
+        }
+
         for(enemy of enemyRoom.enemies){
-            let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,enemyRoom);
+            let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,wallsCheck);
             if (intersection!=undefined){
                 //addCircle(findMidPoint(intersection.first,intersection.second),'blue');
                 if (wall.first.y===wall.second.y){
@@ -1650,7 +1764,7 @@ function bulletWallCollision1(){
     for (enemyRoom of enemyRooms){
         let i=0;
         for (bullet of bullets){
-            let intersection = rayCast(bullet,bullet.lastPosition,false,enemyRoom);
+            let intersection = rayCast(bullet,bullet.lastPosition,false,enemyRoom.walls);
             if (intersection!=undefined){
                 if (bulletsAlreadyRemoved.findIndex((otherBullet)=>otherBullet===bullet)===-1){
                     bulletsAlreadyRemoved.push(bullet);
@@ -1773,9 +1887,46 @@ function bulletWallCollision(){
 }
 function enemyMovement(enemiesToRemove){
     let start = floorPoint(enemies[0],boxSize);
+    dashCooldown-=deltaTime;
     PFBoxes.push(new newPathBox(start.x,start.y,0,findHCost(start,enemies[0]),findHCost(start,enemies[0]),'end',true));
+
+    let roomChange=new newPoint(0,0);
+    let z = enemies[0].x%(roomWidth+(2*doorLength));
+    let u = (roomWidth+(2*doorLength))/(doorLength*2);
+    if (z>roomWidth/2){
+        z-=roomWidth+(2*doorLength);
+    }else if (z<-((2*doorLength)+(roomWidth/2))){
+        z-=roomWidth+(2*doorLength);
+    }
+    if (z<0&&z>=-doorLength){
+        roomChange.x--;
+    }else if(z<-doorLength&&z>-doorLength*2){
+        roomChange.x++;
+    }
+    
+    z = enemies[0].y%(roomHeight+(2*doorLength));
+    u = (roomHeight+(2*doorLength))/(doorLength*2);
+    if (z>roomHeight/2){
+        z-=roomHeight+(2*doorLength);
+    }else if (z<-((2*doorLength)+(roomHeight/2))){
+        z-=roomHeight+(2*doorLength);
+    }
+    if (z<0&&z>=-doorLength){
+        roomChange.y--;
+    }else if(z<-doorLength&&z>-doorLength*2){
+        roomChange.y++;
+    }
+
+    /*let enemyRoomIndex = enemyRooms.findIndex((checkEnemyRoom)=>checkEnemyRoom===enemyRoom);
+    let wallsCheck = enemyRoom.walls;
+    if (enemyRoomIndex>0){
+        wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex-1].walls);
+    }
+    if (enemyRoomIndex<enemyRooms.length-1){
+        wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex+1].walls);
+    }*/
     for (mainEnemyRoom of enemyRooms){
-        if(!isSamePoint(floorPoint(mainEnemyRoom,1),floorPoint(enemies[0].room,1))){
+        if(!isSamePoint(floorPoint(mainEnemyRoom,1),floorPoint(enemies[0].room,1))&&!isSamePoint(floorPoint(mainEnemyRoom,1),floorPoint(addTwoPoints(enemies[0].room,roomChange),1))){
             continue;
         }
         let enemyRoom =mainEnemyRoom.enemies;
@@ -1783,11 +1934,12 @@ function enemyMovement(enemiesToRemove){
             let enemy=enemyRoom[i];
             if(enemy.health<1){
                 let numMoney = Math.floor(Math.random()*mainEnemyRoom.difficulty)+1;
+                numMoney=0;
                 for (let i=0;i<numMoney;i++){
                     enemies.push(newEnemyPreset(addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10),16));
                     addToEnemyRooms(enemies[enemies.length-1]);
                 }
-                if (Math.random()>.5){
+                if (Math.random()<.8){
                     enemies.push(newEnemyPreset(enemy,7));
                     addToEnemyRooms(enemies[enemies.length-1]);
                 }
@@ -1804,7 +1956,7 @@ function enemyMovement(enemiesToRemove){
             }
             enemy.speed=enemy.targetSpeed*deltaTime;
             enemy.lastRoom=enemy.room;
-            enemy.lastPosition = new newPoint(enemy.x,enemy.y);
+            //enemy.lastPosition = new newPoint(enemy.x,enemy.y);
             enemy.room = new newPoint((enemy.x+doorLength)/(roomWidth+(doorLength*2)),(enemy.y+doorLength)/(roomHeight+(doorLength*2)));
             if (!isSamePoint(floorPoint(enemy.lastRoom,1),floorPoint(enemy.room,1))){
                 removeFromEnemyRooms(enemy);
@@ -1812,7 +1964,21 @@ function enemyMovement(enemiesToRemove){
             }
             let targetIndex = enemyRoom.findIndex((enemyCheck)=>enemyCheck===enemy.target)
             if ((targetIndex===-1)&&enemy.target!=enemies[0]&&enemy!=enemies[0]){
-                enemiesToRemove.push(enemy);
+                let closestEnemy=undefined;
+                closestDis=Infinity;
+                for (enemyCheck of enemyRoom){
+                    let currentDis = findDis(enemies[0],enemyCheck);
+                    if (enemyCheck.team!=enemy.team&&(enemyCheck!=enemy)&&(enemyCheck.PFType!=6)&&currentDis<closestDis){
+                        closestEnemy=enemyCheck;
+                        closestDis=currentDis;
+                    }
+                }
+                //let firstEnemy = enemyRoom.enemies.find((enemyCheck)=>(enemyCheck!=enemy)&&(enemyCheck.PFType!=6));
+                if (closestEnemy!=undefined){
+                    enemy.target=closestEnemy;
+                }else{
+                    enemiesToRemove.push(enemy);
+                }
             }
             if (enemy.PFType===0||enemy.PFType===4){
                 enemyAngle = findAngle(enemy,enemy.target);
@@ -1826,6 +1992,11 @@ function enemyMovement(enemiesToRemove){
                 }
                 let movementTarget = new newPoint(0,0);
                 if (dashFramesLeft>0){
+                    /*dashFramesLeft-=deltaTime;
+                    dashSpeed-=((10*deltaTime)-dashFramesLeft);
+                    enemy.x-=Math.sin(dashDirection)*dashSpeed*deltaTime;
+                    enemy.y-=Math.cos(dashDirection)*dashSpeed*deltaTime;
+                    console.log(findDis(enemy,enemy.lastPosition));*/
                     dashFramesLeft-=1;
                     dashSpeed-=(10-dashFramesLeft);
                     enemy.x-=Math.sin(dashDirection)*dashSpeed;
@@ -1851,9 +2022,10 @@ function enemyMovement(enemiesToRemove){
                     enemy.y-=Math.cos(movementAngle)*enemy.speed;
                 }
                 if (keysUsed[' ']){
-                    if (!isSamePoint(movementTarget,new newPoint(0,0))){
+                    if (!isSamePoint(movementTarget,new newPoint(0,0))&&dashCooldown<0){
                         dashSpeed = 60;
                         dashFramesLeft = 6;
+                        dashCooldown=maximumDashCoolDown;
                         dashDirection = findAngle(enemy.lastPosition,enemy);
                     }
                     keysUsed[' ']=false;
@@ -1862,10 +2034,14 @@ function enemyMovement(enemiesToRemove){
                 //let endBox = PFBoxes.find((box)=>)
             }else if(enemy.PFType===2){
 
-            }else if (enemy.PFType===3||enemy.PFType===5){
-                let intersection = rayCast(enemy,enemy.target,false,mainEnemyRoom);
+            }else if (enemy.PFType===3||enemy.PFType===5||enemy.PFType===17){
+                let intersection = rayCast(enemy,enemy.target,false,mainEnemyRoom.walls);
                 if (enemy.PFType===3&&intersection===undefined){
 
+                }else if (enemy.PFType===17&&intersection===undefined){
+                    enemyAngle = findAngle(enemy,enemy.target);
+                    enemy.x-=Math.sin(enemyAngle)*enemy.speed*1.5;
+                    enemy.y-=Math.cos(enemyAngle)*enemy.speed*1.5;
                 }else{
                     updatePFBoxes(enemy.target,enemy,mainEnemyRoom);
                     let lowestDistance = Infinity;
@@ -1881,7 +2057,7 @@ function enemyMovement(enemiesToRemove){
                         pathTarget=target;
                     }else{
                         if (lowestBox.parent==='end'){
-                            pathTarget=target;
+                            pathTarget=enemy.target;
                         }else{
                             pathTarget = addToPoint(lowestBox.parent,boxSize/2,boxSize/2);
                         }
@@ -1974,7 +2150,7 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
     if(enemy.gunCooldown<0){
         let intersection = undefined
         if (!skipRayCast){
-            intersection = rayCast(enemy,target,false,enemyRoom);
+            intersection = rayCast(enemy,target,false,enemyRoom.walls);
         }
         if (intersection===undefined){
             enemy.gunCooldown=enemy.gunCoolDownMax;
@@ -2054,12 +2230,16 @@ function enemyCollisionEffects(enemiesToRemove){
 function enemyCollision(enemiesToRemove){
     //enemies2 is the enemies in this room or should be processed
     for (mainEnemyRoom of enemyRooms){
-        if (!sameRoomPos(mainEnemyRoom,enemies[0].room)){
+        //this could be made faster by only checking loaded rooms near the player
+        /*if (!sameRoomPos(mainEnemyRoom,enemies[0].room)){
             continue
-        }
+        }*/
         let enemyRoom = mainEnemyRoom.enemies;
-        if (enemyRoom.length<3&&enemyRoom[0].size===0){
-            enemyRoom[0].size=30;
+        let firstEnemy = enemyRoom.find((enemy)=>enemy.PFType!=6&&enemy.PFType!=1);
+        if (firstEnemy===undefined&&enemyRoom.length>0){
+            if (enemyRoom[0].size===0){
+                enemyRoom[0].size=30;
+            }
         }
         for (enemy1 of enemyRoom){
             for (enemy2 of enemyRoom){
@@ -2203,7 +2383,7 @@ function gunEnemyMovement(target){
                     //mouseClickUsed=true;
                     aimGun(enemy,mouseShifted,'red',undefined,mainEnemyRoom,true);
                 }
-            }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3){
+            }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3||enemy.PFType===2||enemy.PFType===17){
                 aimGun(enemy,target,'blue',undefined,mainEnemyRoom,true);
             }
         }
@@ -2213,7 +2393,7 @@ function drawHUD(){
     const TEXT_SIZE = 30*screenSize;
     ctx.font=TEXT_SIZE+'px serif';
     ctx.fillStyle='black';
-    ctx.fillText('Money:'+money+'  Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-(TEXT_SIZE*20*screenSize),TEXT_SIZE*screenSize);
+    ctx.fillText(/*'Money:'+money+*/'  Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-(TEXT_SIZE*20*screenSize),TEXT_SIZE*screenSize);
     if (enemies[0].health===7&&enemies[0].maxHealth===11){
         ctx.fillText('SLUUURRRPEE',c.width-(TEXT_SIZE*9),TEXT_SIZE*2);
     }
@@ -2297,6 +2477,9 @@ function repeat(){
     if ((frameNum%30)===0){
         PFBoxes=[];
     }
+    for (enemy of enemies){
+        enemy.lastPosition=dupPoint(enemy);
+    }
     enemyMovement(enemiesToRemove);
     if (!keys['n']){
         fullEnemyWallColl();
@@ -2316,7 +2499,7 @@ function repeat(){
     }
     bulletEnemyCollision();
     //this bool says whether or not to follow the player
-    camControl(true,enemies[0],keysToggle['c']);
+    camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z']);
     //10 is added because if I didn't the mouse position would be slightly different from what it looks like
     mouseShifted = new newPoint(((mouse.x+10)/cam.zoom)+(cam.x),((mouse.y/cam.zoom)+cam.y));
     if (keysUsed['h']){
@@ -2476,7 +2659,7 @@ function repeat3(){
 let startTime = Date.now();
 //Example of a deep clone
 //let oldWalls = JSON.parse(JSON.stringify(walls))
-generateRooms(30,7);
+generateRooms(30,10);
 wallBoxes = generateWallBoxes(2,walls,wallBoxes);
 const targetFPS = 30;
 const targetRenderFPS = 30;

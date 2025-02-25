@@ -97,7 +97,7 @@ class newEnemy {
         this.target = target;
         let team=1;
         if (target===enemies[0]){
-            if (PFType===6){
+            if (PFType===6||PFType===14){
                 team=2;
             }
             if (PFType===1){
@@ -117,7 +117,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
     switch (PFType){
         case 0:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower),20,'pink',0,target,60,1+(enemyPower*3),'',function(touchedEnemy,thisEnemy,enemiesToRemove,alreadyRan){
-                if ((touchedEnemy.invinceable<1)&&(touchedEnemy===thisEnemy.target)){
+                if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     /*let enemyRoom = enemyRooms.find((room)=>sameRoomPos(room,turnIntoRoomPos(thisEnemy)));
                     console.log(enemyRoom);
                     enemyWallCollision(enemyRoom);
@@ -133,7 +133,13 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             });
         break
         case 1:
-            enemy =new newEnemy(pos.x,pos.y,10,20,'blue',1,target,30,5,'',undefined,1,1.5,1,15);
+            enemy =new newEnemy(pos.x,pos.y,10,20,'blue',1,target,30,5,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+                if (dashFramesLeft>0&&touchedEnemy.invinceable<1&&touchedEnemy.team!=thisEnemy.team){
+                    touchedEnemy.health--;
+                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+dashFramesLeft+1;
+                    touchedEnemy.color='red';
+                }
+            },1,1.5,1,15);
         break
         case 2:
             enemy = new newEnemy(pos.x,pos.y,0,20,'black',2,target,75-(enemyPower),2+(enemyPower/2),'');
@@ -246,6 +252,12 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 }
             });
         break
+        case 19:
+            enemy = new newEnemy(pos.x,pos.y,power,0,'#EE4B2B',6,target,Infinity,Infinity,'Reduce Dash Cooldown',function(touchedEnemy,thisEnemy,enemiesToRemove){
+                maximumDashCoolDown/=1.5;
+                enemiesToRemove.push(thisEnemy);
+            })
+        break
     }
     return enemy
 }
@@ -324,8 +336,12 @@ let editorSpawnPoints = [];
 let shop = new newPoint(Infinity,Infinity);
 let sheild = {
     angle:0,
-    width:100,
+    width:70,
     height:20,
+    color:'gray',
+    firstSide:null,
+    secondSide:null,
+    sheildStart:null
 };
 let PFBoxes = [];//path finding boxes
 let boxSize = 35;
@@ -339,6 +355,7 @@ let cam = {
     y:0,
     zoom:1
 }
+let screenShake=0;
 let screenSize=1;
 //cam.zoom=Math.min(c.height/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
 //cam.zoom=Math.min(window.innerHeight/((doorLength*2)+roomHeight),window.innerWidth/((doorLength*2)+roomWidth));
@@ -423,12 +440,16 @@ let wallsCopy = [];
 }*/
 //this is the player
 enemies.push(newEnemyPreset(new newPoint(roomWidth/2,roomHeight-200),1));
-let maximumDashCoolDown = 30;
+let maximumDashCoolDown = 20;
 let dashCooldown = 0;
 //enemies.push(new newEnemy(roomWidth/2,roomHeight,null,20,'brown',1,2,5));
 let camTarget = new newPoint(c.width/2,c.height/2);
 let collisionRepeat = 1;
 let lastMousePos = null;
+let knobs = ['bullet speed','enemy speed','enemy health','enemy size','bullet width','reload speed','num bullets in shot spread','bullet volley num','bullet damage','invincable time','slowing bullets','bullet range','pathfinding','homing bullets'];
+function findKnob(){
+    return knobs[Math.floor(Math.random()*knobs.length)]
+}
 function addToPoint(point,addX,addY){
     return new newPoint(point.x+addX,point.y+addY)
 }
@@ -604,10 +625,16 @@ function drawEnemies(cam){
                 message=enemy.label;
             }
             ctx.fillText(message,screenEnemyPos.x-(cam.zoom*((13*message.length)/2)),screenEnemyPos.y-(cam.zoom*40));
+            //this is drawing the sheild
             /*if (enemy===enemies[0]){
-                ctx.strokeStyle = 'blue';
+                ctx.save();
+                ctx.strokeStyle = sheild.color;
+                ctx.lineWidth = sheild.height;
                 ctx.beginPath();
-                ctx.moveTo(enemy.x+Math.sin(sheild.angle),enemy.y+Math.cos(angle));
+                ctx.moveTo(offSetByCam(sheild.secondSide).x,offSetByCam(sheild.secondSide).y);
+                ctx.lineTo(offSetByCam(sheild.firstSide).x,offSetByCam(sheild.firstSide).y);
+                ctx.stroke();
+                ctx.restore();
             }*/
             //this would draw a box/circle over the player that indicates their health or could be used to indicate reload time
             if (enemy===enemies[0]&&false){
@@ -885,7 +912,7 @@ function updatePFBoxes(startingPoint,actualTarget,enemyRoom){
     }
     quickSort(PFBoxes);
     let done = 0;
-    while (done<500){
+    while (done<200){
         done++
         /*if (findDis(target,start)>500){
             //If the target is far away, don"t even bother trying to navigate to it.
@@ -1144,7 +1171,7 @@ function shiftWallsBy(wallsList,x,y){
     return wallsList
 }
 let powerUpsSpawned = [];
-const eligiblePowerUps = [6,8,9,11,13];
+const eligiblePowerUps = [6,8,9,11,13,19];
 function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,difficulty){
     //let enemiesPerRoom = 0;
     //this makes a new list with a placeholder enemy that will always be in the room
@@ -1444,6 +1471,7 @@ function generateRooms(targetNumOfRooms,finalDifficulty){
         repeatedNum++;
         if (deadEnd&&numOfRooms<targetNumOfRooms&&repeatedNum<10000){
             //this still might not work and the maze might end early if it can't back out of a deadend
+            //this might be broken and triggering when it's not supposed to
             console.log('stepped in: '+numOfRooms);
             roomsToMake.splice(numOfDoors,1)[0];
             offLimitRooms.push(finishedRooms.pop());
@@ -1483,7 +1511,7 @@ function generateRooms(targetNumOfRooms,finalDifficulty){
     }
     //console.log(deadEnds);
 }
-function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScreen){
+function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScreen,screenShake){
     if (updateScreenSize){
         if (keepAspectRatio){
             const aspectRatio = 1400/750;
@@ -1555,6 +1583,11 @@ function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScr
             }
         }
     }
+    let shakeStrength = 5;
+    if (screenShake>0){
+        cam.x+=(Math.random()*shakeStrength*screenShake)-shakeStrength/2;
+        cam.y+=(Math.random()*shakeStrength*screenShake)-shakeStrength/2;
+    }
 }
 function isBetween(x1,x2,inBetween){
     if (x1===inBetween){
@@ -1576,10 +1609,55 @@ function isBetween(x1,x2,inBetween){
         }
     }
 }
+function rayCast(start,otherPosition,checkBounding,enemyRoomWalls,returnWall){
+    if (enemyRoomWalls===undefined){
+        for (trueEnemyRoom of enemyRooms){
+            return rayCast(start,otherPosition,trueEnemyRoom.walls);
+        }
+    }else{
+        let disMoved = findDis(start,otherPosition);
+        let playerSlope = (otherPosition.y-start.y)/(otherPosition.x-start.x);
+        let xIntercept = null;
+        let yIntercept = null;
+        let oldCorner = null;
+        let corner = null;
+        let timesToRepeat = 1;
+        for (i=0;i<timesToRepeat;i++){
+            corner =  start;
+            oldCorner = otherPosition;
+            for (wall of enemyRoomWalls){
+                if (!checkBounding||boundingBox(wall.first,wall.second,enemy,enemy.size+disMoved,enemy.size+disMoved)){
+                    if (wall.first.y===wall.second.y){
+                        yIntercept = wall.first.y;
+                        //The line is straight so it will always be wall.first.y
+                        xIntercept = ((yIntercept-corner.y)/playerSlope)+corner.x;
+                        if (isBetween(wall.first.x,wall.second.x,xIntercept)&&isBetween(corner.x,oldCorner.x,xIntercept)&&isBetween(corner.y,oldCorner.y,yIntercept)){
+                            if (returnWall){
+                                return wall
+                            }else{
+                                return new newPoint(xIntercept,yIntercept);
+                            }
+                        }
+                    }
+                    if (wall.first.x===wall.second.x){
+                        xIntercept = wall.first.x;
+                        yIntercept = ((xIntercept-corner.x)*playerSlope) +corner.y;
+                        if (isBetween(wall.first.y,wall.second.y,yIntercept)&&isBetween(corner.y,oldCorner.y,yIntercept)&&isBetween(corner.x,oldCorner.x,xIntercept)){
+                            if (returnWall){
+                                return wall
+                            }else{
+                                return new newPoint(xIntercept,yIntercept);
+                            }                        }
+                    }
+                }
+            }
+        }
+    }
+}
 function rayCast1(start,otherPosition,checkBounding,enemyRoom){
     if (enemyRoom===undefined){
         for (trueEnemyRoom of enemyRooms){
-            return rayCast(start,otherPosition,trueEnemyRoom);
+            return rayCast1(start,otherPosition,trueEnemyRoom);
         }
     }else{
         let disMoved = findDis(start,otherPosition);
@@ -1630,44 +1708,6 @@ function rayCast1(start,otherPosition,checkBounding,enemyRoom){
         }
     }
 }
-function rayCast(start,otherPosition,checkBounding,enemyRoomWalls){
-    if (enemyRoom===undefined){
-        for (trueEnemyRoom of enemyRooms){
-            return rayCast(start,otherPosition,trueEnemyRoom.walls);
-        }
-    }else{
-        let disMoved = findDis(start,otherPosition);
-        let playerSlope = (otherPosition.y-start.y)/(otherPosition.x-start.x);
-        let xIntercept = null;
-        let yIntercept = null;
-        let oldCorner = null;
-        let corner = null;
-        let timesToRepeat = 1;
-        for (i=0;i<timesToRepeat;i++){
-            corner =  start;
-            oldCorner = otherPosition;
-            for (wall of enemyRoomWalls){
-                if (!checkBounding||boundingBox(wall.first,wall.second,enemy,enemy.size+disMoved,enemy.size+disMoved)){
-                    if (wall.first.y===wall.second.y){
-                        yIntercept = wall.first.y;
-                        //The line is straight so it will always be wall.first.y
-                        xIntercept = ((yIntercept-corner.y)/playerSlope)+corner.x;
-                        if (isBetween(wall.first.x,wall.second.x,xIntercept)&&isBetween(corner.x,oldCorner.x,xIntercept)&&isBetween(corner.y,oldCorner.y,yIntercept)){
-                            return wall
-                        }
-                    }
-                    if (wall.first.x===wall.second.x){
-                        xIntercept = wall.first.x;
-                        yIntercept = ((xIntercept-corner.x)*playerSlope) +corner.y;
-                        if (isBetween(wall.first.y,wall.second.y,yIntercept)&&isBetween(corner.y,oldCorner.y,yIntercept)&&isBetween(corner.x,oldCorner.x,xIntercept)){
-                            return wall
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 function boxCollision(checkBounding){
     for(enemyRoom of enemyRooms){
 
@@ -1681,7 +1721,7 @@ function boxCollision(checkBounding){
         }
 
         for(enemy of enemyRoom.enemies){
-            let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,wallsCheck);
+            let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,wallsCheck,true);
             if (intersection!=undefined){
                 //addCircle(findMidPoint(intersection.first,intersection.second),'blue');
                 if (wall.first.y===wall.second.y){
@@ -1885,6 +1925,11 @@ function bulletWallCollision(){
         }
     }
 }
+function makeSheildSides(sheild){
+    sheild.firstSide = addToPoint(sheild.sheildStart,Math.sin(sheild.angle+Math.PI/2)*sheild.width/2,Math.cos(sheild.angle+Math.PI/2)*sheild.width/2);
+    sheild.secondSide = subtractFromPoint(sheild.sheildStart,new newPoint(Math.sin(sheild.angle+Math.PI/2)*sheild.width/2,Math.cos(sheild.angle+Math.PI/2)*sheild.width/2));
+    return sheild
+}
 function enemyMovement(enemiesToRemove){
     let start = floorPoint(enemies[0],boxSize);
     dashCooldown-=deltaTime;
@@ -1985,6 +2030,20 @@ function enemyMovement(enemiesToRemove){
                 enemy.x-=Math.sin(enemyAngle)*enemy.speed;
                 enemy.y-=Math.cos(enemyAngle)*enemy.speed;
             }else if (enemy.PFType===1){
+                if (keysUsed['t']){
+                    //use at your own risk, may remove enemies from the list so it might eventually remove the player
+                    keysUsed['t']=false;
+                    enemyRoomIndex=0;
+                    while(!sameRoomPos(enemyRooms[enemyRoomIndex],enemy.room)){
+                        let enemyRoomEnemies = enemyRooms[enemyRoomIndex].enemies;
+                        if (enemyRoomEnemies.length>0){
+                            if (enemyRoomEnemies[0].team===2){
+                                enemyRoomEnemies[0].effect(enemy,enemyRoomEnemies[0],enemiesToRemove);
+                            }
+                        }
+                        enemyRoomIndex++;
+                    }
+                }
                 //this does the oppisite of finding the room, it takes a room and turns it into a real cordinate
                 shop = addToPoint(subtractNumFromPoint(multiplyPoints(floorPoint(enemy.room,1),new newPoint(roomWidth+(doorLength*2),roomHeight+(doorLength*2))),doorLength),200,300);
                 if (keysToggle['b']){
@@ -1997,6 +2056,8 @@ function enemyMovement(enemiesToRemove){
                     enemy.x-=Math.sin(dashDirection)*dashSpeed*deltaTime;
                     enemy.y-=Math.cos(dashDirection)*dashSpeed*deltaTime;
                     console.log(findDis(enemy,enemy.lastPosition));*/
+                    //this makes you invincable whan you dash
+                    enemy.invinceable=dashFramesLeft;
                     dashFramesLeft-=1;
                     dashSpeed-=(10-dashFramesLeft);
                     enemy.x-=Math.sin(dashDirection)*dashSpeed;
@@ -2021,12 +2082,46 @@ function enemyMovement(enemiesToRemove){
                     enemy.x-=Math.sin(movementAngle)*enemy.speed;
                     enemy.y-=Math.cos(movementAngle)*enemy.speed;
                 }
-                if (keysUsed[' ']){
-                    if (!isSamePoint(movementTarget,new newPoint(0,0))&&dashCooldown<0){
+                if (!isSamePoint(new newPoint(0,0),movementTarget)){
+                    //sheild.angle=movementAngle+Math.PI;
+                }
+                /*sheild.angle=findAngle(enemy,mouseShifted)+Math.PI;
+                sheild.sheildStart = addToPoint(enemy,Math.sin(sheild.angle)*50,Math.cos(sheild.angle)*50);
+                makeSheildSides(sheild);
+                //sheild.firstSide = addToPoint(sheild.sheildStart,Math.sin(sheild.angle+Math.PI/2)*sheild.width/2,Math.cos(sheild.angle+Math.PI/2)*sheild.width/2);
+                //sheild.secondSide = subtractFromPoint(sheild.sheildStart,new newPoint(Math.sin(sheild.angle+Math.PI/2)*sheild.width/2,Math.cos(sheild.angle+Math.PI/2)*sheild.width/2));
+                let firstIntersection = rayCast(enemy.lastPosition,sheild.firstSide,false,mainEnemyRoom.walls);
+                let secondIntersection = rayCast(enemy.lastPosition,sheild.secondSide,false,mainEnemyRoom.walls);
+                if (firstIntersection!=undefined&&secondIntersection!=undefined){
+                    sheild.color='yellow';
+                    sheild.sheildStart=findMidPoint(firstIntersection,secondIntersection);
+                    makeSheildSides(sheild);
+                }else{
+                    if (firstIntersection!=undefined){
+                        sheild.color='green';
+                        sheild.firstSide=firstIntersection;
+                        sheild.secondSide = subtractFromPoint(sheild.firstSide,new newPoint(Math.sin(sheild.angle+Math.PI/2)*sheild.width,Math.cos(sheild.angle+Math.PI/2)*sheild.width));
+                    }else if (secondIntersection!=undefined){
+                        sheild.color='red';
+                        sheild.secondSide=secondIntersection;
+                        sheild.firstSide = addToPoint(sheild.secondSide,Math.sin(sheild.angle+Math.PI/2)*sheild.width,Math.cos(sheild.angle+Math.PI/2)*sheild.width);
+                    }else{
+                        sheild.color='grey';
+                    }
+                }
+                let intersection = rayCast(sheild.secondSide,sheild.firstSide,false,mainEnemyRoom.walls,false);*/
+                keysToggle['e']=false;
+                if (keysUsed[' ']||(keysToggle['e']&&mousePressed)){
+                    if ((!isSamePoint(movementTarget,new newPoint(0,0))||(keysToggle['e']&&mousePressed))&&dashCooldown<0){
+                        screenShake+=3;
                         dashSpeed = 60;
                         dashFramesLeft = 6;
                         dashCooldown=maximumDashCoolDown;
-                        dashDirection = findAngle(enemy.lastPosition,enemy);
+                        if ((!keysToggle['e'])||true){
+                            dashDirection = movementAngle;
+                        }else{
+                            dashDirection = findAngle(mouseShifted,enemy)+Math.PI;
+                        }
                     }
                     keysUsed[' ']=false;
                 }
@@ -2054,7 +2149,7 @@ function enemyMovement(enemiesToRemove){
                         }
                     }
                     if (lowestBox===null){
-                        pathTarget=target;
+                        pathTarget=enemy.target;
                     }else{
                         if (lowestBox.parent==='end'){
                             pathTarget=enemy.target;
@@ -2069,10 +2164,10 @@ function enemyMovement(enemiesToRemove){
                     
                     //theoretically checking the distance makes sure we are only moving to ones near us, but it also causes new bugs
                     //if (findDis(pathTarget,enemy)<(boxSize*2)||keys['j']){
-                        if (Math.abs(pathTarget.x-enemy.x)<enemies[0].speed){
+                        if (Math.abs(pathTarget.x-enemy.x)<enemy.speed){
                             enemy.x = pathTarget.x;
                         }
-                        if (Math.abs(pathTarget.y-enemy.y)<enemies[0].speed){
+                        if (Math.abs(pathTarget.y-enemy.y)<enemy.speed){
                             enemy.y = pathTarget.y;
                         }
                         let yDis = pathTarget.y-enemy.y;
@@ -2093,7 +2188,7 @@ function enemyMovement(enemiesToRemove){
                             }else{
                                 console.log('help I cant move');
                             }
-                        } else if (Math.abs(yDis)<=Math.abs(xDis)){
+                        } else /*if (Math.abs(yDis)<=Math.abs(xDis))*/{
                             if(yDis<0){
                                 enemy.y-=enemy.speed;
                             }else if(yDis>0){
@@ -2105,8 +2200,6 @@ function enemyMovement(enemiesToRemove){
                             }else{
                                 console.log('help I cant move even more');
                             }
-                        }else{
-                            console.log('help')
                         }
                     //}
                 }
@@ -2148,18 +2241,19 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
         overPowered=0;
     }
     if(enemy.gunCooldown<0){
+        screenShake+=3 +(enemy.bulletSpreadNum/5);
         let intersection = undefined
         if (!skipRayCast){
             intersection = rayCast(enemy,target,false,enemyRoom.walls);
         }
         if (intersection===undefined){
             enemy.gunCooldown=enemy.gunCoolDownMax;
-            if (enemy===enemies[0]&&keysToggle['q']){
+            if (enemy===enemies[0]&&keysToggle['q']&&false){
                 let closestEnemy=undefined;
                 closestDis=Infinity;
                 for (enemyCheck of enemyRoom.enemies){
                     let currentDis = findDis(target,enemyCheck);
-                    if (enemyCheck.team!=enemy.team&&(enemyCheck!=enemy)&&(enemyCheck.PFType!=6)&&currentDis<closestDis){
+                    if (enemyCheck.team!=enemy.team&&(enemyCheck!=enemy)&&(enemyCheck.team!=2)&&currentDis<closestDis){
                         closestEnemy=enemyCheck;
                         closestDis=currentDis;
                     }
@@ -2215,7 +2309,7 @@ function enemyCollisionEffects(enemiesToRemove){
                 }
                 if (enemy1!=enemy2){
                     let enemyDis = findDis(enemy1,enemy2);
-                    if (enemyDis<=enemy1.size+enemy2.size){
+                    if ((enemyDis<enemy1.size+enemy2.size)&&(rayCast(enemy1,enemy2,false,mainEnemyRoom.walls,false)===undefined)){
                         enemy1.effect(enemy2,enemy1,enemiesToRemove);
                         enemy2.effect(enemy1,enemy2,enemiesToRemove);
                     }else if (enemy.PFType===6&&enemyDis<=Math.max(enemy1.size,20)+Math.max(enemy2.size,20)){
@@ -2317,40 +2411,59 @@ function moveBullets(){
         }
     }
 }
-function bulletColl(enemy,bullet){
-    //the PFType checks that the enemy isn't an upgrade
-    //let enemyIndex = enemies.findIndex((enemyCheck)=>enemyCheck===enemy);
-    //let bulletOwnerIndex = enemies.findIndex((enemyCheck)=>enemyCheck===bullet.owner);
-    if (enemy!=bullet.owner&&(enemy.team!=2)){
-        bullet.enemiesLeft--;
-        if (enemy.invinceable<1&&bullet.owner.team!=enemy.team){
-            enemy.health--;
-            enemy.invinceable=enemy.maximumInvinceable;
-            enemy.color='red';
+function singleBulletEnemyCollision(bullet){
+    //bullet.room = new newPoint((bullet.x+doorLength)/(roomWidth+(doorLength*2)),(bullet.y+doorLength)/(roomHeight+(doorLength*2)));
+    for (let i = 0;i<enemies.length-1;i++){
+        let enemy = enemies[i];
+        //this rotates the creature to be aligned with the bullet which is a rotated rectangle.
+        let rotatedPoint = addToPoint(bullet,Math.sin(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet),Math.cos(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet))
+        //Now the bullet can be desrcibed in relation to rotatedPoint as a axis aligned bounding box
+        let topLeft = new newPoint(bullet.x-bullet.visualWidth/2,bullet.y-bullet.tailLength);
+        let bottomRight = new newPoint(bullet.x+bullet.visualWidth/2,bullet.y);
+        let closestPoint = new newPoint(Math.max(topLeft.x,Math.min(rotatedPoint.x,bottomRight.x)),Math.max(topLeft.y,Math.min(rotatedPoint.y,bottomRight.y)));
+        if (findDis(closestPoint,rotatedPoint)<enemy.size){
+            return enemy
+        }else if (bullet.maximumTime!=bullet.timeLeft+1){
+            //If it isn't the first frame after the bullet spawning, then the bullet will check if it went through anyboby.
+            topLeft.y -= bullet.speed;
+            closestPoint = new newPoint(Math.max(topLeft.x,Math.min(rotatedPoint.x,bottomRight.x)),Math.max(topLeft.y,Math.min(rotatedPoint.y,bottomRight.y)));
+            if (findDis(closestPoint,rotatedPoint)<enemy.size){
+                return enemy
+            }
         }
     }
 }
 function bulletEnemyCollision(){
     for (bullet of bullets){
-        bullet.room = new newPoint((bullet.x+doorLength)/(roomWidth+(doorLength*2)),(bullet.y+doorLength)/(roomHeight+(doorLength*2)));
-        for (let i = 0;i<enemies.length;i++){
-            let enemy = enemies[i];
-            //this rotates the creature to be aligned with the bullet which is a rotated rectangle.
-            let rotatedPoint = addToPoint(bullet,Math.sin(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet),Math.cos(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet))
-            //Now the bullet can be desrcibed in relation to rotatedPoint as a axis aligned bounding box
-            let topLeft = new newPoint(bullet.x-bullet.visualWidth/2,bullet.y-bullet.tailLength);
-            let bottomRight = new newPoint(bullet.x+bullet.visualWidth/2,bullet.y);
-            let closestPoint = new newPoint(Math.max(topLeft.x,Math.min(rotatedPoint.x,bottomRight.x)),Math.max(topLeft.y,Math.min(rotatedPoint.y,bottomRight.y)));
-            if (findDis(closestPoint,rotatedPoint)<enemy.size){
-                bulletColl(enemy,bullet);
-            }else if (bullet.maximumTime!=bullet.timeLeft+1){
-                //If it isn't the first frame after the bullet spawning, then the bullet will check if it went through anyboby.
-                topLeft.y -= bullet.speed;
-                closestPoint = new newPoint(Math.max(topLeft.x,Math.min(rotatedPoint.x,bottomRight.x)),Math.max(topLeft.y,Math.min(rotatedPoint.y,bottomRight.y)));
-                if (findDis(closestPoint,rotatedPoint)<enemy.size){
-                    //runs the code above again
-                    bulletColl(enemy,bullet);
+        let enemy = singleBulletEnemyCollision(bullet);
+        //the PFType checks that the enemy isn't an upgrade
+        //let enemyIndex = enemies.findIndex((enemyCheck)=>enemyCheck===enemy);
+        //let bulletOwnerIndex = enemies.findIndex((enemyCheck)=>enemyCheck===bullet.owner);
+        if (enemy!=undefined){
+            if (enemy!=bullet.owner&&(enemy.team!=2)){
+                bullet.enemiesLeft--;
+                if (enemy.invinceable<1&&bullet.owner.team!=enemy.team){
+                    screenShake+=2;
+                    enemy.health--;
+                    enemy.invinceable=enemy.maximumInvinceable;
+                    //this is a placeholder way to make it obvious the enemy was hit
+                    enemy.color='red';
                 }
+            }
+        }
+    }
+}
+function sheildEnemyCollision(){
+    sheildBullet = new newBullet(sheild.firstSide.x,sheild.firstSide.y,0,sheild.angle+Math.PI/2,sheild.color,sheild.width,sheild.height,0,30,Infinity,undefined,enemies[0])
+    let enemy = singleBulletEnemyCollision(sheildBullet);
+    if (enemy!=undefined){
+        if (enemy!=sheildBullet.owner&&(enemy.team!=2)){
+            sheildBullet.enemiesLeft--;
+            if (enemy.invinceable<1&&sheildBullet.owner.team!=enemy.team&&dashFramesLeft>0){
+                enemy.health--;
+                enemy.invinceable=enemy.maximumInvinceable;
+                //this is a placeholder way to make it obvious the enemy was hit
+                enemy.color='red';
             }
         }
     }
@@ -2379,7 +2492,7 @@ function gunEnemyMovement(target){
             if (enemy.PFType===1){
                 if (keys['v']){
                     aimGun(enemy,mouseShifted,'red',62*(1/enemy.shotSpread),mainEnemyRoom,true);
-                }else if (mousePressed){
+                }else if (mousePressed&&!keysToggle['e']){
                     //mouseClickUsed=true;
                     aimGun(enemy,mouseShifted,'red',undefined,mainEnemyRoom,true);
                 }
@@ -2466,9 +2579,13 @@ function renderEverything(skipPlayers,camera){
     drawHUD();
 }
 let frameNum = 0;
+let enemiesToRemove = [];
 function repeat(){
     frameNum++;
-    let enemiesToRemove = [];
+    if (screenShake>0){ 
+        screenShake-=deltaTime;
+    }
+    enemiesToRemove=[];
     if (keysToggle['l']){
         enemies[0].health++;
     }
@@ -2484,10 +2601,10 @@ function repeat(){
     if (!keys['n']){
         fullEnemyWallColl();
         for (let i = 0; i<1; i++){
+            enemyCollisionEffects(enemiesToRemove);
             enemyCollision(enemiesToRemove);
         }
         fullEnemyWallColl();
-        enemyCollisionEffects(enemiesToRemove);
     }
     gunEnemyMovement(enemies[0]);
     if (!keys['n']){
@@ -2498,8 +2615,12 @@ function repeat(){
         enemies.splice(enemies.findIndex((passed)=>passed===enemyToRemove),1);
     }
     bulletEnemyCollision();
+    //sheildEnemyCollision();
     //this bool says whether or not to follow the player
-    camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z']);
+    if (screenShake>25){
+        screenShake=25;
+    }
+    camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z'],screenShake);
     //10 is added because if I didn't the mouse position would be slightly different from what it looks like
     mouseShifted = new newPoint(((mouse.x+10)/cam.zoom)+(cam.x),((mouse.y/cam.zoom)+cam.y));
     if (keysUsed['h']){

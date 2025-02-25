@@ -7,14 +7,11 @@ variable bullet range
 
 totorial and how well you do changes the difficulty for the rest of the game
 Maybe how you're doing in the game changes the difficulty
-add dash cooldown
 more health for all enemies (espicially the normal pathfinding ones)
 walls so you can't advance without killing everything
 enemy that runs away
 limit on speed upgrades
-Boss is too abrupt so boss rooms need walls
 
-suicide bomber (high speed, low health)
 variable bullet speed on player and enemies
 Shop
 Dash doesn't scale with speed
@@ -34,7 +31,18 @@ Despawn animation on summoned enemy should look better
 Bullets should have effects (like enemies)
 Maybe you don't have to run to the center of the room to grab the upgrade somehow
 change the level when you come in from the right and leftto have easier pathways so it doesn't lag as much
-boss is really hard with 10 max diff (I may have fixed it but playtesting is needed)
+boss is really hard with 10 max diff
+bullets don't hurt boss?
 buff green enemy speed
 cheese kill boss on wall (bullets dissappear on frame 1 and miss you)
 fix dash on different frame rates
+upgrade that makes any enemy you kill go onto your team (maybe only a chance of happening)
+enemy with sheild that needs line of sight to turn the sheild (meant to encourage flanking)(enemy can't itself shoot)
+enemies (espically boss)show how much health they have left?
+screen shake
+freeze when you shoot or get hit or hit an enemy
+audio
+
+Upgrade could be a really good enemy teammate
+One could be a healer that sits back and throws healing potions at you
+Maybe you can still summon weaker enemies with a botton press but they're a limit or thet don't stay with you

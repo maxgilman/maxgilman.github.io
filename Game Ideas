@@ -7,42 +7,57 @@ variable bullet range
 
 totorial and how well you do changes the difficulty for the rest of the game
 Maybe how you're doing in the game changes the difficulty
-more health for all enemies (espicially the normal pathfinding ones)
-walls so you can't advance without killing everything
 enemy that runs away
 limit on speed upgrades
 
-variable bullet speed on player and enemies
 Shop
 Dash doesn't scale with speed
-Something at the end after you beat the boss like "you won" or stats screen
-homing bullets, their homing strength could be upgradeable
-Bombs as another pillar style
-r should restart the game
+Stats after you beat the final boss
 Upgrades feel more material (you suck up the upgrade?)
 Better graphics
-Add shield (hitting enemies heals the sheild)
-Choice of upgrade between the main upgrade catagories
-Show how enemies move defferently?
+Choice of upgrade? between the main upgrade catagories
+Show how enemies move differently?
 Knockback on your shots upgrade
 Make AI miss (test with more playtesting to see if this is needed)
 Shooting stuns the enemies
-Despawn animation on summoned enemy should look better
 Bullets should have effects (like enemies)
 Maybe you don't have to run to the center of the room to grab the upgrade somehow
-change the level when you come in from the right and leftto have easier pathways so it doesn't lag as much
-boss is really hard with 10 max diff
-bullets don't hurt boss?
-buff green enemy speed
-cheese kill boss on wall (bullets dissappear on frame 1 and miss you)
+cheese kill boss on wall (bullets dissappear on frame 1 and miss you)(can happen to other enemies too)
 fix dash on different frame rates
-upgrade that makes any enemy you kill go onto your team (maybe only a chance of happening)
 enemy with sheild that needs line of sight to turn the sheild (meant to encourage flanking)(enemy can't itself shoot)
 enemies (espically boss)show how much health they have left?
-screen shake
-freeze when you shoot or get hit or hit an enemy
+screen freeze when you shoot or get hit or hit an enemy(to emphasize the impact)
 audio
+power up shows up on you and you don't see what it is(make it take time before you can pick it up)
+bullets that are never visible shake the screen (maybe give more of an indicator that the enemy actually shot it)(particles?)
+enemies have more health but no visual indicator that they have more health
+when you dash backwards into a wall and shoot the bullet dissapears on frame one
+multiple enemies spawning at the same spawner(bad?)
+boss needs more depth(and it's too easy)
+when an enemy dies it should spew out lots of particles(blood)
+particle when a bullet hits anything
+upgarde that makes more health things drop(might not work because it's needed at the beginning when you don't have it, but not at the end when you do have it)(maybe remove invincability frames so people take more damage in endgame?)
+upgrade that lets you suck up tiny upgrades
+Set up bulletwallcollision with enemyrooms so it only checks the needed walls, not every wall
+add an image of the weapon on the weapon select screen
+boss should have a more unique reward
+make better pathfinding that doesn't generate the boxes every time, it uses a preset web
+limit on gun reload upgrades?
+
+sniper have unique upgrade where every enemy you pierce makes it do more damage(encourages lining up enemies to snipe em all at once)
+
+different weapons like shotgun and sniper and grenade laucher and machine gun and magic staff?
+magic staff (lighting(chains between enemies), explosives, metal(bullets),water(knockback))
+water shoots you back(like the dash)(maybe you charge up a big ball of water)
+choice of weapon at beginning of run(upgrade could repersent the weapon and make the other options dissapear)
+homing bullets, their homing strength could be upgradeable
+Bombs as another pillar style
 
 Upgrade could be a really good enemy teammate
 One could be a healer that sits back and throws healing potions at you
 Maybe you can still summon weaker enemies with a botton press but they're a limit or thet don't stay with you
+control two guys and they both respond to your bottom presses, have to navigate them through a maze
+Despawn animation on summoned enemy should look better
+upgrade that makes any enemy you kill go onto your team (maybe only a chance of happening)
+
+Add shield (hitting enemies heals the sheild)

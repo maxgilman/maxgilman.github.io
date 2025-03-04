@@ -47,7 +47,7 @@ class newPathBox {
     }
 }
 class newEnemy {
-    constructor(x,y,speed,size,color,PFType,target,gunCoolDownMax,health,label,effect,bulletSpreadNum,shotSpread,bulletKillPower,maximumInvinceable,bulletLength,bulletRange,damage,bulletSpeed){
+    constructor(x,y,speed,size,color,PFType,target,gunCoolDownMax,health,label,effect,bulletSpreadNum,shotSpread,bulletKillPower,maximumInvinceable,bulletLength,bulletRange,damage,bulletSpeed,accuracy){
         this.x=x;
         this.y=y;
         this.speed=speed;
@@ -123,6 +123,11 @@ class newEnemy {
             bulletSpeed=30;
         }
         this.bulletSpeed=bulletSpeed;
+        //higher is less accurate
+        if (accuracy===undefined){
+            accuracy=0;
+        }
+        this.accuracy=accuracy
     }
 }
 function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
@@ -204,7 +209,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             })
         break
         case 8:
-            enemy = new newEnemy(pos.x,pos.y,power,0,'gray',6,target,Infinity,Infinity,'Reduces Gun Cooldown',function(touchedEnemy,thisEnemy,enemiesToRemove){
+            enemy = new newEnemy(pos.x,pos.y,power,0,'gray',6,target,Infinity,Infinity,'Increases Firing Speed',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 screenShake=20;
                 if (thisEnemy.targetSpeed===1){
                     touchedEnemy.gunCoolDownMax/=1.25;
@@ -407,7 +412,7 @@ let cam = {
     y:0,
     zoom:1
 }
-let devMode = false;
+let devMode = true;
 let screenShake=0;
 let screenSize=1;
 let weaponChoice=0;
@@ -465,6 +470,7 @@ let circlesToDraw = [];
 let bullets = [];
 let changePlayerColor = false;
 let mode =7;
+//this is outdated
 /*modes:
 0:normal gameplay
 1:The game is paused and goes by 1 full frame at a time
@@ -485,15 +491,22 @@ let mode =7;
 let enemies = [];
 let enemyRooms = [];
 let wallsCopy = [];
-/*let player = {
-    x:roomWidth/2,
-    y:roomHeight,
-    speed:null,
-    size:20,
-    color:'brown',
-}*/
 //this is the player
 enemies.push(newEnemyPreset(new newPoint(roomWidth/2,roomHeight-200),1));
+let playerImages = {
+    back:new Image(),
+    front:new Image(),
+    left:new Image(),
+    right:new Image(),
+    imagesList:null,
+}
+playerImages.front.src = 'Player_test_forward.png'
+playerImages.right.src = 'Player_test_right.png'
+playerImages.left.src = 'Player_test_left.png'
+playerImages.back.src = 'Player_test_back.png'
+let bulletImage=new Image();
+bulletImage.src='Bullet_test.png';
+playerImages.imagesList=[playerImages.front,playerImages.right,playerImages.back,playerImages.left];
 let maximumDashCoolDown = 20;
 let dashCooldown = 0;
 //enemies.push(new newEnemy(roomWidth/2,roomHeight,null,20,'brown',1,2,5));
@@ -611,13 +624,6 @@ function offSetByCam(point,passedCam){
     }
     return new newPoint((point.x-cam.x)*cam.zoom,(point.y-cam.y)*cam.zoom)
 }
-function drawPic(x,y,xScale,yScale,image1){
-    base_image = new Image();
-    base_image.src = image1;
-    base_image.onload = function(){
-      ctx.drawImage(base_image, x, y,xScale,yScale);
-    }
-}
 function wait(timeMs){
     let startTime = Date.now();
     while((startTime+timeMs)<Date.now){
@@ -641,18 +647,29 @@ function addToEnemyRooms(enemy){
         enemyRoom.enemies.push(enemy);
     }
 }
-smileImage = new Image();
-smileImage.src = 'smile.png';
 function drawEnemies(cam){
     for (enemyRoom of enemyRooms){
         let enemyNum = 0;
         for (enemy of enemyRoom.enemies){
-            ctx.beginPath();
             let screenEnemyPos = offSetByCam(enemy);
-            ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);
-            ctx.fillStyle = enemy.color;
-            ctx.fill();
-            ctx.stroke();
+            if (enemy===enemies[0]){
+                let movementDirection = findAngle(enemy,enemy.lastPosition);
+                movementDirection/=Math.PI*2;
+                if (movementDirection<0){
+                    movementDirection+=1;
+                }
+                //now movement direction is between 0 and 1
+                movementDirection=Math.floor(movementDirection*4);
+                let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size-18));
+                //the height has 6 added because of the drop shadow which adds 6 pixels to the height
+                ctx.drawImage(playerImages.imagesList[movementDirection],imagePos.x,imagePos.y,enemy.size*cam.zoom*2,(enemy.size+6)*cam.zoom*2);
+            }else{
+                ctx.beginPath();
+                ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);
+                ctx.fillStyle = enemy.color;
+                ctx.fill();
+                ctx.stroke();
+            }
             
             //draws a line between lastpos and current pos
             /*ctx.beginPath();
@@ -660,7 +677,6 @@ function drawEnemies(cam){
             ctx.lineTo(offSetByCam(enemy).x,offSetByCam(enemy).y);
             ctx.strokeStyle='black';
             ctx.stroke();*/
-            //ctx.drawImage(smileImage,screenEnemyPos.x-(cam.zoom*enemy.size),screenEnemyPos.y-(cam.zoom*enemy.size),enemy.size*2,enemy.size*2);
             if (keysToggle['i']&&devMode){
                 ctx.fillStyle='black';
                 ctx.font = enemy.size*2*cam.zoom+'px serif';
@@ -726,12 +742,30 @@ function findMidPoint(point1,point2){
 function drawWalls(cam,draw3d){
     let i = 0;
     for (enemyRoom of enemyRooms){
-        if (enemyRoom.useExtraWalls){
+        if (enemyRoom.useExtraWalls===1){
             for (wall of enemyRoom.extraWalls){
-                ctx.beginPath();
-                ctx.moveTo(((wall.first.x-cam.x)*cam.zoom),(wall.first.y-cam.y)*cam.zoom);
-                ctx.lineTo((wall.second.x-cam.x)*cam.zoom,(wall.second.y-cam.y)*cam.zoom);
-                ctx.stroke();
+                if (!draw3d){
+                    ctx.beginPath();
+                    ctx.moveTo(((wall.first.x-cam.x)*cam.zoom),(wall.first.y-cam.y)*cam.zoom);
+                    ctx.lineTo((wall.second.x-cam.x)*cam.zoom,(wall.second.y-cam.y)*cam.zoom);
+                    ctx.stroke();
+                }else{
+                    let newFirst = acountForZ(wall.first,47);
+                    let newSecond = acountForZ(wall.second,47);
+                    let newFirst2 = acountForZ(wall.first,53);
+                    let newSecond2 = acountForZ(wall.second,53);
+                    ctx.beginPath();
+                    ctx.moveTo(newFirst.x,newFirst.y);
+                    ctx.lineTo(newSecond.x,newSecond.y);
+                    ctx.moveTo(newFirst2.x,newFirst2.y);
+                    ctx.lineTo(newSecond2.x,newSecond2.y);
+            
+                    ctx.moveTo(newFirst.x,newFirst.y);
+                    ctx.lineTo(newFirst2.x,newFirst2.y);
+                    ctx.moveTo(newSecond.x,newSecond.y);
+                    ctx.lineTo(newSecond2.x,newSecond2.y);
+                    ctx.stroke();
+                }
             }
         }
         for (wall of enemyRoom.walls){
@@ -790,12 +824,14 @@ function enemyWallCollision(enemyRoom){
             wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex+1].walls);
             enemiesCheck = enemiesCheck.concat(enemyRooms[enemyRoomIndex+1].enemies);
         }
-        if (enemyRoom.useExtraWalls){
-            wallsCheck=wallsCheck.concat(enemyRoom.extraWalls);
-        }
-        for (enemy of enemiesCheck){
+        let extraWallsCheck = wallsCheck.concat(enemyRoom.extraWalls);
+        for(enemy of enemyRoom.enemies){
+            let thisWallsCheck = extraWallsCheck;
+            if (enemy===enemies[0]&&enemyRoom.useExtraWalls!=1){
+                thisWallsCheck=wallsCheck;
+            }
             for (let i=0;i<2;i++){
-                for (wall of wallsCheck){
+                for (wall of thisWallsCheck){
                     let boundingPassed = false;
                     //this makes it so it checks each x or y movement individualy (kind of)
                     if (i===0){
@@ -1271,7 +1307,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     let room = enemyRoom.walls;
     enemyRoom.extraWalls = [];
     let extraWalls=enemyRoom.extraWalls;
-    enemyRoom.useExtraWalls=false;
+    enemyRoom.useExtraWalls=0;
     for(spawnPoint of roomOption.spawnPoints){
         editorSpawnPoints.push(addToPoint(spawnPoint,roomPos.x,roomPos.y));
     }
@@ -1295,6 +1331,17 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
             if (powerUpToRemove!=-1){
                 currentPowerUpOptions.splice(powerUpToRemove,1);
             }
+        }
+        let numOfbulletSpeed = 0;
+        for(i = 0; i < powerUpsSpawned.length; i++){
+            if(powerUpsSpawned[i] === 20){
+                numOfbulletSpeed++;
+            }
+        }
+        if (numOfbulletSpeed>=4){
+            //this removes the bullet speed upgrade when the bullets might pass through an enemy without hitting
+            powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===20);
+            currentPowerUpOptions.splice(powerUpToRemove,1);
         }
         let numOfDashPowerUps = 0;
         for(i = 0; i < powerUpsSpawned.length; i++){
@@ -1824,11 +1871,13 @@ function boxCollision(checkBounding){
         if (enemyRoomIndex<enemyRooms.length-1){
             wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex+1].walls);
         }
-        if (enemyRoom.useExtraWalls){
-            wallsCheck=wallsCheck.concat(enemyRoom.extraWalls);
-        }
+        let extraWallsCheck = wallsCheck.concat(enemyRoom.extraWalls);
         for(enemy of enemyRoom.enemies){
-            let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,wallsCheck,true);
+            let thisWallsCheck = extraWallsCheck;
+            if (enemy===enemies[0]&&enemyRoom.useExtraWalls!=1){
+                thisWallsCheck=wallsCheck;
+            }
+            let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,thisWallsCheck,true);
             if (intersection!=undefined){
                 //addCircle(findMidPoint(intersection.first,intersection.second),'blue');
                 if (wall.first.y===wall.second.y){
@@ -2015,8 +2064,11 @@ function bulletWallCollision(){
             //addCircle(secondCorner,'pink');
             let deleted = false;
             for (enemyRoom of enemyRooms){
+                if (!sameRoomPos(enemyRoom,turnIntoRoomPos(bullet))){
+                    continue;
+                }
                 let wallsCheck=enemyRoom.walls;
-                if (enemyRoom.useExtraWalls){
+                if (enemyRoom.useExtraWalls===1){
                     wallsCheck=wallsCheck.concat(enemyRoom.extraWalls);
                 }
                 for (wall of wallsCheck){
@@ -2116,10 +2168,19 @@ function enemyMovement(enemiesToRemove){
                     enemies.push(newEnemyPreset(addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10),16));
                     addToEnemyRooms(enemies[enemies.length-1]);
                 }
-                if (Math.random()<.8){
-                    enemies.push(newEnemyPreset(enemy,7));
+                numMoney = Math.floor(Math.random())+1;
+                for (let i=0;i<numMoney;i++){
+                    let moneyPos = addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10);
+                    while(rayCast(enemy,moneyPos,false,mainEnemyRoom.walls)){
+                        moneyPos = addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10);
+                    }
+                    enemies.push(newEnemyPreset(moneyPos,7));
                     addToEnemyRooms(enemies[enemies.length-1]);
                 }
+                /*if (Math.random()<.8){
+                    enemies.push(newEnemyPreset(enemy,7));
+                    addToEnemyRooms(enemies[enemies.length-1]);
+                }*/
                 enemyRoom.splice(i,1);
                 i--;
                 enemies.splice(enemies.findIndex((newEnemy)=>newEnemy===enemy),1);
@@ -2183,17 +2244,19 @@ function enemyMovement(enemiesToRemove){
                 }
                 let movementTarget = new newPoint(0,0);
                 if (dashFramesLeft>0){
-                    /*dashFramesLeft-=deltaTime;
-                    dashSpeed-=((10*deltaTime)-dashFramesLeft);
+                    //dashCode
+                    //this makes you invincable whan you dash
+                    //enemy.invinceable=dashFramesLeft;
+                    dashFramesLeft-=deltaTime;
+                    //this a function I made on desmos to get the dash working on different framerates
+                    dashSpeed=(7.5*dashFramesLeft)+17.5
+                    //dashSpeed-=((10*deltaTime)-dashFramesLeft);
                     enemy.x-=Math.sin(dashDirection)*dashSpeed*deltaTime;
                     enemy.y-=Math.cos(dashDirection)*dashSpeed*deltaTime;
-                    console.log(findDis(enemy,enemy.lastPosition));*/
-                    //this makes you invincable whan you dash
-                    enemy.invinceable=dashFramesLeft;
-                    dashFramesLeft-=1;
+                    /*dashFramesLeft-=1;
                     dashSpeed-=(10-dashFramesLeft);
                     enemy.x-=Math.sin(dashDirection)*dashSpeed;
-                    enemy.y-=Math.cos(dashDirection)*dashSpeed;
+                    enemy.y-=Math.cos(dashDirection)*dashSpeed;*/
                     enemy.color='red';
                 }else{
                     if(keys['w']){
@@ -2263,12 +2326,12 @@ function enemyMovement(enemiesToRemove){
                     
                 let relativeEnemyPos = new newPoint((enemy.lastPosition.x+((roomWidth+doorLength*2)*500))%(roomWidth+doorLength*2),(enemy.lastPosition.y+((roomHeight+doorLength*2)*500))%(roomHeight+doorLength*2));
                 let firstEnemy = enemyRoom.find((enemyCheck)=>enemyCheck.team===1);
-                if (boundingBox(new newPoint(0,0),new newPoint(roomWidth,roomHeight),relativeEnemyPos,0,0)&&firstEnemy!=undefined){
-                    mainEnemyRoom.useExtraWalls=true;
+                if (boundingBox(new newPoint(0,0),new newPoint(roomWidth,roomHeight),relativeEnemyPos,0,0)&&firstEnemy!=undefined&&mainEnemyRoom.useExtraWalls===0){
+                    mainEnemyRoom.useExtraWalls=1;
                     //console.log(enemyRoom);
                 }
                 if (firstEnemy===undefined){
-                    mainEnemyRoom.useExtraWalls=false;
+                    mainEnemyRoom.useExtraWalls=2;
                 }
             }else if(enemy.PFType===2){
 
@@ -2384,7 +2447,8 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
         overPowered=0;
     }
     if(enemy.gunCooldown<0){
-        screenShake+=2 +(enemy.bulletSpreadNum/5);
+        //screenShake+=enemy.bulletLength*(2 +(enemy.bulletSpreadNum/5))/60;
+        screenShake+=2+(enemy.bulletSpreadNum/5);
         let intersection = undefined
         if (!skipRayCast){
             intersection = rayCast(enemy,target,false,enemyRoom.walls);
@@ -2421,7 +2485,8 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
                 }else{
                     thisBulletDirection+=(Math.floor((i+1)/2)/10)*enemy.shotSpread;
                 }
-                bullets.push(new newBullet(enemy.x-Math.sin(thisBulletDirection)*(-enemy.size-bulletLength),enemy.y-Math.cos(thisBulletDirection)*(-enemy.size-bulletLength),bulletSpeed,thisBulletDirection,bulletColor,bulletLength,5,0,enemy.bulletRange,enemy.bulletKillPower,dupPoint(enemy),enemy,enemy.damage));
+                thisBulletDirection+=(Math.random()-.5)*enemy.accuracy;
+                bullets.push(new newBullet(enemy.x-Math.sin(thisBulletDirection)*(-enemy.size-bulletLength+1),enemy.y-Math.cos(thisBulletDirection)*(-enemy.size-bulletLength+1),bulletSpeed,thisBulletDirection,bulletColor,bulletLength,5,0,enemy.bulletRange,enemy.bulletKillPower,dupPoint(enemy),enemy,enemy.damage));
             }
         }
     }
@@ -2459,7 +2524,7 @@ function enemyCollisionEffects(enemiesToRemove){
                     if ((enemyDis<enemy1.size+enemy2.size)&&(rayCast(enemy1,enemy2,false,mainEnemyRoom.walls,false)===undefined)){
                         enemy1.effect(enemy2,enemy1,enemiesToRemove);
                         enemy2.effect(enemy1,enemy2,enemiesToRemove);
-                    }else if (enemy.PFType===6&&enemyDis<=Math.max(enemy1.size,20)+Math.max(enemy2.size,20)){
+                    }else if ((enemy2.PFType===6||enemy1.PFType===6)&&enemyDis<=Math.max(enemy1.size,20)+Math.max(enemy2.size,20)){
                         enemy1.effect(enemy2,enemy1,enemiesToRemove);
                         enemy2.effect(enemy1,enemy2,enemiesToRemove);
                     }
@@ -2526,23 +2591,30 @@ function enemyCollision(enemiesToRemove){
         }
     }
 }
-function drawBullets(cam){
+function drawBullets(cam,useImage){
     for (bullet of bullets){
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
         let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
         let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
-        ctx.lineTo((tailX-cam.x)*cam.zoom,(tailY-cam.y)*cam.zoom);
-
-        //ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
-        //ctx.lineTo(((bullet.x)-cam.x)*cam.zoom,((bullet.y-bullet.tailLength)-cam.y)*cam.zoom);
-
-        ctx.strokeStyle=bullet.color;
-        ctx.lineWidth=bullet.visualWidth*cam.zoom;
-        ctx.stroke();
+        ctx.save();
+        let bulletScreenPos = offSetByCam(new newPoint(tailX,tailY));
+        if (useImage){
+            ctx.translate(bulletScreenPos.x,bulletScreenPos.y);
+            ctx.rotate(-bullet.direction);
+            ctx.drawImage(bulletImage,0,0);
+        }else{
+            ctx.beginPath();
+            ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
+            ctx.lineTo((tailX-cam.x)*cam.zoom,(tailY-cam.y)*cam.zoom);
+    
+            //ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
+            //ctx.lineTo(((bullet.x)-cam.x)*cam.zoom,((bullet.y-bullet.tailLength)-cam.y)*cam.zoom);
+    
+            ctx.strokeStyle=bullet.color;
+            ctx.lineWidth=bullet.visualWidth*cam.zoom;
+            ctx.stroke();
+            //drawCircle(bullet.y,bullet.x,'yellow',false);
+        }
         ctx.restore();
-        //drawCircle(bullet.y,bullet.x,'yellow',false);
     }
 }
 function moveBullets(){
@@ -2642,6 +2714,21 @@ function gunEnemyMovement(target){
                     aimGun(enemy,mouseShifted,'red',62*(1/enemy.shotSpread),mainEnemyRoom,true);
                 }else if (mousePressed&&!keysToggle['e']){
                     //mouseClickUsed=true;
+                    let closestEnemy=undefined;
+                    closestDis=Infinity;
+                    for (enemyCheck of enemyRoom){
+                        let currentDis = findDis(mouseShifted,enemyCheck);
+                        if (enemyCheck.team!=enemy.team&&(enemyCheck!=enemy)&&(enemyCheck.team!=2)&&currentDis<closestDis){
+                            closestEnemy=enemyCheck;
+                            closestDis=currentDis;
+                        }
+                    }
+                    if (closestEnemy!=undefined){
+                        if (Math.abs(findAngle(closestEnemy,enemy)-findAngle(mouseShifted,enemy))<.3){
+                            aimGun(enemy,closestEnemy,'red',undefined,mainEnemyRoom,true);
+                            continue;
+                        }
+                    }
                     aimGun(enemy,mouseShifted,'red',undefined,mainEnemyRoom,true);
                 }
             }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3||enemy.PFType===2||enemy.PFType===17){
@@ -2724,7 +2811,7 @@ function startGame(weaponChoice){
         case 1:
             //shotgun
             enemies[0].bulletSpreadNum=3;
-            enemies[0].bulletRange=5;
+            enemies[0].bulletRange=7;
             eligiblePowerUps=[8,9,11,6,13,19];
         break
         case 2:
@@ -2739,7 +2826,8 @@ function startGame(weaponChoice){
             enemies[0].gunCoolDownMax=3;
             enemies[0].damage=.25;
             enemies[0].bulletRange=20;
-            eligiblePowerUps = [8,6,13,19,21];
+            enemies[0].accuracy=.3;
+            eligiblePowerUps = [6,13,19,21];
         break
         case 8:
             eligiblePowerUps = [6,8,9,11,12,13,19];
@@ -2779,7 +2867,7 @@ function renderEverything(skipPlayers,camera){
     if (!skipPlayers){
         drawEnemies(camera);
     }
-    drawBullets(camera);
+    drawBullets(camera,true);
     //drawShop();
     drawCircles(camera);
     //drawHUD doesn't need the camera because it is a special snowflake that doesn't draw following the camera
@@ -2826,10 +2914,10 @@ function repeat(){
     //this bool says whether or not to follow the player
     if (keys['f']){
         //keysUsed['f']=false;
-        screenShake=5;
+        screenShake+=2;
     }else{
-        if (screenShake>5){
-            screenShake=5;
+        if (screenShake>3){
+            screenShake=3;
         }
     }
     camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z'],screenShake);
@@ -2887,7 +2975,7 @@ function switchMode(modeTarget){
     }
 }
 function repeat2(){
-    if (keysToggle['5']&&keys['6']&&keys['7']){
+    if (keysToggle['6']&&keys['7']){
         keysToggle['5']=false;
         devMode=!devMode;
     }
@@ -3031,5 +3119,5 @@ let startTime = Date.now();
 //Example of a deep clone
 //let oldWalls = JSON.parse(JSON.stringify(walls))
 const targetFPS = 30;
-const targetRenderFPS = 30;
+const targetRenderFPS = 60;
 setInterval(repeat3,1000/targetRenderFPS);

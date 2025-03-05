@@ -25,7 +25,7 @@ screen freeze when you shoot or get hit or hit an enemy(to emphasize the impact)
 audio
 power up shows up on you and you don't see what it is(make it take time before you can pick it up)
 bullets that are never visible shake the screen (maybe give more of an indicator that the enemy actually shot it)(particles?)
-enemies have more health but no visual indicator that they have more health
+enemies have more health but no visual indicator that they have more health(this might be ok)(what if enemies only power up after bosses)
 when you dash backwards into a wall and shoot the bullet dissapears on frame one
 multiple enemies spawning at the same spawner(bad?)
 boss needs more depth(and it's too easy)
@@ -43,17 +43,23 @@ enemies shouldn't walk striaght at you(machine gun and sniper tears them to bits
 sniper have unique upgrade where every enemy you pierce makes it do more damage(encourages lining up enemies to snipe em all at once)
 make enemy that has full pathfinding but if it has line of sight it moves like the pink enemy
 add explosions (suicide bomber and weapon)
-test enemy shooting through walls (I don't know what this means)
+test enemy shooting through walls (I don't know what this means)(I think the enemies can shoot through walls like what happened to Miles)
 add fast mode(less rooms but the power ups are stronger to compensate)
 bullet spread doean't help enough with shotgun
 He peeks out from a wall with the shotgun for a easy hit
 shotgun range upgrade (The max isn't very high)
 When he is on low health he plays defensive and boring (more health drops?)
-Change screen size on weapon select
-The enemies clump (bad?)
+The enemies clump on walls(bad?)
 different weapons like  grenade laucher 
 homing bullets, their homing strength could be upgradeable
 Bombs as another pillar style
+add blood or something that spews out of enemies that is really satifiying to run and collect like the lego games studs
+try removing health and see what happens
+you can have 5 power ups active at the bottom and 5 more in your inventory, not active
+when you try to pick up one you don't have space for, it says something and you have to rearrage your upgrades to be ready
+maybe your first upgrade is twice as powerful?
+if you hold 3 directional buttons, they don't cancel out and you move diaganolly
+improce screen shake, make it more thoughtful instead of just random
 
 magic staff? (lighting(chains between enemies), explosives, metal(bullets),water(knockback))
 water shoots you back(like the dash)(maybe you charge up a big ball of water)
@@ -64,3 +70,37 @@ control two guys and they both respond to your bottom presses, have to navigate 
 upgrade that makes any enemy you kill go onto your team (maybe only a chance of happening)
 Add shield (hitting enemies heals the sheild)
 game where the screen rotates and you have to find the player?
+you have to scroll the screen to follow the player, the camera doesn't move
+steal enemies ability(steal bosses ability to shoot multiple bullets)
+you can use the enemies soul as a power up for you, or summon it as a minnon
+
+Power up ideas
+you are invincable for longer
+you do more damage while invincable right after taking damage
+dash
+dash makes you invincable
+shoot through infinite enemies
+each enemy your bullet goes through, the damage doubles
+berserker, more damge on lower health
+bullet speed
+enemies drop more health
+turn escess health into something usefull
+bombs
+chance of a bullet doing a crit with nice sound or turning into something cool
+more damage on full health
+more autoaim
+press button to enter barbarian mode where you heal from damage and barbarian mode is extended when this happens(maybe this is a potion or something)
+more range
+bullets move as fast as you are moving
+bullet speed is porportional to how much damage they do
+go faster
+become more accurate
+
+trade offs
+less range but more bullets(maybe something else)
+less fire rate but more damage
+less damage but more fire rate
+half health, but you take less damge and maybe something else
+no auto Aim(maybe also a benifit)
+become less accurate but shoot more bullets(or maybe replace that with another advantage)
+unlimited screenShake

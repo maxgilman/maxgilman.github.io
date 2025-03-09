@@ -60,6 +60,9 @@ when you try to pick up one you don't have space for, it says something and you 
 maybe your first upgrade is twice as powerful?
 if you hold 3 directional buttons, they don't cancel out and you move diaganolly
 improce screen shake, make it more thoughtful instead of just random
+you have an ult which power ups can change what it does, charged up killing enemies, maybe with the lego studs idea
+make each upgrade an article of clothing so when you have a combo your charecter looks really funny
+you shoot every frame so 60 fps shoots more than 30
 
 magic staff? (lighting(chains between enemies), explosives, metal(bullets),water(knockback))
 water shoots you back(like the dash)(maybe you charge up a big ball of water)
@@ -73,28 +76,57 @@ game where the screen rotates and you have to find the player?
 you have to scroll the screen to follow the player, the camera doesn't move
 steal enemies ability(steal bosses ability to shoot multiple bullets)
 you can use the enemies soul as a power up for you, or summon it as a minnon
+bullets spinning in a circle made very cool patterns that could be a puzzle?
+you have a "deck" or cards 1-9 and one is always randomly drawn. upgrades effect what cards they are and maybe what status effects they do
+
+resource management
+You can change what type of enemy an enemy is
+make copies of yourself
+parry bullets
+grappeling hook
+bouncing shots
+major and minor upgrades (5 minor and 5 major)(minor changes stats, major adds gameplay changes)
+augmentations(minor upgrades can apply to anything) ex: damgage up could affect your bullets or your minions bullets
+each branch has 5 slots for minor upgrades(bullets,mines, or minions) but you have a very limited amount
+each major upgrades is a branch
+an upgrde that is just a downside for a room then becomes an upgrade(take on a curse for x rooms and have a choice between 3 or so upgrades)
 
 Power up ideas
 you are invincable for longer
 you do more damage while invincable right after taking damage
 dash
 dash makes you invincable
+jump?
 shoot through infinite enemies
 each enemy your bullet goes through, the damage doubles
-berserker, more damge on lower health
-bullet speed
+you do more damge on lower health
+more bullet speed
 enemies drop more health
-turn escess health into something usefull
-bombs
+turn escess health into something usefull(ult meter)
+bombs (or mines)
+the more enemies a bomb hits at once, the more damage it does
+explosion damage up
 chance of a bullet doing a crit with nice sound or turning into something cool
 more damage on full health
 more autoaim
-press button to enter barbarian mode where you heal from damage and barbarian mode is extended when this happens(maybe this is a potion or something)
 more range
 bullets move as fast as you are moving
 bullet speed is porportional to how much damage they do
 go faster
 become more accurate
+whenever you get a max health power up, heal to full
+homing bullet(there is still bullet range)
+another life after death, but you lose most or all of your power ups after death
+each consecutive shot that hits an enemy does more damage(have to hold?)
+invisibility
+pull enemies to you (magnet)
+push enemies away from you
+every room cleared with this, do .5 more damage
+turret you can place? shoots health at you?
+flamethrower(bullets can leave a lingering flame)
+the longer since the last shot, the more damage(up to a limit)(meant to encourage low fire rate builds, not wait in a room to charge up a shot)
+bullets explode when hitting a wall(or maybe just on hitting an enemy)
+wavy bullets
 
 trade offs
 less range but more bullets(maybe something else)
@@ -104,3 +136,34 @@ half health, but you take less damge and maybe something else
 no auto Aim(maybe also a benifit)
 become less accurate but shoot more bullets(or maybe replace that with another advantage)
 unlimited screenShake
+increased health but also increased size(you get hit more)
+more bullets but less invincability frames
+
+ult ideas:
+
+huge explosion centered on you which has a long cooldown
+barbarian mode where you heal from damage and barbarian mode is extended when this happens or extended when you get kills
+can't move but shoot TONS of bullets(maybe little low damage)(fort knox blu jay idea)
+move through walls for a short time(maybe only 1 wall);
+
+
+conditions:
+how many enemies you've killed this room
+how many enemies are left in the room
+how many bullets you've shot in this room
+how many bullets you've shot since (this could be anything, the start or since an upgrade)
+how many upgrades in inventory
+how many upgrades you've picked up since(again this could be anything)
+how many minions you have
+how long you've been in a room
+facing direction
+weapon
+bullet speed
+enemy health
+touching wall?
+health
+damage
+reload speed
+time since your last shot
+damage dealt since(anything)
+how many enemies you've killed since(anything)

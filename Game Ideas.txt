@@ -63,6 +63,7 @@ improce screen shake, make it more thoughtful instead of just random
 you have an ult which power ups can change what it does, charged up killing enemies, maybe with the lego studs idea
 make each upgrade an article of clothing so when you have a combo your charecter looks really funny
 you shoot every frame so 60 fps shoots more than 30
+enemy that has bullets fly away from it(reverse auto aim)
 
 magic staff? (lighting(chains between enemies), explosives, metal(bullets),water(knockback))
 water shoots you back(like the dash)(maybe you charge up a big ball of water)
@@ -101,6 +102,8 @@ shoot through infinite enemies
 each enemy your bullet goes through, the damage doubles
 you do more damge on lower health
 more bullet speed
+bullet speeds up as it travels
+bullet slows down as it travels
 enemies drop more health
 turn escess health into something usefull(ult meter)
 bombs (or mines)

@@ -79,6 +79,7 @@ steal enemies ability(steal bosses ability to shoot multiple bullets)
 you can use the enemies soul as a power up for you, or summon it as a minnon
 bullets spinning in a circle made very cool patterns that could be a puzzle?
 you have a "deck" or cards 1-9 and one is always randomly drawn. upgrades effect what cards they are and maybe what status effects they do
+You have to throw bombs that grow after a set time and the "exploding" bomb(an expanding player) pushs around circles to solve puzzles
 
 resource management
 You can change what type of enemy an enemy is

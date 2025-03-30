@@ -11,13 +11,11 @@ Shop
 Dash doesn't scale with speed
 Stats after you beat the final boss
 Better graphics
-Choice of upgrade? between the main upgrade catagories
 Show how enemies move differently?
 Knockback on your shots upgrade
 Make AI miss (test with more playtesting to see if this is needed)
 Shooting stuns the enemies
 Bullets should have effects (like enemies)
-Maybe you don't have to run to the center of the room to grab the upgrade somehow
 cheese kill boss on wall (bullets dissappear on frame 1 and miss you)(can happen to other enemies too)
 enemy with sheild that needs line of sight to turn the sheild (meant to encourage flanking)(enemy can't itself shoot)
 enemies (espically boss)show how much health they have left?
@@ -64,6 +62,15 @@ you have an ult which power ups can change what it does, charged up killing enem
 make each upgrade an article of clothing so when you have a combo your charecter looks really funny
 you shoot every frame so 60 fps shoots more than 30
 enemy that has bullets fly away from it(reverse auto aim)
+bullets shouldn't be able to shoot through a wall
+
+REVERSE MAGNET DOES damage 
+special slot for weapon?(softlock where you don't have any weapons that do damage is too easy)
+when a bullet hits a bomb the bomb explodes
+make power ups not specific to a weapon. It doesn't feel good to only get power ups that are just objectively useless,
+so turn weapon specific power ups into conditionals ex: bombs do double damage -> explosives do double damage
+ex: dash heals you -> moving fast heals you(like REALLY fast)
+power ups can take up multiple slots
 
 magic staff? (lighting(chains between enemies), explosives, metal(bullets),water(knockback))
 water shoots you back(like the dash)(maybe you charge up a big ball of water)
@@ -80,18 +87,33 @@ you can use the enemies soul as a power up for you, or summon it as a minnon
 bullets spinning in a circle made very cool patterns that could be a puzzle?
 you have a "deck" or cards 1-9 and one is always randomly drawn. upgrades effect what cards they are and maybe what status effects they do
 You have to throw bombs that grow after a set time and the "exploding" bomb(an expanding player) pushs around circles to solve puzzles
+You shoot to the beat of the music. maybe you make the music before each level to add startagy. maybe you can't even move and the only thing you have control over when you shoot, in ther words, what the music is
+game where you're playing the economy like you're in the gilded age. playing other companies agaist each other
 
 resource management
 You can change what type of enemy an enemy is
 make copies of yourself
 parry bullets
-grappeling hook
 bouncing shots
 major and minor upgrades (5 minor and 5 major)(minor changes stats, major adds gameplay changes)
 augmentations(minor upgrades can apply to anything) ex: damgage up could affect your bullets or your minions bullets
 each branch has 5 slots for minor upgrades(bullets,mines, or minions) but you have a very limited amount
 each major upgrades is a branch
 an upgrde that is just a downside for a room then becomes an upgrade(take on a curse for x rooms and have a choice between 3 or so upgrades)
+You get special bullets from killing enemies or maybe somehow else. Each bullet has an effect and you can see which ones will shoot next
+maybe you can change the order that the next 5 will shoot in
+
+major upgrades are now guns that can all shoot all the bullets
+but now each one has effects (maybe profeciency) in one area and a downside in another(ex: shoots another bullet for the shotgun bullet but niper bullets do half damage)
+
+bullets:
+shotgun bullet
+poison bullets
+water (knockback bullets)(also makes electricity chain between further enemies)
+bomb
+bullet that splits into 4 smaller bullets
+electricity(damage over time that chains)
+bouncing bullet
 
 Power up ideas
 you are invincable for longer
@@ -171,3 +193,28 @@ reload speed
 time since your last shot
 damage dealt since(anything)
 how many enemies you've killed since(anything)
+
+outputs:
+cooldown time
+reload time
+damage
+effect
+chain?
+max num of enemies that can be hit
+health
+invincability frames
+bullet/whatever projectile path
+
+power ups that start powerful and slowly lose power
+
+minor power up ideas:
+each hit does fires twice as fast, but each hit shrinks the enemy
+Chance for bullet to do massive damage
+invincable for little bit longer
+you do a test(ex: button mashing) and however well you do on it thats how powerful the power up is
+get a damage bonus after gaining health
+enemies that you've killed orbit you as souls and block 1 hit if they happen to block
+enemies can damage each other
+
+Major Power ups:
+Shoot out balls that orbit around you(similar to souls but this does it on command)

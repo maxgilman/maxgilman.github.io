@@ -570,6 +570,32 @@ function newPowerUpPreset(PFType,isEffect){
                 }
             })
         break
+        case 26:
+            powerUp = new newMinorPowerUp(PFType,'Enemies Can Drop 2 More Health','#660066',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp===powerUpsGrabbed[0]){
+                    maxHealthDrop+=2;
+                }
+            })
+        break
+        case 27:
+            powerUp = new newMinorPowerUp(PFType,'Every 2 Rooms Cleared, This Power Up Allows Enemies to Drop 1 More Health','#cc0099',function (majorPowerUp,thisPowerUp){
+                if (thisPowerUp.var2===null){
+                    thisPowerUp.var2 = enemies[0].enemyRoom; //var2 is whatever room the player is in
+                }
+                if (thisPowerUp.var3===null){
+                    thisPowerUp.var3 = 0; //var3 is the extra health
+                }
+                if (thisPowerUp.var2!=null&&thisPowerUp.var3!=null){
+                    if ((enemies[0].enemyRoom.roomNum-thisPowerUp.var2.roomNum)>=2){
+                        thisPowerUp.var2=enemies[0].enemyRoom;
+                        thisPowerUp.var3++;
+                    }
+                    if (majorPowerUp===powerUpsGrabbed[0]){
+                        maxHealthDrop+=thisPowerUp.var3;
+                    }
+                }
+            })
+        break
     }
     if (powerUp instanceof newMajorPowerUp&&isEffect){
         let specialEffect = Math.random()*20;
@@ -1111,7 +1137,7 @@ let cam = {
     y:0,
     zoom:1
 }
-let devMode = false;
+let devMode = true;
 let screenShake=0;
 let screenSize=1;
 let weaponChoice=0;
@@ -1224,6 +1250,7 @@ let autoAimStrength = 0;
 let minionsDropLoot = false;
 let minionDamage = .5;
 let minionReloadSpeed = 120;
+let maxHealthDrop = 1;
 let knobs = ['bullet speed','enemy speed','enemy health','enemy size','bullet width','reload speed','num bullets in shot spread','bullet volley num','bullet damage','invincable time','slowing bullets','bullet range','pathfinding','homing bullets'];
 function findKnob(){
     return knobs[Math.floor(Math.random()*knobs.length)]
@@ -2903,7 +2930,7 @@ function enemyMovement(enemiesToRemove){
                     }
                     //this is actually the num of health orbs
                     //numMoney = Math.floor(Math.random()*2)+1;
-                    numMoney = Math.floor(Math.random()*2);
+                    numMoney = Math.floor(Math.random()*(maxHealthDrop+1));
                     for (let i=0;i<numMoney;i++){
                         let moneyPos = addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10);
                         while(rayCast(enemy,moneyPos,false,mainEnemyRoom.walls)){
@@ -4062,6 +4089,7 @@ function updatePlayerStats(){
     enemy.maxHealth=enemy.originalCopy.maxHealth;
     enemy.targetSpeed=enemy.originalCopy.targetSpeed;
     getDuplicateMinorPowerUps = false;
+    maxHealthDrop=1;
     for (majorPowerUp of powerUpsGrabbed){
         //majorPowerUp.coolDownMax=majorPowerUp.originalCoolDownMax;
         /*for (minorPowerUp of majorPowerUp.minorPowerUps){
@@ -4412,6 +4440,8 @@ function repeat2(){
         ctx.fillStyle='black';
         ctx.font = '48px serif';
         ctx.fillText('You Died! Press R To Play Again!',(c.width/4),(c.height/2));
+        ctx.font = '32px serif';
+        ctx.fillText('You Got All The Way To Room '+enemies[0].enemyRoom.roomNum+'!',(c.width/3),(2.5*c.height/4));
         //this isn't a great way to do it. better would be to reset all the values so it doesn't have to actually reload
         if (keys['r']){
             location.reload();

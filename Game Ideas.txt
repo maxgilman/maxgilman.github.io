@@ -63,6 +63,7 @@ make each upgrade an article of clothing so when you have a combo your charecter
 you shoot every frame so 60 fps shoots more than 30
 enemy that has bullets fly away from it(reverse auto aim)
 bullets shouldn't be able to shoot through a wall
+remove ctx.save and restore with setTransform for performance
 
 REVERSE MAGNET DOES damage 
 special slot for weapon?(softlock where you don't have any weapons that do damage is too easy)
@@ -114,6 +115,8 @@ bomb
 bullet that splits into 4 smaller bullets
 electricity(damage over time that chains)
 bouncing bullet
+burst of bullets(machine gun)
+grapple hook?
 
 Power up ideas
 you are invincable for longer
@@ -153,6 +156,7 @@ flamethrower(bullets can leave a lingering flame)
 the longer since the last shot, the more damage(up to a limit)(meant to encourage low fire rate builds, not wait in a room to charge up a shot)
 bullets explode when hitting a wall(or maybe just on hitting an enemy)
 wavy bullets
+bullet kick(the amount the move back when shooting) is tripled
 
 trade offs
 less range but more bullets(maybe something else)

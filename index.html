@@ -1,13 +1,73 @@
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>CircleRoguelike</title>
-  </head>
-  <body>
-    <canvas id="myCanvas" width=1400 height=750 style="border:1px solid #000000;">
-    </canvas>
-	  <script src="code.js"></script>
-  </body>
-</html>
+<nav>
+    <ul>
+    <li><a href="start.html">Start Game</a></li>
+    <li><a href="gamePadTest.html">Test Controller</a></li>
+    </ul>
+</nav>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<body>
+    <div id="game">
+        <button onClick=choose(true)>Turn On Debug Mode</button>
+        <br>
+        <button onClick=choose(false)>Turn Off Debug Mode</button>
+        <div id="result"></div>
+        <button onClick="test()">DEBUG</button>
+    </div>
+    <script>
+        let devMode = false;
+        sessionStorage.setItem('devMode', devMode);
+        function choose(choice){
+            devMode = choice;
+            sessionStorage.setItem('devMode', devMode);
+        }
+        function test(click){
+            alert('debug mode: '+devMode);
+        }  
+    </script>
+    
+</body>

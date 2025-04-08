@@ -1137,7 +1137,13 @@ let cam = {
     y:0,
     zoom:1
 }
-let devMode = true;
+//let devMode = true;
+let devMode = sessionStorage.getItem('devMode');
+if (devMode==='true'){
+    devMode=true;
+}else{
+    devMode=false;
+}
 let screenShake=0;
 let screenSize=1;
 let weaponChoice=0;

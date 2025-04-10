@@ -219,6 +219,55 @@ you do a test(ex: button mashing) and however well you do on it thats how powerf
 get a damage bonus after gaining health
 enemies that you've killed orbit you as souls and block 1 hit if they happen to block
 enemies can damage each other
+grappling hook does damage
 
 Major Power ups:
 Shoot out balls that orbit around you(similar to souls but this does it on command)
+gatling gun, not much range but CRAZY knockback on user
+
+bomb throwing is bad and doesn't go towards your mouse
+doesn't know what halve cooldown does(make shiny)(change description to "this gun shoots 100% faster than normal" or smth)
+bombs shoot too fast
+make damage display *10 to make it seem better
+make bombs not block bullets(maybe upgrade)
+do something at upgrade shop if buy nothing(heal some HP)
+make upgrade text go behind upgrades on upgrade screen
+sell weapons for money
+enemies shoot more weapons
+maybe bonus for buying something you've never bought before
+make major power ups the mouse icon like what sam said
+make gameplay loop change while you're playing
+make cooldown in seconds
+change temp name to circle quist
+change floating point numbers for stuff(round)
+add controller support
+add shitty explosion gif (only to bosses)
+make more damage more powerful than shooting fast(the back and forth gameplay is more intresting)
+remove 'x'
+pathfinding lags on chromebook
+draw health towards you slowly(only with magnet?)
+make magnet suck up health
+add some upgrades that add damage instead of multipling it
+after beating boss get more bulletspreadnum
+show that 30 is the maximum num of rooms
+make screen scaling on UI and power up select
+don't make enemies spawn by the door
+bombs on screen transtions
+screen shake upgrade
+upgrade:hitting enemies heals you a tiny bit (maybe less damage)
+more room templates
+mirror rooms to be lazy
+accidentaly threw away the power up
+remove trash can stats
+make a lot more power ups that give sniper a MUCH faster firing rate
+more range on shotgun(start off the bat with more range if get lucky)
+after beating boss, say reload to play again
+make resizing screen permanent
+implement upgrade rarity
+nerf double damage on bombs to 1.5(or make it rarer)
+make stronger, rarer versions of minor upgrades
+major upgrade that gives you more minor upgrdae slots and nothing else(backpack)
+add money and then with the money you can buy to make an upgrade permanent(doesn't take up any space and you can't get rid of it)
+
+make lots of room for stupid overpowered shit
+every few rooms there is a challenge to mix it up

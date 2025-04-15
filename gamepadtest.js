@@ -59,15 +59,10 @@ function removegamepad(gamepad) {
   document.body.removeChild(d);
   delete controllers[gamepad.index];
 }
-//let num = 0;
 function updateStatus() {
   scangamepads();
   for (j in controllers) {
     var controller = controllers[j];
-    /*if (num===0){
-        console.log(controller);
-    }
-    num++;*/
     var d = document.getElementById("controller" + j);
     var buttons = d.getElementsByClassName("button");
     for (var i=0; i<controller.buttons.length; i++) {

@@ -1,9 +1,12 @@
 let c = document.getElementById("myCanvas");
 let ctx = c.getContext("2d");
+let hideMouse = false;
 //c.style.cursor='none'
-/*document.addEventListener("click", function () {
-    document.body.requestPointerLock();
-});*/
+if (hideMouse){
+    document.addEventListener("click", function () {
+        document.body.requestPointerLock();
+    });
+}
 /*c.addEventListener("click", async () => {
     if(!document.pointerLockElement) {
         try {
@@ -22,7 +25,7 @@ let ctx = c.getContext("2d");
 });*/
 document.addEventListener('contextmenu', event => {
     event.preventDefault();
-});
+});//this stops right clicking from opening the right click menu
 c.style.margin = "30px 10px";
 let keys = {};
 let keysUsed = {};
@@ -103,6 +106,9 @@ class newMinorPowerUp{
         this.var1 = null; //this is just a var that a power up can use to store whatever is needed
         this.var2 = null; //this is another var
         this.var3 = null;
+        /*this.firstUpdatingLabel = ''; //this is a label that can change, EX: cleared 5 rooms with this power up
+        this.varUsedInLabel = 0;
+        this.secondUpdatingLabel = '';*/
     }
 }
 class newEnemy {
@@ -247,7 +253,7 @@ function newPowerUpPreset(PFType,isEffect){
                 let dropPoint= dupPoint(thisEnemy);
                 enemies.push(newEnemyPreset(dropPoint,36,1,undefined,thisPowerUp.damage,mouseShifted));
                 addToEnemyRooms(enemies[enemies.length-1]);
-            },20,1,0);
+            },40,1,0);
         break
         case 3:
             powerUp = new newMajorPowerUp(PFType,'Heal 2HP in a Button Press','#4ABBA8',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
@@ -330,7 +336,26 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp = new newMajorPowerUp(PFType,'Shotgun','#BABFC0',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
-                aimCustomGun(thisEnemy,mouseShifted,thisPowerUp.damage,30,40,3,thisPowerUp.shotSpread,0,'red',thisPowerUp.range,1);
+                let target=mouseShifted;
+                let movementTarget = dupPoint(enemies[0]);
+                if (controller!=undefined){
+                    let axes = controller.axes;
+                    let skipped = true
+                    if (Math.abs(axes[2])>.1){ //this adds a deadzone
+                        movementTarget.x+=axes[2];
+                        skipped = false;
+                    }
+                    if (Math.abs(axes[3])>.1){
+                        movementTarget.y+=axes[3];
+                        skipped = false;
+                    }
+                    if (skipped){
+                        movementTarget = addToPoint(movementTarget,Math.sin(shootingAngle),Math.cos(shootingAngle));
+                    }
+                    target=movementTarget;
+                    shootingAngle = findAngle(target,enemies[0]);
+                }
+                aimCustomGun(thisEnemy,target,thisPowerUp.damage,30,40,3,thisPowerUp.shotSpread,0,'red',thisPowerUp.range,1);
             },30,.5,7);
         break
         case 7:
@@ -365,11 +390,11 @@ function newPowerUpPreset(PFType,isEffect){
                 if (closestEnemy!=undefined){
                     target=closestEnemy;
                 }
-                aimCustomGun(thisEnemy,target,thisPowerUp.damage,40,60,1,1,0,'red',40,thisPowerUp.range,0);
-            },40,1.5,Infinity);
+                aimCustomGun(thisEnemy,target,thisPowerUp.damage,40,60,1,1,0,'red',thisPowerUp.range,Infinity,0);
+            },35,2,40);
         break
         case 8:
-            powerUp = new newMajorPowerUp(PFType,'Sell Item for $1','black',function (){},function(){
+            powerUp = new newMajorPowerUp(PFType,'Click To Sell Item for $1','white',function (){},function(){
                 //this is the trash can, it doesn't actually do anything
             },0,0);
         break
@@ -414,7 +439,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 12:
-            powerUp = new newMinorPowerUp(PFType,'Double Damage for Weapon Bound on Right Click','#FFAC01',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Double Damage for Weapon Bound to Right Click','#FFAC01',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[1]){
                     majorPowerUp.damage*=2;
                 }
@@ -422,30 +447,23 @@ function newPowerUpPreset(PFType,isEffect){
         break
         case 13:
             powerUp = new newMinorPowerUp(PFType,'Every room cleared without taking damage, halve cooldown on shotgun','#FF6EEC',function (majorPowerUp,thisPowerUp){
-                if (thisPowerUp.var1===null){
-                    thisPowerUp.var1 = enemies[0].health; //var1 is the starting health
+                if (enemies[0].health<thisPowerUp.var1){
+                    thisPowerUp.var3=1
+                }else if (enemies[0].health>thisPowerUp.var1){
+                    thisPowerUp.var1=enemies[0].health;
                 }
-                if (thisPowerUp.var2===null){
-                    thisPowerUp.var2 = enemies[0].enemyRoom; //var2 is whatever room the player is in
+                if (thisPowerUp.var2.roomNum<enemies[0].enemyRoom.roomNum){
+                    thisPowerUp.var2=enemies[0].enemyRoom;
+                    thisPowerUp.var3*=2;
                 }
-                if (thisPowerUp.var3===null){
-                    thisPowerUp.var3 = 1; //var3 is the multiplier
+                if (majorPowerUp.PFType===5){
+                    majorPowerUp.coolDownMax/=thisPowerUp.var3;
                 }
-                if (thisPowerUp.var1!=null&&thisPowerUp.var2!=null&&thisPowerUp.var3!=null){
-                    if (enemies[0].health<thisPowerUp.var1){
-                        thisPowerUp.var3=1
-                    }else if (enemies[0].health>thisPowerUp.var1){
-                        thisPowerUp.var1=enemies[0].health;
-                    }
-                    if (thisPowerUp.var2.roomNum<enemies[0].enemyRoom.roomNum){
-                        thisPowerUp.var2=enemies[0].enemyRoom;
-                        thisPowerUp.var3*=2;
-                    }
-                    if (majorPowerUp.PFType===5){
-                        majorPowerUp.coolDownMax/=thisPowerUp.var3;
-                    }
-                }
+                thisPowerUp.secondLabel = 'Current Divisor: '+thisPowerUp.var3;
             })
+            powerUp.var1 = enemies[0].health; //var1 is the starting health
+            powerUp.var2 = enemies[0].enemyRoom; //var2 is whatever room the player is in
+            powerUp.var3 = 1; //var3 is the multiplier
         break
         case 14:
             powerUp = new newMinorPowerUp(PFType,'Decrease Cooldown on Everything by a Quarter','#104239',function (majorPowerUp,thisPowerUp){
@@ -472,49 +490,20 @@ function newPowerUpPreset(PFType,isEffect){
         break
         case 17:
             powerUp = new newMinorPowerUp(PFType,'After Gaining Health Everything Deals Triple Damage for 3 Seconds','#f0c013',function (majorPowerUp,thisPowerUp){
-                if (thisPowerUp.var1===null){
-                    thisPowerUp.var1 = enemies[0].health; //var1 is the starting health
+                if(enemies[0].health>thisPowerUp.var1){
+                    thisPowerUp.var2+=90;
                 }
-                if (thisPowerUp.var2===null){
-                    thisPowerUp.var2 = 0; //var2 is the frames left with double damage
-                }
-                if (thisPowerUp.var1!=null&&thisPowerUp.var2!=null){
-                    if(enemies[0].health>thisPowerUp.var1){
-                        thisPowerUp.var2+=90;
+                thisPowerUp.var1=enemies[0].health;
+                if(thisPowerUp.var2>0){
+                    if (majorPowerUp===powerUpsGrabbed[0]){
+                        thisPowerUp.var2-=deltaTime;
                     }
-                    thisPowerUp.var1=enemies[0].health;
-                    if(thisPowerUp.var2>0){
-                        if (majorPowerUp===powerUpsGrabbed[0]){
-                            thisPowerUp.var2-=deltaTime;
-                        }
-                        majorPowerUp.damage*=3;
-                    }
+                    majorPowerUp.damage*=3;
                 }
             })
+            powerUp.var1 = enemies[0].health; //var1 is the starting health
+            powerUp.var2 = 0; //var2 is the frames left with double damage
         break
-        //this is unfinished, just an idea
-        /*case 18:
-            powerUp = new newMinorPowerUp(PFType,"Illigal hacking: First weapon gets but The more you've used a specific instance of a weapon,the less damage it deals",'#f0c013',function (majorPowerUp,thisPowerUp){
-                if (thisPowerUp.var1===null){
-                    thisPowerUp.var1 = enemies[0].health; //var1 is the starting health
-                }
-                if (thisPowerUp.var2===null){
-                    thisPowerUp.var2 = 0; //var2 is the frames left with double damage
-                }
-                if (thisPowerUp.var1!=null&&thisPowerUp.var2!=null){
-                    if(enemies[0].health>thisPowerUp.var1){
-                        thisPowerUp.var2+=90;
-                    }
-                    thisPowerUp.var1=enemies[0].health;
-                    if(thisPowerUp.var2>0){
-                        if (majorPowerUp===powerUpsGrabbed[0]){
-                            thisPowerUp.var2-=deltaTime;
-                        }
-                        majorPowerUp.damage*=3;
-                    }
-                }
-            })
-        break*/
         case 18:
             powerUp = new newMinorPowerUp(PFType,'Tighten Bullet Spread','#b260db',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp.PFType===6){
@@ -542,9 +531,9 @@ function newPowerUpPreset(PFType,isEffect){
             },30,.5);
         break
         case 20:
-            powerUp = new newMinorPowerUp(PFType,'Increase Max HP by 1','#f7f74a',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Increase Max HP by 5','#f7f74a',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
-                    enemies[0].maxHealth++;
+                    enemies[0].maxHealth+=5;
                 }
             })
         break
@@ -583,28 +572,26 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 27:
-            powerUp = new newMinorPowerUp(PFType,'Every 2 Rooms Cleared, This Power Up Allows Enemies to Drop 1 More Health','#cc0099',function (majorPowerUp,thisPowerUp){
-                if (thisPowerUp.var2===null){
-                    thisPowerUp.var2 = enemies[0].enemyRoom; //var2 is whatever room the player is in
+            powerUp = new newMinorPowerUp(PFType,'Every 2 Rooms Cleared, Enemies can Drop 1 More Health','#cc0099',function (majorPowerUp,thisPowerUp){
+                if ((enemies[0].enemyRoom.roomNum-thisPowerUp.var2.roomNum)>=2){
+                    thisPowerUp.var2=enemies[0].enemyRoom;
+                    thisPowerUp.var3++;
                 }
-                if (thisPowerUp.var3===null){
-                    thisPowerUp.var3 = 0; //var3 is the extra health
+                if (majorPowerUp===powerUpsGrabbed[0]){
+                    maxHealthDrop+=thisPowerUp.var3;
                 }
-                if (thisPowerUp.var2!=null&&thisPowerUp.var3!=null){
-                    if ((enemies[0].enemyRoom.roomNum-thisPowerUp.var2.roomNum)>=2){
-                        thisPowerUp.var2=enemies[0].enemyRoom;
-                        thisPowerUp.var3++;
-                    }
-                    if (majorPowerUp===powerUpsGrabbed[0]){
-                        maxHealthDrop+=thisPowerUp.var3;
-                    }
-                }
+                thisPowerUp.secondLabel = 'Current Extra Health: '+thisPowerUp.var3;
             })
+            if (enemies[0].enemyRoom===null){ //the game has just started and the player doesn't have what enemyroom it is in yet
+
+            }
+            powerUp.var2 = enemies[0].enemyRoom; //var2 is whatever room the player is in
+            powerUp.var3 = 0; //var3 is the extra health
         break
         case 28:
-            powerUp = new newMajorPowerUp(PFType,'Click Here With A Small Power Up And Use $20 to Lock It In','White',function (){},function(){
+            powerUp = new newMajorPowerUp(PFType,'Click Here With A Small Power Up And Use $10 to Lock It In','White',function(){ //I think $10 is more fair
                 //this is the thing you click to upgrade an upgrade, doesn't do anything here
-            },Infinity,0);
+            });
         break
         case 29:
             powerUp = new newMinorPowerUp(PFType,'Every Room Cleared, Get $1 for every $5 you have','#99ff66',function (majorPowerUp,thisPowerUp){
@@ -633,7 +620,10 @@ function newPowerUpPreset(PFType,isEffect){
                 }
             })
         break
-        //power up idea: turn ecess health pickups into money
+        //power up idea: turn eccess health pickups into money
+        //each shot that hits an enemy has a 1/4 chance to drop a health pickup
+        //spend $1 for a full heal
+        //Illigal hacking: First, weapon gets damage boost, but The more you've used a specific instance of a weapon,the less damage it deals
     }
     if (powerUp instanceof newMajorPowerUp&&isEffect){
         let specialEffect = Math.random()*20;
@@ -649,7 +639,16 @@ function newPowerUpPreset(PFType,isEffect){
         }
     }
     if (powerUp!=null){
+        let var1 = powerUp.var1;
+        let var2 = powerUp.var2;
+        let var3 = powerUp.var3;
+        powerUp.var1 = null;
+        powerUp.var2 = null;
+        powerUp.var3 = null;
         powerUp.originalCopy=JSON.parse(JSON.stringify(powerUp));
+        powerUp.var1 = var1;
+        powerUp.var2 = var2;
+        powerUp.var3 = var3;
     }
     return powerUp;
 }
@@ -850,8 +849,10 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         case 16:
             //money
             enemy = new newEnemy(pos.x,pos.y,0,10,'green',6,target,Infinity,Infinity,'$',function(touchedEnemy,thisEnemy,enemiesToRemove){
-                money++;
-                enemiesToRemove.push(thisEnemy);
+                if (touchedEnemy.PFType===1){
+                    money++;
+                    enemiesToRemove.push(thisEnemy);
+                }
             });
         break
         case 17:
@@ -1101,34 +1102,164 @@ class newBullet {
 } 
 let mouse = new newPoint(0,0);
 let mouseShifted = dupPoint(mouse);
-document.onmousemove = handleMouseMove;
-function handleMouseMove1(event){
-    mouse.x+=event.movementX;
-    mouse.y+=event.movementY;
+if (hideMouse){
+    document.onmousemove = handleMouseMove;
+}else{
+    document.onmousemove = handleMouseMove1;
 }
-function handleMouseMove(event) {
-    let eventDoc, doc, body;
-
-    event = event || window.event; // IE-ism
-
-    // If pageX/Y aren't available and clientX/Y are,
-    // calculate pageX/Y - logic taken from jQuery.
-    // (This is to support old IE)
-    if (event.pageX == null && event.clientX != null) {
-        eventDoc = (event.target && event.target.ownerDocument) || document;
-        doc = eventDoc.documentElement;
-        body = eventDoc.body;
-
-        event.pageX = event.clientX +
-            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-            (doc && doc.clientLeft || body && body.clientLeft || 0);
-        event.pageY = event.clientY +
-            (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
-            (doc && doc.clientTop  || body && body.clientTop  || 0 );
+function handleMouseMove(event){
+    if (controller===undefined){
+        let multiplier = Math.min(3,Math.max(.5,findDis(new newPoint(0,0),new newPoint(event.movementX,event.movementY))));
+        mouse.x+=event.movementX*multiplier/4;
+        mouse.y+=event.movementY*multiplier/4;
+    }else{
+        //this is handled elsewhere
     }
-    mouse.x = event.pageX-30;
-    mouse.y = event.pageY-40;
 }
+function handleMouseMove1(event) {
+    if (controller===undefined){
+        let eventDoc, doc, body;
+
+        event = event || window.event; // IE-ism
+    
+        // If pageX/Y aren't available and clientX/Y are,
+        // calculate pageX/Y - logic taken from jQuery.
+        // (This is to support old IE)
+        if (event.pageX == null && event.clientX != null) {
+            eventDoc = (event.target && event.target.ownerDocument) || document;
+            doc = eventDoc.documentElement;
+            body = eventDoc.body;
+    
+            event.pageX = event.clientX +
+                (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                (doc && doc.clientLeft || body && body.clientLeft || 0);
+            event.pageY = event.clientY +
+                (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+                (doc && doc.clientTop  || body && body.clientTop  || 0 );
+        }
+        mouse.x = event.pageX-30;
+        mouse.y = event.pageY-40;
+    }else{
+        let axes = controller.axes;
+        mouse.x+=axes[2]*2;
+        mouse.y+=axes[3]*2;
+    }
+}
+let controller;
+
+
+var haveEvents = 'GamepadEvent' in window;
+var haveWebkitEvents = 'WebKitGamepadEvent' in window;
+var controllers = {};
+var rAF = window.mozRequestAnimationFrame ||
+  window.webkitRequestAnimationFrame ||
+  window.requestAnimationFrame;
+
+function connecthandler(e) {
+  addgamepad(e.gamepad);
+}
+function addgamepad(gamepad) {
+    controllers[gamepad.index] = gamepad; var d = document.createElement("div");
+    d.setAttribute("id", "controller" + gamepad.index);
+    var t = document.createElement("h1");
+    t.appendChild(document.createTextNode("gamepad: " + gamepad.id));
+    d.appendChild(t);
+    var b = document.createElement("div");
+    b.className = "buttons";
+    for (var i=0; i<gamepad.buttons.length; i++) {
+        var e = document.createElement("span");
+        e.className = "button";
+        e.id = "b" + i;
+        e.innerHTML = i;
+        b.appendChild(e);
+    }
+    d.appendChild(b);
+    var a = document.createElement("div");
+    a.className = "axes";
+    for (i=0; i<gamepad.axes.length; i++) {
+        e = document.createElement("meter");
+        e.className = "axis";
+        //e.id = "a" + i;
+        e.setAttribute("min", "-1");
+        e.setAttribute("max", "1");
+        e.setAttribute("value", "0");
+        e.innerHTML = i;
+        a.appendChild(e);
+    }
+    d.appendChild(a);
+    document.getElementById("start").style.display = "none";
+    document.body.appendChild(d);
+    rAF(updateStatus);
+}
+
+function disconnecthandler(e) {
+  removegamepad(e.gamepad);
+}
+
+function removegamepad(gamepad) {
+  var d = document.getElementById("controller" + gamepad.index);
+  document.body.removeChild(d);
+  delete controllers[gamepad.index];
+}
+function updateStatus() {
+    controller = controllers[0];
+    scangamepads();
+    for (j in controllers) {
+        var d = document.getElementById("controller" + j);
+        var buttons = d.getElementsByClassName("button");
+        for (var i=0; i<controller.buttons.length; i++) {
+        var b = buttons[i];
+        var val = controller.buttons[i];
+        var pressed = val == 1.0;
+        var touched = false;
+        if (typeof(val) == "object") {
+            pressed = val.pressed;
+            if ('touched' in val) {
+            touched = val.touched;
+            }
+            val = val.value;
+        }
+        var pct = Math.round(val * 100) + "%";
+        b.style.backgroundSize = pct + " " + pct;
+        b.className = "button";
+        if (pressed) {
+            b.className += " pressed";
+        }
+        if (touched) {
+            b.className += " touched";
+        }
+        }
+
+        var axes = d.getElementsByClassName("axis");
+        for (var i=0; i<controller.axes.length; i++) {
+        var a = axes[i];
+        a.innerHTML = i + ": " + controller.axes[i].toFixed(4);
+        a.setAttribute("value", controller.axes[i]);
+        }
+    }
+    rAF(updateStatus);
+}
+
+function scangamepads() {
+    var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+    for (var i = 0; i < gamepads.length; i++) {
+        if (gamepads[i] && (gamepads[i].index in controllers)) {
+        controllers[gamepads[i].index] = gamepads[i];
+        }
+    }
+}
+
+if (haveEvents) {
+  window.addEventListener("gamepadconnected", connecthandler);
+  window.addEventListener("gamepaddisconnected", disconnecthandler);
+} else if (haveWebkitEvents) {
+  window.addEventListener("webkitgamepadconnected", connecthandler);
+  window.addEventListener("webkitgamepaddisconnected", disconnecthandler);
+} else {
+  setInterval(scangamepads, 500);
+}
+
+
 class newWall {
     constructor(x1,y1,x2,y2){
         this.first = new newPoint(x1,y1);
@@ -1175,13 +1306,13 @@ let cam = {
     y:0,
     zoom:1
 }
-//let devMode = true;
 let devMode = sessionStorage.getItem('devMode');
 if (devMode==='true'){
     devMode=true;
 }else{
     devMode=false;
 }
+//devMode=true;
 let screenShake=0;
 let screenSize=1;
 let weaponChoice=0;
@@ -1236,6 +1367,8 @@ importTiles();
 importRoomOptions();
 let dashSpeed = null;
 let circlesToDraw = [];
+let textToDraw = [];
+let rectsToDraw = [];
 let bullets = [];
 let changePlayerColor = false;
 let mode =7;
@@ -1276,7 +1409,10 @@ let bulletImage=new Image();
 bulletImage.src='Bullet_test.png';
 playerImages.imagesList=[playerImages.front,playerImages.right,playerImages.back,playerImages.left];
 let targetImage = new Image();
-//targetImage.src='Target.png';
+targetImage.src='Target.png';
+let powerUpIconImage = new Image();
+powerUpIconImage.src = 'powerUpIcon.png';
+let shootingAngle = 0;
 let maximumDashCoolDown = 20;
 let dashCooldown = 0;
 let powerUpSpace = 2;
@@ -1446,6 +1582,14 @@ function drawEnemies(cam){
                 let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size-18));
                 //the height has 6 added because of the drop shadow which adds 6 pixels to the height
                 ctx.drawImage(playerImages.imagesList[movementDirection],imagePos.x,imagePos.y,enemy.size*cam.zoom*2,(enemy.size+6)*cam.zoom*2);
+
+                ctx.beginPath();
+                ctx.arc(screenEnemyPos.x,screenEnemyPos.y-12,enemy.size,0,Math.PI*2);
+                ctx.fillStyle = 'red';
+                ctx.globalAlpha = -((enemy.health/5/*enemy.maxHealth*/)-1);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = 'black';
             }else{
                 ctx.beginPath();
                 ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);
@@ -1481,11 +1625,14 @@ function drawEnemies(cam){
                 ctx.font = enemy.size*cam.zoom+'px serif';
                 ctx.fillText(Math.floor(enemy.health),screenEnemyPos.x-(cam.zoom*enemy.size/4),screenEnemyPos.y+(cam.zoom*enemy.size/4));
             }
+            /*if (enemies[0]===enemy){
+                ctx.fillStyle='white';
+                ctx.font = enemy.size*cam.zoom+'px serif';
+                ctx.fillText(Math.floor(enemy.health),screenEnemyPos.x-(cam.zoom*enemy.size/4),screenEnemyPos.y+(cam.zoom*enemy.size/4));
+            }*/
             let firstEnemy = enemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1);
             ctx.fillStyle='black';
             ctx.font = 30*cam.zoom+'px serif';
-            //const messages =['PFType 0','PFType 1','PFType 2','PFType 3','PFType 4','PFType 5','PFType 6','PFType 7','PFType 8','PFType 9','PFType 10','PFType 11','PFType 12','PFType 13','PFType 14','PFType 15','PFType 16'];
-            //const messages =['','','','','','','More Health','','Faster Reload Time','More bullets','','Lowers Shot Spread','More Enemies Can Be Killed By 1 Bullet','Move Faster','PFType 14','PFType 15','PFType 16'];
             let message = '';
             if (enemy.size!=0||enemy.PFType===14&&firstEnemy===undefined){
                 //message = messages[enemy.PFType];
@@ -2973,7 +3120,7 @@ function enemyMovement(enemiesToRemove){
                     for (let i=0;i<numMoney;i++){
                         let moneyPos = new newPoint();
                         do{
-                            moneyPos = addToPoint(dupPoint(enemy),(Math.random()*100)-50,(Math.random()*100)-50);
+                            moneyPos = addToPoint(dupPoint(enemy),(Math.random()*50)-25,(Math.random()*50)-25);
                         }while(rayCast(enemy,moneyPos,false,mainEnemyRoom.walls))
                         enemies.push(newEnemyPreset(moneyPos,16));
                         addToEnemyRooms(enemies[enemies.length-1]);
@@ -2982,10 +3129,10 @@ function enemyMovement(enemiesToRemove){
                     //numMoney = Math.floor(Math.random()*2)+1;
                     numMoney = Math.floor(Math.random()*(maxHealthDrop+1));
                     for (let i=0;i<numMoney;i++){
-                        let moneyPos = addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10);
-                        while(rayCast(enemy,moneyPos,false,mainEnemyRoom.walls)){
-                            moneyPos = addToPoint(dupPoint(enemy),(Math.random()*100)-10,(Math.random()*20)-10);
-                        }
+                        let moneyPos = new newPoint();
+                        do{
+                            moneyPos = addToPoint(dupPoint(enemy),(Math.random()*50)-25,(Math.random()*50)-25);
+                        }while(rayCast(enemy,moneyPos,false,mainEnemyRoom.walls))
                         enemies.push(newEnemyPreset(moneyPos,7));
                         addToEnemyRooms(enemies[enemies.length-1]);
                     }
@@ -3111,11 +3258,21 @@ function enemyMovement(enemiesToRemove){
                     if(keys['d']){
                         movementTarget.x++;
                     }
+                    if (controller!=undefined){
+                        let axes = controller.axes;
+                        if (Math.abs(axes[0])>.1){ //this adds a deadzone
+                            movementTarget.x+=axes[0];
+                        }
+                        if (Math.abs(axes[1])>.1){
+                            movementTarget.y+=axes[1];
+                        }
+                    }
                 }
                 let movementAngle = findAngle(new newPoint(0,0),movementTarget);
                 if (movementTarget.x!=0||movementTarget.y!=0){
-                    enemy.x-=Math.sin(movementAngle)*enemy.speed;
-                    enemy.y-=Math.cos(movementAngle)*enemy.speed;
+                    let currentSpeed = Math.min(1,findDis(new newPoint(0,0),movementTarget));
+                    enemy.x-=Math.sin(movementAngle)*enemy.speed*currentSpeed;
+                    enemy.y-=Math.cos(movementAngle)*enemy.speed*currentSpeed;
                 }
                 if (!isSamePoint(new newPoint(0,0),movementTarget)){
                     //sheild.angle=movementAngle+Math.PI;
@@ -3609,10 +3766,16 @@ function bulletEnemyCollision(){
         //let enemyIndex = enemies.findIndex((enemyCheck)=>enemyCheck===enemy);
         //let bulletOwnerIndex = enemies.findIndex((enemyCheck)=>enemyCheck===bullet.owner);
         if (enemy!=undefined){
-            if (enemy!=bullet.owner&&(enemy.team!=2)){
+            if (enemy!=bullet.owner&&(enemy.team!=2)&&enemy.PFType!=36){
                 if ((enemy.invinceable<1||enemy!=enemies[0])&&bullet.owner.team!=enemy.team&&bullet.enemiesHit.find((enemyCheck)=>enemyCheck===enemy)===undefined){
                     bullet.boringEffect(enemy,bullet);
                     bullet.effect(enemy,bullet);
+                    /*if (enemy===enemies[0]){ //this would make the screen flash red when you get hit
+                        ctx.rect(0,0,c.width,c.height);
+                        ctx.fillStyle = 'red';
+                        //addText(toString(enemies[0].health),new newPoint(c.width/2,c.height/2),'48px impact','black',Infinity,textToDraw);
+                        ctx.fill();
+                    }*/
                 }
             }
         }
@@ -3644,6 +3807,56 @@ function addCircle(point,color,size){
 function drawCircles(cam){
     for (circle of circlesToDraw){
         drawCircle(circle.x,circle.y,circle.color,false,circle.size);
+    }
+}
+function addRect(point,width,height,color,textToDraw){
+    rectsToDraw.push({
+        x:point.x,
+        y:point.y,
+        color:color,
+        width:width,
+        height:height,
+        textToDraw:textToDraw
+    })
+}
+function drawRects(){ //should add support for having boxes that have circles on the corners, to round the corners
+    for (rect of rectsToDraw){
+        ctx.beginPath();
+        ctx.rect(rect.x,rect.y,rect.width,rect.height);
+        ctx.stroke();
+        ctx.fillStyle=rect.color;
+        ctx.fill();
+        for (text of rect.textToDraw){
+            ctx.font = text.font;
+            ctx.fillStyle = text.color;
+            ctx.fillText(text.message,text.x+rect.x,text.y+rect.y,text.maxWidth);
+        }
+    }
+}
+function addText(message,point,font,color,maxWidth,textList){ //the point is just an offset from the rect's point
+    if (message===''){
+        return;
+    }
+    if (color===undefined){
+        color='black';
+    }
+    if (font===undefined){
+        font='32px serif';
+    }
+    textList.push({ //maybe add a way to follow the cam
+        x:point.x,
+        y:point.y,
+        color:color,
+        font:font,
+        message:message,
+        maxWidth:maxWidth
+    })
+}
+function drawText(){
+    for (text of textToDraw){
+        ctx.font = text.font;
+        ctx.fillStyle = text.color;
+        ctx.fillText(text.message,text.x,text.y,text.maxWidth);
     }
 }
 function findClosestEnemy(pos,enemiesToCheck,enemy,isBullet,doRayCast,wallsToCheck){
@@ -3712,19 +3925,54 @@ function gunEnemyMovement(target){
             if (enemy.PFType===1){
                 for (let j=0;j<powerUpsGrabbed.length;j++){
                     let runCode=false;
-                    switch(j){
-                        case 0:
-                            runCode=buttonsArray[0]&&powerUpsGrabbed[j].coolDown<1
-                            break
-                        case 1:
-                            runCode=buttonsArray[2]&&powerUpsGrabbed[j].coolDown<1
-                            break
-                        case 2:
-                            runCode=keys[' ']&&powerUpsGrabbed[j].coolDown<1
-                            break
-                        case 3:
-                            runCode=keys['shift']&&powerUpsGrabbed[j].coolDown<1
-                            break
+                    if (controller===undefined){
+                        switch(j){
+                            case 0:
+                                runCode=buttonsArray[0]&&powerUpsGrabbed[j].coolDown<1;
+                                break
+                            case 1:
+                                runCode=buttonsArray[2]&&powerUpsGrabbed[j].coolDown<1
+                                break
+                            case 2:
+                                runCode=keys[' ']&&powerUpsGrabbed[j].coolDown<1
+                                break
+                            case 3:
+                                runCode=keys['shift']&&powerUpsGrabbed[j].coolDown<1
+                                break
+                        }
+                    }else{
+                        let axes = controller.axes;
+                        let buttons = controller.buttons;
+                        let movementTarget = dupPoint(enemy);
+                        let skipped = true;
+                        if (Math.abs(axes[2])>.1){ //this adds a deadzone
+                            movementTarget.x+=axes[2];
+                            skipped = false;
+                        }
+                        if (Math.abs(axes[3])>.1){
+                            movementTarget.y+=axes[3];
+                            skipped = false;
+                        }
+                        if (skipped){
+                            movementTarget = addToPoint(movementTarget,Math.sin(shootingAngle),Math.cos(shootingAngle));
+                        }
+                        target=movementTarget;
+                        shootingAngle = findAngle(target,enemies[0]);
+
+                        switch(j){
+                            case 0:
+                                runCode=buttons[6].pressed&&powerUpsGrabbed[j].coolDown<1;
+                                break
+                            case 1:
+                                runCode=buttons[7].pressed&&powerUpsGrabbed[j].coolDown<1;
+                                break
+                            case 2:
+                                runCode=keys[' ']&&powerUpsGrabbed[j].coolDown<1
+                                break
+                            case 3:
+                                runCode=keys['shift']&&powerUpsGrabbed[j].coolDown<1
+                                break
+                        }
                     }
                     if (runCode){
                         let examplePowerUp=powerUpsGrabbed[j];
@@ -3780,13 +4028,131 @@ function gunEnemyMovement(target){
         }
     }
 }
+function drawSellButton(leftX){
+    ctx.beginPath();
+    ctx.arc(20+leftX,c.height-25,20,0,Math.PI*2);
+    ctx.rect(20+leftX,c.height-45,53,40);
+    ctx.arc(73+leftX,c.height-25,20,0,Math.PI*2);
+    ctx.fillStyle='black';
+    ctx.fill();
+
+    ctx.drawImage(powerUpIconImage,8+leftX,c.height-37,25,25);
+
+    ctx.beginPath();
+    ctx.font = '32px Times New Roman';
+    ctx.fillStyle = 'white';
+    ctx.fillText('$',68+leftX,c.height-15);
+
+    ctx.beginPath(); //arrow
+    ctx.moveTo(33+leftX,c.height-35);
+    ctx.bezierCurveTo(53+leftX, c.height-40, 61+leftX, c.height-35,63+leftX,c.height-30);
+    ctx.lineTo(58+leftX,c.height-40);
+    ctx.moveTo(63+leftX,c.height-31);
+    ctx.lineTo(54+leftX,c.height-32);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 1;
+}
+function drawHUDMouse(majorLeftX,majorRightX){
+    let majorCenter = ((majorRightX-majorLeftX)/2)+majorLeftX;
+    let start = new newPoint(majorLeftX-2,c.height);
+    let cp1 = new newPoint(majorLeftX+5,c.height-100);
+    let cp2 = new newPoint(majorRightX-5,c.height-100);
+    let end = new newPoint(majorRightX+2,c.height);
+
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+    ctx.lineWidth=4;
+    ctx.strokeStyle='white';
+    ctx.stroke();
+    ctx.strokeStyle='black';
+    ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.fillStyle = 'black';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.rect(majorCenter-1,c.height-76,2,100); //line that splits the mouse into left and right click
+    ctx.rect(majorCenter-5,c.height-50,10,20); //scroll wheel hole
+    ctx.fillStyle = 'white';
+    ctx.fill();
+
+    ctx.beginPath();
+    //ctx.rect(majorLeftX-6,c.height-2,12+majorRightX-majorLeftX,2); //bottom sliver
+    ctx.rect(majorCenter-3,c.height-47,6,14); //scroll wheel
+    ctx.fillStyle = 'black';
+    ctx.fill();
+
+    ctx.beginPath();
+    for (let i=0;i<powerUpSpace;i++){
+        ctx.arc(majorLeftX+((i+.5)*40),c.height-20,15,0,Math.PI*2);
+    }
+    ctx.fillStyle='white';
+    ctx.fill();
+
+    /*ctx.beginPath();
+    for (let i=0;i<powerUpSpace;i++){
+        ctx.arc(majorLeftX+((i+.5)*40),c.height-20,11,0,Math.PI*2);
+    }
+    ctx.fillStyle='black';
+    ctx.fill();*/
+}
+function drawMinorSlots(minorLeftX,minorRightX){
+    ctx.beginPath();
+    ctx.arc(minorLeftX+15,c.height-20,15,0,Math.PI*2);
+    ctx.rect(minorLeftX+15,c.height-35,minorRightX-minorLeftX-30,30);
+    ctx.arc(minorRightX-15,c.height-20,15,0,Math.PI*2);
+    ctx.fillStyle='black';
+    ctx.fill();
+    ctx.beginPath();
+    for (let i=0;i<minorPowerUpSpace;i++){
+        ctx.arc(minorLeftX+(i*30)+15,c.height-20,10,0,Math.PI*2);
+    }
+    ctx.fillStyle='white';
+    ctx.fill();
+}
+function drawPermanentSlots(permanentLeftX,permanentRightX){
+    let permanentBottomY = 5;
+    let permanentTopY = permanentRightX-30;
+    ctx.beginPath();
+    ctx.arc(permanentLeftX+15,(c.height-(20))-permanentBottomY,20,0,Math.PI*2);
+    ctx.rect(permanentLeftX-5,(c.height-(20))-permanentTopY,40,permanentTopY-permanentBottomY);
+    ctx.arc(permanentLeftX+15,(c.height-(20))-permanentTopY,20,0,Math.PI*2);
+    ctx.fillStyle='black';
+    ctx.fill();
+    ctx.beginPath();
+    for (let i=0;i<permanentMinorPowerUps.length;i++){
+        ctx.arc(permanentLeftX+15,c.height-(10)-((i+.5)*30),10,0,Math.PI*2);
+    }
+    ctx.fillStyle='white';
+    ctx.fill();
+
+    ctx.drawImage(powerUpIconImage,permanentLeftX+3,(c.height-((permanentMinorPowerUps.length+1.5)*30))+permanentBottomY,25,25);
+    
+    /*ctx.beginPath();
+    ctx.arc(permanentLeftX+((permanentMinorPowerUps.length)*30)+15,c.height-20,8,0,Math.PI*2);
+    ctx.fillStyle = 'black';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(permanentLeftX+((permanentMinorPowerUps.length)*30)+15,c.height-22,4,0,Math.PI*2);
+    ctx.rect(permanentLeftX+((permanentMinorPowerUps.length)*30)+13,c.height-22,4,7);
+    ctx.fillStyle = 'white';
+    ctx.fill();*/
+
+    ctx.font = '20px Times New Roman';
+    ctx.fillText('$10',permanentLeftX,c.height-permanentTopY-10);
+}
 function drawHUD(){
     ctx.fillStyle='black';
-    ctx.fillRect(0,c.height-HUDHeight,c.width,HUDHeight);
-    const TEXT_SIZE = 30*screenSize;
-    ctx.font=TEXT_SIZE+'px serif';
-    ctx.fillStyle='black';
-    ctx.fillText(/*'Money:'+money+*/'  Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-(TEXT_SIZE*22*screenSize),TEXT_SIZE*screenSize);
+    //ctx.fillRect(0,c.height-HUDHeight,c.width,HUDHeight); //this would draw a bos that covers up things if HUDHeight !=0
+    const TEXT_SIZE = 40;
+    ctx.font=TEXT_SIZE+'px Courier New';
+    ctx.fillText('Money:'+money,c.width-250,c.height-5);
+    ctx.fillText('Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-600,c.height-5);
     if (enemies[0].health===7&&enemies[0].maxHealth===11){
         //ctx.fillText('SLUUURRRPEE',c.width-(TEXT_SIZE*9),TEXT_SIZE*2);
     }
@@ -3817,9 +4183,6 @@ function drawHUD(){
         damage=powerUpsGrabbed[0].damage
     }
     //ctx.fillText('Damage: '+damage,c.width-(TEXT_SIZE*16*screenSize),TEXT_SIZE*screenSize);
-    //ctx.drawImage(targetImage,mouse.x-targetImage.width,mouse.y-targetImage.width);
-
-    ctx.fillText('Money:'+money,c.width-(TEXT_SIZE*11),TEXT_SIZE*.8);
     if (devMode){
         let currentFps = 1000/(Date.now()-startTime);
         previousFps.push(currentFps);
@@ -3835,36 +4198,23 @@ function drawHUD(){
         ctx.fillText('FPS:'+Math.round(averageFps),50*screenSize,45*screenSize);
     }
     //ctx.fillText('Max Health:'+enemies[0].maxHealth,c.width-(TEXT_SIZE*11),TEXT_SIZE*.8);
-    let majorLeftX = 75
-    ctx.save();
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(majorLeftX,c.height-40,powerUpSpace*30,40);
-    ctx.fillStyle='white';
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
+    let permanentLeftX = 10;
+    //let permanentLeftX = (minorLeftX+minorPowerUpSpace*30)+25;
+    let permanentRightX = permanentLeftX+((permanentMinorPowerUps.length+2)*30);
+    drawPermanentSlots(permanentLeftX,permanentRightX);
 
-    let minorLeftX = (majorLeftX+powerUpSpace*30)+50;
-    ctx.beginPath();
-    ctx.rect(minorLeftX,c.height-40,minorPowerUpSpace*30,40);
-    ctx.fillStyle='white';
-    ctx.fill();
-    ctx.stroke();
+    let majorLeftX = 65;
+    let majorRightX = (majorLeftX+powerUpSpace*40);
 
-    let permanentLeftX = (minorLeftX+minorPowerUpSpace*30)+50;
-    ctx.beginPath();
-    ctx.rect(permanentLeftX,c.height-40,permanentMinorPowerUps.length*30,40);
-    ctx.fillStyle='white';
-    ctx.fill();
-    ctx.stroke();
+    drawHUDMouse(majorLeftX,majorRightX);
 
-    let bulletBoxLeftX = (permanentLeftX+minorPowerUpSpace*30)+50;
-    /*ctx.beginPath();
-    ctx.rect(bulletBoxLeftX,c.height-40,5*30,40);
-    ctx.fillStyle='white';
-    ctx.fill();
-    ctx.stroke();*/
+    let minorLeftX = (majorRightX)+25;
+    let minorRightX = (minorLeftX+minorPowerUpSpace*30);
+    drawMinorSlots(minorLeftX,minorRightX);
+
+    let sellButtonLeftX = (minorLeftX+minorPowerUpSpace*30)+25;
+    drawSellButton(sellButtonLeftX);
+
     if (keysToggle['p']){
         return
     }
@@ -3897,19 +4247,25 @@ function drawHUD(){
     }
     powerUpsGrabbed.splice(powerUpSpace,Infinity);//this deletes the power ups if there are more than 5, the amount of space in your inventory
     minorPowerUpsGrabbed.splice(minorPowerUpSpace,Infinity);
-    for (let k=0;k<5;k++){
+    for (let k=0;k<6;k++){
         let powerUpList = [];
         switch (k){
             case 0:
-                powerUpList = [newPowerUpPreset(8,false),newPowerUpPreset(28,false)] //this is a placeholder for the trash can and the upgrader
+                powerUpList = [newPowerUpPreset(8,false)] //this is a placeholder for the trash can
                 break
             case 1:
-                powerUpList=powerUpsGrabbed//major power ups
+                powerUpList = [newPowerUpPreset(28,false)] //this is a placeholder for  the upgrader
                 break
             case 2:
-                powerUpList=minorPowerUpsGrabbed//minor power ups
+                powerUpList=powerUpsGrabbed//major power ups
                 break
             case 3:
+                powerUpList=minorPowerUpsGrabbed//minor power ups
+                break
+            case 4:
+                powerUpList = permanentMinorPowerUps;//permanent minor power ups
+                break
+            case 5:
                 if (heldPowerUp===undefined){
                     heldPowerUp=null;//this shouldn't be nessecary but this is easier than coding it right
                 }else if (heldPowerUp===null){
@@ -3918,64 +4274,75 @@ function drawHUD(){
                     powerUpList = [heldPowerUp]; //held power up
                 }
                 break
-            case 4:
-                powerUpList = permanentMinorPowerUps;
-                break
-            /*case 5:
+            /*case 6:
                 powerUpList = bulletsInClip;
                 break*/
         }
         for(let i=0;i<powerUpList.length;i++){
             let examplePowerUp = null;
             examplePowerUp=powerUpList[i];
+            let actionOnClick = null;
             switch (k){
                 case 0:
-                    let actionOnClick = function (i,powerUpList){
-                        money++;
-                        heldPowerUp=null;
+                    actionOnClick = function (i,powerUpList){
+                        if (heldPowerUp!=null){
+                            money++;
+                            heldPowerUp=null;
+                        }
                         return i;
                     }
-                    if (examplePowerUp.PFType===28){
-                        actionOnClick = function(i,powerUpList){
-                            if (heldPowerUp!=null&&heldPowerUp instanceof newMinorPowerUp&&money>=20){
-                                money-=20;
-                                permanentMinorPowerUps.push(heldPowerUp);
-                                heldPowerUp=null;
-                            }
-                            return i;
-                        }
-                    }
-                    i=drawPowerUp(examplePowerUp,i,0,actionOnClick,powerUpList,10);
+                    i=drawPowerUp(examplePowerUp,i,.16,actionOnClick,powerUpList,sellButtonLeftX,false,false,true);
                     break
                 case 1:
+                    actionOnClick = function(i,powerUpList){
+                        if (heldPowerUp!=null&&heldPowerUp instanceof newMinorPowerUp&&money>=10){
+                            money-=10;
+                            permanentMinorPowerUps.push(heldPowerUp);
+                            heldPowerUp=null;
+                        }
+                        return i;
+                    }
+                    i=drawPowerUp(examplePowerUp,permanentMinorPowerUps.length,-.28,actionOnClick,powerUpList,permanentLeftX+15,false,false,true,true);
+                    break
+                case 2:
                     i=drawPowerUp(examplePowerUp,i,0,onClick,powerUpList,majorLeftX);
                     for (let j=0;j<examplePowerUp.minorPowerUps.length;j++){
                         let otherExamplePowerUp = examplePowerUp.minorPowerUps[j];
                         drawPowerUp(otherExamplePowerUp,i,j+1,function(){},powerUpList,majorLeftX);
                     }
                     break
-                case 2:
+                case 3:
                     i=drawPowerUp(examplePowerUp,i,0,onClick,powerUpList,minorLeftX);
                     break
-                case 3:
-                    i=drawPowerUp(examplePowerUp,0,0,onClick,powerUpList,minorLeftX);//drawpowerup already knows this is the held power up and does the hard work for me. It pays to be lazy
-                    break
                 case 4:
-                    i=drawPowerUp(examplePowerUp,i,0,function(i,powerUpList){return i},powerUpList,permanentLeftX);
+                    i=drawPowerUp(examplePowerUp,i,-.33,function(i,powerUpList){return i},powerUpList,permanentLeftX+15,false,false,false,true);
+                    break
+                case 5:
+                    i=drawPowerUp(examplePowerUp,0,0,onClick,powerUpList,minorLeftX);//drawpowerup already knows this is the held power up and does the hard work for me. It pays to be lazy
                     break
             }
         }
     }
 }
-function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList,leftX,isBullet,powerUpSelect){
+function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList,leftX,isBullet,powerUpSelect,skipDrawingPowerUp,stackVertical){
     ctx.beginPath();
     ctx.save();
     //ctx.moveTo(c.width-30,c.height-30);
-    let iconPos = null
+    let iconPos = null;
     if (powerUp===heldPowerUp){
         iconPos=addToPoint(dupPoint(mouse),10,4);
+    }else if (stackVertical){
+        if (powerUp.PFType===28||powerUp instanceof newMinorPowerUp){
+            iconPos=new newPoint(leftX,c.height-20-(30*(numOnScreen+.5)));
+        }else{
+            iconPos=new newPoint(leftX,c.height-20-(40*(numOnScreen+.5)));
+        }
     }else{
-        iconPos=new newPoint(leftX+(30*(numOnScreen+.5)),c.height-20);
+        if (powerUp instanceof newMajorPowerUp){
+            iconPos=new newPoint(leftX+(40*(numOnScreen+.5)),c.height-20);
+        }else{
+            iconPos=new newPoint(leftX+(30*(numOnScreen+.5)),c.height-20);
+        }
     }
     iconPos.y-=30*(verticalNumOnScreen)
     let iconSize = null;
@@ -3999,55 +4366,100 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
     //ctx.arc(mouse.x,mouse.y,30,0,Math.PI*2);
     let examplePowerUp = powerUp;
     ctx.fillStyle= examplePowerUp.color;
-    ctx.fill();
-    ctx.stroke();
+    if (!skipDrawingPowerUp){
+        ctx.fill();
+        ctx.stroke();
+    }
     ctx.restore();
     iconPos.x-=10;
     if (findDis(iconPos,mouse)<iconSize){
-        ctx.fillStyle = 'black';
         if (powerUpSelect){
             ctx.font = '32px impact';
         }else{
             ctx.font = '24px serif';
         }
-        let label = examplePowerUp.label
-        let powerUpPos = null;
-        if (powerUp===heldPowerUp){
-            powerUpPos= dupPoint(mouse);
-        }else{
-            powerUpPos = new newPoint(Math.max(0,Math.min(mouse.x-(label.length*9/2),c.width-label.length*9)),Math.min(mouse.y-10,c.height-31))
+        let label = examplePowerUp.label;
+        let metrics = ctx.measureText(label);
+        let powerUpPos = new newPoint(Math.max(0,Math.min(mouse.x-(metrics.width/2),c.width-metrics.width)),Math.min(mouse.y-20,c.height-31))
+        let skipDrawDamage = isBullet||(examplePowerUp instanceof newMinorPowerUp)||(examplePowerUp.PFType===8)||(examplePowerUp.PFType===28);//I think this is needed but it might not be, a bullet doesn't have a cooldown atribute
+        let textToDraw = [];
+        let maxTextWidth = 20;
+        let relativePos = new newPoint(5,20);
+        if (powerUpSelect){
+            relativePos.y+=12;
         }
         for(let i=0;i<4;i++){
             let text = '';
-            if (i>0){
-                if (isBullet||examplePowerUp instanceof newMinorPowerUp){
-                    continue; //I think this is needed but it might not be, a bullet doesn't have a cooldown atribute
-                }
-            }
             switch(i){
                 case 0:
                     text = label;
                     break
                 case 1:
-                    text = 'Damage: '+examplePowerUp.damage
+                    text = examplePowerUp.secondLabel;
+                    if (examplePowerUp.secondLabel===''){
+                        if (powerUpSelect){
+                            relativePos.y-=30;
+                        }else{
+                            relativePos.y-=20;
+                        }
+                    }
                     break
                 case 2:
-                    text = 'Cooldown: '+examplePowerUp.coolDownMax;
+                    if (skipDrawDamage){
+                        continue;
+                    }
+                    text = 'Damage: '+examplePowerUp.damage
                     break
                 case 3:
-                    text = examplePowerUp.secondLabel;
+                    if (skipDrawDamage){
+                        continue;
+                    }
+                    text = 'Cooldown: '+examplePowerUp.coolDownMax;
                     break
             }
-            ctx.fillText(text,powerUpPos.x,powerUpPos.y,text.length*9);
+            /*if ((examplePowerUp.PFType===8)||(examplePowerUp.PFType===28)){
+                powerUpPos.y+=30; //this makes the text for the trash can and other go lower
+            }*/
+            let metrics = ctx.measureText(text);
+            maxTextWidth = Math.max(maxTextWidth,metrics.width);
+            addText(text,relativePos,ctx.font,'black',maxTextWidth,textToDraw);
+            //ctx.fillText(text,powerUpPos.x,powerUpPos.y,text.length*9);
             if (powerUpSelect){
-                powerUpPos.y-=30;
+                relativePos.y+=30;
             }else{
-                powerUpPos.y-=20;
+                relativePos.y+=20;
             }
+        }
+        let rectHeight = 0;
+        if (powerUpSelect){
+            rectHeight=100;
+        }else{
+            rectHeight=65;
+        }
+        if (skipDrawDamage){
+            if (powerUpSelect){
+                rectHeight-=60;
+            }else{
+                rectHeight-=40;
+            }
+        }
+        if (examplePowerUp.secondLabel!=''){
+            if (powerUpSelect){
+                rectHeight+=30;
+            }else{
+                rectHeight+=20;
+            }
+        }
+        for (rect of rectsToDraw){
+            rect.y-=rectHeight+5;
         }
         if (mouseClickUsed){
             mouseClickUsed=false;
-            numOnScreen = onClick(numOnScreen,powerUpList);
+            if (numOnScreen===Math.round(numOnScreen)){
+                numOnScreen = onClick(numOnScreen,powerUpList);
+            }
+        }else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
+            addRect(addToPoint(powerUpPos,-5,-rectHeight+10),maxTextWidth+10,rectHeight,'white',textToDraw);
         }
     }
     return numOnScreen
@@ -4107,6 +4519,15 @@ let targetNumOfRooms=30;
 let eligibleMajorPowerUps = [];
 let eligibleMinorPowerUps = [];
 function startGame(weaponChoice){
+    if (wallsImport===''){
+        generateRooms(targetNumOfRooms,10,eligibleMajorPowerUps);
+    }
+    wallBoxes = generateWallBoxes(2,walls,wallBoxes);//after the room generates, the lag is so much if holding 'w' you can "teleport" into the first room
+    for (enemyRoom of enemyRooms){
+        for (enemy of enemyRoom.enemies){
+            enemy.enemyRoom = enemyRoom;
+        }
+    }
     //eligibleMajorPowerUps = [0,1,2,3,5,6,7];
     //let eligibleMinorPowerUps = [9,10];
     let powerUps = findEligiblePowerUps();
@@ -4137,6 +4558,7 @@ function startGame(weaponChoice){
             //9 is shoot more bullets(its not here because it's meant to be a good reward for beating the boss)
             //eligibleMajorPowerUps = [6,8,11,12,13,19,20,21,25,26,27,28,30,31,32,33,34];
             //eligibleMajorPowerUps = [0,1,2,22,23,24];
+            //permanentMinorPowerUps.push(newPowerUpPreset(26,false));//this is just to get a look at how it will look
             powerUpSpace = eligibleMajorPowerUps.length;
             minorPowerUpSpace = eligibleMinorPowerUps.length;
             for (powerUp of eligibleMajorPowerUps){
@@ -4148,10 +4570,6 @@ function startGame(weaponChoice){
             money=21;
         break
     }
-    if (wallsImport===''){
-        generateRooms(targetNumOfRooms,10,eligibleMajorPowerUps);
-    }
-    wallBoxes = generateWallBoxes(2,walls,wallBoxes);
     switchMode(0);
 }
 function fullEnemyWallColl(){
@@ -4282,25 +4700,11 @@ function powerUpSelect(){
             switchMode(0);
         }
         drawPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,false,true);
-        /*ctx.beginPath();
-        //ctx.moveTo(c.width-30,c.height-30);
-        ctx.arc(iconPos.x,iconPos.y,powerUpSize,0,Math.PI*2);
-        //ctx.arc(mouse.x,mouse.y,30,0,Math.PI*2);
-        ctx.fillStyle= examplePowerUp.color;
-        ctx.fill();
-        ctx.stroke();
-        iconPos.x-=10;
-        if (findDis(iconPos,mouse)<powerUpSize){
-            ctx.fillStyle = 'black';
-            ctx.font = '32px impact';
-            let label = examplePowerUp.label;
-            let powerUpPos = new newPoint(Math.min(mouse.x-(label.length*9/2),c.width-label.length*12),Math.min(mouse.y-30,c.height-31))
-            ctx.fillText(label,powerUpPos.x,powerUpPos.y,label.length*12);
-            if (mouseClickUsed){
-                heldPowerUp = examplePowerUp;
-                switchMode(0);
-            }
-        }*/
+    }
+}
+function drawMouse(){
+    if (hideMouse){
+        ctx.drawImage(targetImage,mouse.x,mouse.y-10);
     }
 }
 function renderEverything(skipPlayers,camera){
@@ -4320,10 +4724,26 @@ function renderEverything(skipPlayers,camera){
     drawCircles(camera);
     //drawHUD doesn't need the camera because it is a special snowflake that doesn't draw following the camera
     drawHUD();
+    drawRects();
+    drawText();
+    drawMouse();
 }
 let frameNum = 0;
 let enemiesToRemove = [];
 function repeat(){
+    if (controller!=undefined){
+        let axes = controller.axes;
+        if (Math.abs(axes[2])>.1){ //this adds a deadzone
+            mouse.x+=axes[2]*10;
+            skipped = false;
+        }
+        if (Math.abs(axes[3])>.1){
+            mouse.y+=axes[3]*10;
+            skipped = false;
+        }
+    }
+    mouse.x=Math.max(Math.min(c.width,mouse.x),0);
+    mouse.y=Math.max(Math.min(c.height,mouse.y),0);
     frameNum++;
     if (screenShake>0){
         screenShake-=deltaTime;
@@ -4331,8 +4751,8 @@ function repeat(){
     enemiesToRemove=[];
     if (keysToggle['l']&&devMode){
         enemies[0].health++;
+        money=20;
     }
-    circlesToDraw = [];
     updatePlayerStats();
     moveBullets();
     if ((frameNum%targetRenderFPS)===0){
@@ -4437,6 +4857,9 @@ function switchMode(modeTarget){
     }
 }
 function repeat2(){
+    circlesToDraw = [];
+    //textToDraw = [];
+    rectsToDraw = [];
     if (keysUsed['6']&&keys['7']){
         devMode=!devMode;
     }
@@ -4525,9 +4948,9 @@ function repeat2(){
         updateTilesList(savedwallBoxes,tilesExport);
     }else if (mode===6){
         ctx.fillStyle='black';
-        ctx.font = '48px serif';
+        ctx.font = '48px Creepster';
         ctx.fillText('You Died! Press R To Play Again!',(c.width/4),(c.height/2));
-        ctx.font = '32px serif';
+        ctx.font = '32px Creepster';
         ctx.fillText('You Got All The Way To Room '+enemies[0].enemyRoom.roomNum+'!',(c.width/3),(2.5*c.height/4));
         //this isn't a great way to do it. better would be to reset all the values so it doesn't have to actually reload
         if (keys['r']){
@@ -4541,17 +4964,17 @@ function repeat2(){
         ctx.font='30px serif';
         ctx.fillText('Press 1 to use The Shotgun',(c.width/16),(c.height/2));
         ctx.fillText('Press 2 to use The Sniper',(c.width/3),(c.height/2));
-        ctx.fillText('Press 3 to use Granade Launcher',(2.5*c.width/4),(c.height/2));
+        ctx.fillText('  Press 3 to use Granade Launcher',(2*(c.width/3)),(c.height/2));
         //add a little image of the weapon below it
-        if (keys['1']){
+        if (keys['1']||(mouseClickUsed&&mouse.x<c.width/3)){
             weaponChoice=1;
             startGame(weaponChoice);
         }
-        if (keys['2']){
+        if (keys['2']||(mouseClickUsed&&mouse.x>c.width/3&&mouse.x<(2*c.width/3))){
             weaponChoice=2;
             startGame(weaponChoice);
         }
-        if (keys['3']){
+        if (keys['3']||(mouseClickUsed&&mouse.x>(2*c.width/3))){
             weaponChoice=3;
             startGame(weaponChoice);
         }
@@ -4575,6 +4998,9 @@ function repeat2(){
         camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z'],0);
         renderEverything(false,cam);
         powerUpSelect();
+        //drawText();
+        drawRects();
+        drawMouse();
     }
 }
 let deltaTime = 0;

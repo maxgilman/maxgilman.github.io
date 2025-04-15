@@ -3,9 +3,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>CircleRoguelike</title>
+    <title>Circle Quist!</title>
+    <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Creepster">
+
+    <style>
+      .axes {
+        padding: 1em;
+      }
+      
+      .buttons {
+        margin-left: 1em;
+      }
+      
+      /*meter*/.axis {
+        min-width: 200px;
+        margin: 1em;
+      }
+      
+      .button {
+        display: inline-block;
+        width: 1em;
+        text-align: center;
+        padding: 1em;
+        border-radius: 20px;
+        border: 1px solid black;
+        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAAxJREFUCNdjYPjPAAACAgEAqiqeJwAAAABJRU5ErkJggg==);
+        background-size: 0% 0%;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
+      }
+      
+      .pressed {
+        border: 1px solid red;
+      }
+      
+      .touched::after {
+        content: "touch";
+        display: block;
+        position: absolute;
+        margin-top: -0.2em;
+        margin-left: -0.5em;
+        font-size: 0.8em;
+        opacity: 0.7;
+      }
+      </style>
+
   </head>
   <body>
+    <h2 id="start"></h2>
     <canvas id="myCanvas" width=1400 height=750 style="border:1px solid #000000;">
     </canvas>
 	  <script src="code.js"></script>

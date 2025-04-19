@@ -1,0 +1,94 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Check Inputs</title>
+  </head>
+  <body>
+    <h2 id="start"></h2>
+    <canvas id="myCanvas" width=1400 height=750 style="border:1px solid #000000;">
+    </canvas>
+    <script>
+        let c = document.getElementById("myCanvas");
+        let ctx = c.getContext("2d");
+        document.addEventListener('contextmenu', event => {
+            event.preventDefault();
+        });//this stops right clicking from opening the right click menu
+        document.onmousemove = handleMouseMove;
+        class newPoint {
+            constructor(x,y){
+                this.x=x;
+                this.y=y;
+            }
+        }
+        let mouse = new newPoint(0,0);
+        function handleMouseMove(event) {
+            let eventDoc, doc, body;
+
+            event = event || window.event; // IE-ism
+
+            // If pageX/Y aren't available and clientX/Y are,
+            // calculate pageX/Y - logic taken from jQuery.
+            // (This is to support old IE)
+            if (event.pageX == null && event.clientX != null) {
+                eventDoc = (event.target && event.target.ownerDocument) || document;
+                doc = eventDoc.documentElement;
+                body = eventDoc.body;
+
+                event.pageX = event.clientX +
+                    (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                    (doc && doc.clientLeft || body && body.clientLeft || 0);
+                event.pageY = event.clientY +
+                    (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+                    (doc && doc.clientTop  || body && body.clientTop  || 0 );
+            }
+            mouse.x = event.pageX;
+            mouse.y = event.pageY;
+        }
+        let buttonsArray = [false, false, false, false, false, false, false, false, false];//0 is left click, 1 is middle click, and 2 is right click
+        let mousePressed = false;
+        let mouseClickUsed = false;
+        document.onmousedown = function(e) {
+            buttonsArray[e.button] = true;
+            mousePressed = true;
+            if (e.button===2){
+                //if there is a context menu open, uncomment this code
+                //keys=[];
+                //mousePressed=false;
+            }
+            if (e.button===2){
+                mouseClickUsed=!mouseClickUsed;
+            }
+        }
+        document.onmouseup = function(e) {
+          buttonsArray[e.button] = false;
+          mousePressed = false;
+        }
+        let keys = {};
+        let keysUsed = {};
+        document.addEventListener('keydown', (event) => {
+            //remember when using this to set the thing to false after used
+            let keyPressed = event.key.toLowerCase();
+            if (!keys[keyPressed]){
+                keysUsed[keyPressed] = true;
+            }
+            keys[keyPressed]=true;
+        });
+        document.addEventListener('keyup', (event) => {
+            let keyPressed = event.key.toLowerCase();
+            keys[keyPressed]=false;
+        });
+        function drawEverything(){
+          ctx.clearRect(0,0,c.width,c.height);
+          ctx.fillStyle = 'black';
+          ctx.beginPath();
+          ctx.font = '24px serif';
+          for(let i=0;i<buttonsArray.length;i++){
+            ctx.fillText(buttonsArray[i],50,(i+1)*(c.height/buttonsArray.length));
+          }
+        }
+        setInterval(drawEverything,33);
+    </script>
+  </body>
+</html>

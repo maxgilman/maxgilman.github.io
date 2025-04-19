@@ -49,9 +49,6 @@ document.onmousedown = function(e) {
         mouseClickUsed=!mouseClickUsed;
     }
 }
-function findDis(point1,point2){
-    return Math.sqrt(Math.pow((point1.x-point2.x),2)+Math.pow((point1.y-point2.y),2))
-}
 document.onmouseup = function(e) {
     buttonsArray[e.button] = false;
     mousePressed = false;
@@ -70,7 +67,9 @@ document.addEventListener('keyup', (event) => {
     let keyPressed = event.key.toLowerCase();
     keys[keyPressed]=false;
 });
-
+function findDis(point1,point2){
+    return Math.sqrt(Math.pow((point1.x-point2.x),2)+Math.pow((point1.y-point2.y),2))
+}
 let firstTry = [{"x":2.3203125,"y":739.55859375},{"x":2.12109375,"y":631.6640625},{"x":1.3515625,"y":633.5625},{"x":1.19140625,"y":739.875}]
 
 let points = [

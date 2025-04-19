@@ -90,6 +90,7 @@ you have a "deck" or cards 1-9 and one is always randomly drawn. upgrades effect
 You have to throw bombs that grow after a set time and the "exploding" bomb(an expanding player) pushs around circles to solve puzzles
 You shoot to the beat of the music. maybe you make the music before each level to add startagy. maybe you can't even move and the only thing you have control over when you shoot, in ther words, what the music is
 game where you're playing the economy like you're in the gilded age. playing other companies agaist each other
+having the circles on the corners of the rotated bullets looks really satifiying on the bombs
 
 resource management
 You can change what type of enemy an enemy is
@@ -240,10 +241,9 @@ make gameplay loop change while you're playing
 make cooldown in seconds
 change temp name to circle quist
 change floating point numbers for stuff(round)
-add controller support
+fix controller support
 add shitty explosion gif (only to bosses)
 make more damage more powerful than shooting fast(the back and forth gameplay is more intresting)
-remove 'x'
 pathfinding lags on chromebook
 draw health towards you slowly(only with magnet?)
 make magnet suck up health
@@ -264,10 +264,18 @@ more range on shotgun(start off the bat with more range if get lucky)
 after beating boss, say reload to play again
 make resizing screen permanent
 implement upgrade rarity
-nerf double damage on bombs to 1.5(or make it rarer)
 make stronger, rarer versions of minor upgrades
 major upgrade that gives you more minor upgrdae slots and nothing else(backpack)
 add money and then with the money you can buy to make an upgrade permanent(doesn't take up any space and you can't get rid of it)
 
+make sell the entire black thing, not just the circle
+add death animation on enemies and on yourself
+fix grapple hook
+
 make lots of room for stupid overpowered shit
 every few rooms there is a challenge to mix it up
+
+story:
+You start as a robot that gets off the assembly line and other robots are sent to destroy you
+You fight your way through, but whenever you die, it shows you exploding, then zooms out to show that your camera view was actually a on a secreen
+shows humans, who have hacked into the factory and every run you take control of a new robot taking down the factory from the inside

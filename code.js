@@ -59,7 +59,7 @@ document.onmousedown = function(e) {
 document.onmouseup = function(e) {
     buttonsArray[e.button] = false;
     mousePressed = false;
-};
+}
 class newPoint {
     constructor(x,y){
         this.x=x;
@@ -211,18 +211,19 @@ class newEnemy {
         this.grappleSpeed = 20;
         this.touchedEnemies = [];
         this.momentum = new newPoint(0,0);
-        this.friction = 1;
+        this.friction = 2;
         this.enemyRoom = null;
         this.originalCopy=null;
         this.killCount=0; //this could be updated but it doesn't do anything at the moment
     }
 }
+let guns = [2,6,7,32];
 function newPowerUpPreset(PFType,isEffect){
     if (isEffect===undefined){
         isEffect=true;
     }
     let powerUp = null;
-    let isGun = [2,6,7].includes(PFType)
+    let isGun = guns.includes(PFType);
     switch(PFType){
         case 0:
             powerUp = new newMajorPowerUp(PFType,'Dash','Lime',function (thisEnemy,thisPowerUp){if (dashFramesLeft<1){thisPowerUp.coolDown-=deltaTime}},function(thisEnemy,thisPowerUp){
@@ -246,7 +247,60 @@ function newPowerUpPreset(PFType,isEffect){
             },20,0,30);//the range here doesn't actually control anything
         break
         case 2:
-            powerUp = new newMajorPowerUp(PFType,'Grenade Launcher','#4A69BB',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+            /*powerUp = new newMajorPowerUp(PFType,'Grenade Gun','#4A69BB',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){ //this was an attempt at making bullets into bombs, but it didn't work as well as enemies, so I scraped it
+                thisPowerUp.coolDown=thisPowerUp.coolDownMax;
+                screenShake+=3;
+                let speed = Math.min((findDis(mouseShifted,thisEnemy)/4),thisPowerUp.range);
+                let bullet = new newBullet(0,0,speed,0,'black',20,20,5,30,1000,new newPoint(),thisEnemy,thisPowerUp.damage,'',1,0);
+                bullet.realWidth=bullet.visualWidth;
+                bullet.wallEffect = function(wallHit,thisBullet,posOnWall,bulletsToRemove){
+                    //thisBullet.x=posOnWall.x;
+                    //thisBullet.y=posOnWall.y;
+                    if (thisBullet.timeLeft>5){
+                        thisBullet.x=thisBullet.lastPosition.x;
+                        thisBullet.y=thisBullet.lastPosition.y;
+                        thisBullet.speed=0;
+                    }
+                }
+                bullet.everyFrame = function(bullet,bulletsToRemove){
+                    bullet.timeLeft-=deltaTime;
+                    bullet.lastPosition = new newPoint(bullet.x,bullet.y);
+                    bullet.x+=Math.sin(bullet.direction)*bullet.speed*deltaTime;
+                    bullet.y+=Math.cos(bullet.direction)*bullet.speed*deltaTime;
+                    bullet.speed/=1+(deltaTime/3); //this might not work with different fps
+                    if (bullet.timeLeft<=5){
+                        screenShake++;
+                        bullet.visualWidth+=deltaTime*50;
+                        bullet.realWidth=bullet.visualWidth;
+                        bullet.tailLength+=deltaTime*50;
+                        bullet.color='red';
+                        bullet.x+=Math.sin(bullet.direction)*deltaTime*25;
+                        bullet.y+=Math.cos(bullet.direction)*deltaTime*25;
+                    }
+                    if (bullet.timeLeft<1||bullet.enemiesLeft<1){
+                        bulletsToRemove.push(bullet);
+                    }
+                }
+                bullet.drawBullet = function(bullet){
+                    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
+                    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
+                    let midPoint = findMidPoint(new newPoint(tailX,tailY),dupPoint(bullet));
+                    addCircle(midPoint,bullet.color,bullet.visualWidth/2);
+                }
+                bullet.effect = function(enemyHit,thisBullet){
+                    if (thisBullet.timeLeft<=5){
+                        enemyHit.health-=thisBullet.damage;
+                        enemyHit.invinceable=enemyHit.maximumInvinceable;
+                        thisBullet.enemiesHit.push(enemyHit);
+                    }
+                }
+                bullet.boringEffect = function(enemyHit,thisBullet){
+                    thisBullet.enemiesLeft--;
+                }
+                shootBullet(bullet,findAngle(mouseShifted,thisEnemy),enemies[0],bullet.bulletSpreadNum,bullet.shotSpread,0,enemies[0],enemies[0].size);
+            },40,1,100);*/
+
+            powerUp = new newMajorPowerUp(PFType,'Grenade Gun','#4A69BB',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
                 //let dropPoint = addToPoint(thisEnemy,Math.sin(thisEnemy.direction)*40,Math.cos(thisEnemy.direction)*40)
@@ -394,7 +448,7 @@ function newPowerUpPreset(PFType,isEffect){
             },35,2,40);
         break
         case 8:
-            powerUp = new newMajorPowerUp(PFType,'Click To Sell Item for $1','white',function (){},function(){
+            powerUp = new newMajorPowerUp(PFType,'Click Here To Sell Item for $1','white',function (){},function(){
                 //this is the trash can, it doesn't actually do anything
             },0,0);
         break
@@ -415,7 +469,7 @@ function newPowerUpPreset(PFType,isEffect){
         case 9:
             powerUp = new newMinorPowerUp(PFType,'Halve Cooldown on first Gun','#278978',function (majorPowerUp,thisPowerUp){
                 for (powerUp of powerUpsGrabbed){
-                    if ([2,6,7].includes(powerUp.PFType)){
+                    if (guns.includes(powerUp.PFType)){
                         if (majorPowerUp===powerUp){
                             majorPowerUp.coolDownMax/=2;
                         }
@@ -426,15 +480,15 @@ function newPowerUpPreset(PFType,isEffect){
         break
         case 10:
             powerUp = new newMinorPowerUp(PFType,'Decrease Cooldown on Guns by a Third','#414f40',function (majorPowerUp,thisPowerUp){
-                if ([2,6,7].includes(majorPowerUp.PFType)){
+                if (guns.includes(majorPowerUp.PFType)){
                     majorPowerUp.coolDownMax*=.66666;
                 }
             })
         break
         case 11:
-            powerUp = new newMinorPowerUp(PFType,'Explosives Deal Double Damage','#FF6E6E',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Explosives Deal 50% More Damage','#FF6E6E',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp.PFType===2){
-                    majorPowerUp.damage*=2;
+                    majorPowerUp.damage*=1.5;
                 }
             })
         break
@@ -620,6 +674,47 @@ function newPowerUpPreset(PFType,isEffect){
                 }
             })
         break
+        case 32:
+            powerUp = new newMajorPowerUp(PFType,'Water Gun','aqua',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+                thisPowerUp.coolDown=thisPowerUp.coolDownMax;
+                screenShake+=3;
+                let bullet = new newBullet(0,0,15,0,'aqua',20,20,5,60,1,new newPoint(),thisEnemy,thisPowerUp.damage,'sploosh',1,0);
+                bullet.realWidth = bullet.visualWidth;
+                bullet.drawBullet = function(bullet){
+                    let midPoint = findBulletMiddle(bullet);
+                    addCircle(midPoint,'aqua',bullet.visualWidth/2);
+                    midPoint=offSetByCam(midPoint);
+                    for (waterBullet of waterBullets){//this looks kind of jank and really cool at the same time
+                        if (findDis(waterBullet,bullet)<100){
+                            let waterMidPoint = offSetByCam(findBulletMiddle(waterBullet));
+                            let bulletAngle = findAngle(bullet,waterBullet);
+                            ctx.beginPath();
+                            ctx.strokeStyle='aqua';
+                            //ctx.fillStyle='aqua';
+                            ctx.lineWidth = waterBullet.visualWidth;
+                            ctx.moveTo(waterMidPoint.x,waterMidPoint.y);
+                            ctx.lineTo(midPoint.x,midPoint.y)
+                            ctx.stroke();
+                            //ctx.fill();
+                            ctx.lineWidth=1;
+                            ctx.strokeStyle='black';
+                        }
+                    }
+                    waterBullets.push(bullet);
+                }
+                shootBullet(bullet,findAngle(mouseShifted,thisEnemy),enemies[0],bullet.bulletSpreadNum,bullet.shotSpread,0,enemies[0],enemies[0].size);
+                /*aimCustomGun(thisEnemy,mouseShifted,thisPowerUp.damage,60,0,1,1,0,'red',20,1,1,function(enemyHit,thisBullet){
+                    enemyHit.health-=thisBullet.damage;
+                    enemyHit.grappleTarget=dupPoint(thisBullet.owner);
+                });*/
+            },10,.3,30);//the range here doesn't actually control anything
+        break
+        case 33:
+            powerUp = new newMinorPowerUp(PFType,'Gain a 20% Damage Boost for Every HP You Have','#33cc33',function (majorPowerUp,thisPowerUp){
+                thisPowerUp.secondLabel = 'Multiplier: '+(1+(enemies[0].health*.2));
+                majorPowerUp.damage*=1+(enemies[0].health*.2);
+            })
+        break
         //power up idea: turn eccess health pickups into money
         //each shot that hits an enemy has a 1/4 chance to drop a health pickup
         //spend $1 for a full heal
@@ -652,24 +747,17 @@ function newPowerUpPreset(PFType,isEffect){
     }
     return powerUp;
 }
+let waterBullets = [];
 function newBulletPreset(bulletType,owner,target){
     let bullet= null;
     switch (bulletType){
         case 0:
             //Basic bullet
             bullet = new newBullet(0,0,30,0,'red',40,5,bulletType,30,1,new newPoint(0,0),owner,1,'Your Basic Everyday Killing Bullet');
-            bullet.effect = function(enemyHit,thisBullet){
-                enemyHit.health-=thisBullet.damage;
-                enemyHit.invinceable=enemyHit.maximumInvinceable;
-            }
         break
         case 1:
             //Shotgun bullet
             bullet = new newBullet(0,0,30,0,'dark gray',40,5,bulletType,7,1,new newPoint(0,0),owner,.5,'Your Big Boy Triple Shot',3,2);
-            bullet.effect = function(enemyHit,thisBullet){
-                enemyHit.health-=thisBullet.damage;
-                enemyHit.invinceable=enemyHit.maximumInvinceable;
-            }
         break
         case 2:
             //Exploding bullet
@@ -718,10 +806,6 @@ function newBulletPreset(bulletType,owner,target){
         case 20:
             //A weak bullet shot by the shrapnel bullet
             bullet = new newBullet(0,0,30,0,'black',40,5,bulletType,15,1,new newPoint(0,0),owner,.5,'Your Shrapnel',4,Math.PI*5);
-            bullet.effect = function(enemyHit,thisBullet){
-                enemyHit.health-=thisBullet.damage;
-                enemyHit.invinceable=enemyHit.maximumInvinceable;
-            }
         break
         case 50:
             //Grapple Hook
@@ -730,8 +814,18 @@ function newBulletPreset(bulletType,owner,target){
                 enemyHit.health-=thisBullet.damage;
                 enemyHit.grappleTarget=dupPoint(thisBullet.owner);
             }
-            bullet.wallEffect = function(wallHit,thisBullet,posOnWall){
+            bullet.wallEffect = function(wallHit,thisBullet,posOnWall,bulletsToRemove){//this is broken, the hook doesn't dissapear on the wall
                 thisBullet.owner.grappleTarget=dupPoint(posOnWall);
+                bulletsToRemove.push(bullet);
+            }
+            bullet.drawBullet = function(bullet){
+                ctx.beginPath();
+                let screenBulletPos = offSetByCam(dupPoint(bullet),cam);
+                ctx.moveTo((bullet.owner.x-cam.x)*cam.zoom,(bullet.owner.y-cam.y)*cam.zoom);
+                ctx.lineTo(screenBulletPos.x,screenBulletPos.y);
+                ctx.strokeStyle=bullet.color;
+                ctx.lineWidth=bullet.visualWidth*cam.zoom;
+                ctx.stroke();
             }
         break
     }
@@ -1019,21 +1113,13 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 maximumMinions+=2;
             })
         break
-        case 36: 
-            //bomb
-            //bomb momentum is unfinished. maybe research how to interpolate in and out of a movement smoothly
-            let desiredVector = subtractFromPoint(new newPoint(0,0),dividePoint(subtractFromPoint(enemies[0],target),15));
-            if (findDis(new newPoint(0,0),desiredVector)>30){
-                let angle = findAngle(enemies[0],mouseShifted)+Math.PI;
-                desiredVector= new newPoint(Math.sin(angle)*30,Math.cos(angle)*30);
-            }
-            /*let movement = subtractFromPoint(enemies[0],enemies[0].lastPosition);
-            let desiredVector = subtractFromPoint(new newPoint(0,0),dividePoint(subtractFromPoint(enemies[0],mouseShifted),10));
-            let newMovement = addTwoPoints(movement,desiredVector);*/
-            let newMovement = desiredVector;
-            let speed = findDis(new newPoint(0,0),newMovement);
-            enemy = new newEnemy(pos.x,pos.y,speed,10,'red',36,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
-                if ((touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2&&thisEnemy.speed<5){
+        case 36: //this is the actual bomb
+            //the momentum doesn't go the same distance at different frames rates, but the difference is not that big so I didn't fix it
+            let targetSpeed = Math.min((findDis(target,enemies[0])/3.5),100); //100 is the range
+            let targetAngle = findAngle(target,enemies[0]);
+            let desiredVector = new newPoint(Math.sin(targetAngle)*targetSpeed,Math.cos(targetAngle)*targetSpeed);
+            enemy = new newEnemy(pos.x,pos.y,targetSpeed,10,'red',PFType,target,25,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+                if ((touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2&&thisEnemy.gunCooldown<0){
                     if (undefined===thisEnemy.touchedEnemies.find((enemyCheck)=>enemyCheck===touchedEnemy)){
                         touchedEnemy.health-=thisEnemy.damage;
                         touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
@@ -1043,8 +1129,10 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                         thisEnemy.touchedEnemies.push(touchedEnemy);
                     }
                 }
-            },undefined,undefined,undefined,undefined,undefined,undefined,enemyPower,undefined,undefined,undefined,undefined,findAngle(new newPoint(0,0),newMovement)+Math.PI);
-            enemy.momentum = dupPoint(newMovement);
+            },undefined,undefined,undefined,undefined,undefined,undefined,enemyPower,undefined,undefined,undefined,undefined,targetAngle);
+            enemy.momentum = dupPoint(desiredVector);
+            enemy.friction=3;
+            enemy.gunCooldown=enemy.gunCoolDownMax;
         break
     }
     if (PFType!=7&&PFType!=16){//this isnt the best way to do it, it just stops the bad thing
@@ -1083,9 +1171,15 @@ class newBullet {
             thisBullet.enemiesLeft--;
             screenShake+=1;
         } //this will be the things that every bullet does, the boring stuff
-        this.effect = function(enemyHit,thisBullet){} //this will be what each bullet does, it will be special and change depending on the bullet
+        this.effect = function(enemyHit,thisBullet){
+            enemyHit.health-=thisBullet.damage;
+            enemyHit.invinceable=enemyHit.maximumInvinceable;
+        } //this will be what each bullet does, it will be special and change depending on the bullet
         //they're split up because I would have to copy boring effect every time I wanted to make a small actual change between bullets
-        this.wallEffect = function(wallHit,thisBullet,posOnWall){screenShake+=.7;}
+        this.wallEffect = function(wallHit,thisBullet,posOnWall,bulletsToRemove){
+            screenShake+=.7;
+            bulletsToRemove.push(thisBullet);
+        }
         if (label===undefined){
             label='';
         }
@@ -1098,6 +1192,41 @@ class newBullet {
             shotSpread = 1;
         }
         this.shotSpread = shotSpread;
+        this.drawBullet = function(bullet){ //this is the default way to draw bullets
+            let useImage = false;
+            let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
+            let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
+            ctx.save();
+            let bulletScreenPos = offSetByCam(new newPoint(tailX,tailY));
+            if (useImage&&(bullet.type===0)){
+                ctx.translate(bulletScreenPos.x,bulletScreenPos.y);
+                ctx.rotate(-bullet.direction);
+                ctx.drawImage(bulletImage,0,0,cam.zoom*bullet.visualWidth,cam.zoom*bullet.tailLength);
+            }else{
+                ctx.beginPath();
+                ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
+                ctx.lineTo((tailX-cam.x)*cam.zoom,(tailY-cam.y)*cam.zoom);
+        
+                //ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
+                //ctx.lineTo(((bullet.x)-cam.x)*cam.zoom,((bullet.y-bullet.tailLength)-cam.y)*cam.zoom);
+        
+                ctx.strokeStyle=bullet.color;
+                ctx.lineWidth=bullet.visualWidth*cam.zoom;
+                ctx.stroke();
+                //drawCircle(bullet.y,bullet.x,'yellow',false);
+            }
+            ctx.restore();
+        }
+        this.everyFrame = function(bullet,bulletsToRemove){
+            bullet.timeLeft-=deltaTime;
+            bullet.lastPosition = new newPoint(bullet.x,bullet.y);
+            bullet.x+=Math.sin(bullet.direction)*bullet.speed*deltaTime;
+            bullet.y+=Math.cos(bullet.direction)*bullet.speed*deltaTime;
+            if (bullet.timeLeft<1||bullet.enemiesLeft<1){
+                bulletsToRemove.push(bullet);
+            }
+        }
+        this.deleted = false;
     }
 } 
 let mouse = new newPoint(0,0);
@@ -1584,9 +1713,9 @@ function drawEnemies(cam){
                 ctx.drawImage(playerImages.imagesList[movementDirection],imagePos.x,imagePos.y,enemy.size*cam.zoom*2,(enemy.size+6)*cam.zoom*2);
 
                 ctx.beginPath();
-                ctx.arc(screenEnemyPos.x,screenEnemyPos.y-12,enemy.size,0,Math.PI*2);
+                ctx.arc(screenEnemyPos.x,(enemy.y-12-cam.y)*cam.zoom,enemy.size*cam.zoom,0,Math.PI*2);
                 ctx.fillStyle = 'red';
-                ctx.globalAlpha = -((enemy.health/5/*enemy.maxHealth*/)-1);
+                ctx.globalAlpha = -((Math.min(enemy.health,5)/5/*enemy.maxHealth*/)-1);
                 ctx.fill();
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = 'black';
@@ -1678,6 +1807,11 @@ function findMidNumber(num1,num2){
 }
 function findMidPoint(point1,point2){
     return new newPoint(Math.min(point1.x,point2.x)+Math.abs((point1.x-point2.x)/2),Math.min(point1.y,point2.y)+Math.abs((point1.y-point2.y)/2));
+}
+function findBulletMiddle(bullet){
+    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
+    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
+    return findMidPoint(new newPoint(tailX,tailY),dupPoint(bullet));
 }
 function drawWalls(cam,draw3d){
     let i = 0;
@@ -1800,6 +1934,9 @@ function enemyWallCollision(enemyRoom){
                             enemy.y+=Math.sin(angle4)*(enemy.size-Math.abs(finDis));
                             enemy.x+=Math.cos(angle4)*(enemy.size-Math.abs(finDis));
                             //addCircle(dupPoint(enemy),'purple');
+                            if (enemy.PFType===36){
+                                enemy.momentum = subtractFromPoint(enemy,enemy.lastPosition);
+                            }
                         }
                     }
                 }
@@ -2122,7 +2259,7 @@ function editor(){
         }
     }
     roundedMouse = new newPoint(roundTo(mouseShifted.x-boxSize/2,boxSize),roundTo(mouseShifted.y-boxSize/2,boxSize));
-    if (keys['x']){
+    if (keys['x']&&devMode){
         let boxIndex = wallBoxes.findIndex((element) => element.x===roundedMouse.x&&element.y===roundedMouse.y);
         if (boxIndex ===-1){
             savedwallBoxes.push(roundedMouse);
@@ -2714,7 +2851,7 @@ function isBetween(x1,x2,inBetween){
 function rayCast(start,otherPosition,checkBounding,enemyRoomWalls,returnWall){
     if (enemyRoomWalls===undefined){
         for (trueEnemyRoom of enemyRooms){
-            return rayCast(start,otherPosition,trueEnemyRoom.walls);
+            return rayCast(start,otherPosition,checkBounding,trueEnemyRoom.walls,returnWall);
         }
     }else{
         let disMoved = findDis(start,otherPosition);
@@ -2904,7 +3041,7 @@ function boxCollision(checkBounding){
         }
     }
 }
-function bulletWallCollision(){
+function bulletWallCollision(bulletsToRemove){
     for(let j=0;j<bullets.length;j++){
         let bullet = bullets[j];
         let xIntercept = null;
@@ -2926,96 +3063,98 @@ function bulletWallCollision(){
         }
         //addCircle(bullet.lastPosition,'red');
         //addCircle(subtractFromPoint(bullet,bulletMovement),'orange');
-        for (i=0;i<timesToRepeat;i++){
-            if (timesToRepeat===1){
-                i=4;
+        for (enemyRoom of enemyRooms){
+            if (!sameRoomPos(enemyRoom,turnIntoRoomPos(bullet))){
+                continue;
             }
-            switch (i){
-                case 0:
-                    //left side
-                    sideAngle = bullet.direction;
-                    corner = addToPoint(bullet,Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2);
-                    secondCorner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2));
-                break
-                case 1:
-                    //top side
-                    sideAngle = bullet.direction+Math.PI/2;
-                    corner = addToPoint(bullet,Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2);
-                    secondCorner = addToPoint(bullet,Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2);
-                break
-                case 2:
-                    //right side
-                    sideAngle = bullet.direction+Math.PI;
-                    corner = addToPoint(bullet,Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2);
-                    secondCorner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2));
-                break
-                case 3:
-                    //bottom side
-                    sideAngle = bullet.direction-Math.PI/2;
-                    corner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2));
-                    secondCorner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2));
-                break
-                case 4:
-                    //top left
-                    corner = addToPoint(bullet,Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2)
-                break
-                case 5:
-                    //top right
-                    corner = addToPoint(bullet,Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2);
-                break
-                case 6:
-                    //bottom right
-                    corner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2));
-                break
-                case 7:
-                    //bottom left
-                    corner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2));
-                break
+            let enemyRoomIndex = enemyRooms.findIndex((checkEnemyRoom)=>checkEnemyRoom===enemyRoom);
+            let wallsCheck = enemyRoom.walls;
+            if (enemyRoomIndex>0){
+                wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex-1].walls);
             }
-            if (i>3){
-                secondCorner = subtractFromPoint(corner,bulletMovement);
+            if (enemyRoomIndex<enemyRooms.length-1){
+                wallsCheck = wallsCheck.concat(enemyRooms[enemyRoomIndex+1].walls);
             }
-            bulletSlope = (secondCorner.y-corner.y)/(secondCorner.x-corner.x);
-            //corner =  new newPoint(enemy.x,enemy.y);
-            //secondCorner = new newPoint(enemy.lastPosition.x,enemy.lastPosition.y);
-            //addCircle(corner,'red');
-            //addCircle(secondCorner,'pink');
-            let deleted = false;
-            for (enemyRoom of enemyRooms){
-                if (!sameRoomPos(enemyRoom,turnIntoRoomPos(bullet))){
-                    continue;
+            if (enemyRoom.useExtraWalls===1){
+                wallsCheck=wallsCheck.concat(enemyRoom.extraWalls);
+            }
+            for (k=0;k<timesToRepeat;k++){
+                /*if (timesToRepeat===1){
+                    k=4;
+                }*/
+                switch (k){
+                    case 0:
+                        //left side
+                        sideAngle = bullet.direction;
+                        corner = addToPoint(bullet,Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2);
+                        secondCorner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2));
+                    break
+                    case 1:
+                        //top side
+                        sideAngle = bullet.direction+Math.PI/2;
+                        corner = addToPoint(bullet,Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2);
+                        secondCorner = addToPoint(bullet,Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2);
+                    break
+                    case 2:
+                        //right side
+                        sideAngle = bullet.direction+Math.PI;
+                        corner = addToPoint(bullet,Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2);
+                        secondCorner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2));
+                    break
+                    case 3:
+                        //bottom side
+                        sideAngle = bullet.direction-Math.PI/2;
+                        corner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2));
+                        secondCorner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2));
+                    break
+                    case 4:
+                        //top left
+                        corner = addToPoint(bullet,Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2)
+                    break
+                    case 5:
+                        //top right
+                        corner = addToPoint(bullet,Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2,Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2);
+                    break
+                    case 6:
+                        //bottom right
+                        corner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction-Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction-Math.PI/2)*bullet.realWidth/2));
+                    break
+                    case 7:
+                        //bottom left
+                        corner = addToPoint(bullet,(Math.sin(bullet.direction-Math.PI)*bullet.tailLength)+(Math.sin(bullet.direction+Math.PI/2)*bullet.realWidth/2),(Math.cos(bullet.direction-Math.PI)*bullet.tailLength)+(Math.cos(bullet.direction+Math.PI/2)*bullet.realWidth/2));
+                    break
                 }
-                let wallsCheck=enemyRoom.walls;
-                if (enemyRoom.useExtraWalls===1){
-                    wallsCheck=wallsCheck.concat(enemyRoom.extraWalls);
+                if (k>3){
+                    secondCorner = subtractFromPoint(corner,bulletMovement);
                 }
-                for (wall of wallsCheck){
-                    if (!deleted){
-                        if (wall.first.y===wall.second.y){
-                            yIntercept = wall.first.y;
-                            //The line is straight so it will always be wall.first.y
-                            xIntercept = ((yIntercept-corner.y)/bulletSlope)+corner.x;
-                            if (isBetween(wall.first.x,wall.second.x,xIntercept)&&isBetween(corner.x,secondCorner.x,xIntercept)&&isBetween(corner.y,secondCorner.y,yIntercept)){
-                                removeBullet(bullet,new newPoint(xIntercept,yIntercept),wall);
-                                i=8;
-                                bullets.splice(j,1);
-                                j--;
-                                deleted = true;
-                            }
-                        }
-                        if (wall.first.x===wall.second.x){
-                            xIntercept = wall.first.x;
-                            yIntercept = ((xIntercept-corner.x)*bulletSlope)+corner.y;
-                            if (isBetween(wall.first.y,wall.second.y,yIntercept)&&isBetween(corner.y,secondCorner.y,yIntercept)&&isBetween(corner.x,secondCorner.x,xIntercept)){
-                                removeBullet(bullet, new newPoint(xIntercept,yIntercept),wall);
-                                i=8;
-                                bullets.splice(j,1);
-                                j--;
-                                deleted = true;
-                            }
+                bulletSlope = (secondCorner.y-corner.y)/(secondCorner.x-corner.x);
+                //addCircle(corner,'red');
+                //addCircle(secondCorner,'pink');
+                let intersection;
+                let wallHit;
+                intersection = rayCast(corner,secondCorner,false,wallsCheck,false); //this is inefficent, having both running at the same time checking every wall twice for no point FIX IT
+                wallHit = rayCast(corner,secondCorner,false,wallsCheck,true);
+                if (intersection!=undefined||wallHit!=undefined){
+                    bullet.wallEffect(wallHit,bullet,intersection,bulletsToRemove)
+                }
+                /*for (wall of wallsCheck){
+                    if (wall.first.y===wall.second.y){
+                        yIntercept = wall.first.y;
+                        //The line is straight so it will always be wall.first.y
+                        xIntercept = ((yIntercept-corner.y)/bulletSlope)+corner.x;
+                        if (isBetween(wall.first.x,wall.second.x,xIntercept)&&isBetween(corner.x,secondCorner.x,xIntercept)&&isBetween(corner.y,secondCorner.y,yIntercept)){
+                            bullet.wallEffect(wall,bullet,new newPoint(xIntercept,yIntercept),bulletsToRemove);
                         }
                     }
-                }
+                    if (wall.first.x===wall.second.x){
+                        xIntercept = wall.first.x;
+                        yIntercept = ((xIntercept-corner.x)*bulletSlope)+corner.y;
+                        if (isBetween(wall.first.y,wall.second.y,yIntercept)&&isBetween(corner.y,secondCorner.y,yIntercept)&&isBetween(corner.x,secondCorner.x,xIntercept)){
+                            bullet.wallEffect(wall,bullet,new newPoint(xIntercept,yIntercept),bulletsToRemove);
+                        }
+                    }
+                }*/
+                
             }
         }
     }
@@ -3050,11 +3189,6 @@ function bulletWallCollision1(){
         bullets.splice(bulletsToRemove[0],1);
         bulletsToRemove.splice(0,1);
     }
-}
-function removeBullet(bullet,intercept,wall){
-    //bullet.color='blue';
-    //addCircle(bullet,'red');
-    bullet.wallEffect(wall,bullet,intercept);
 }
 function makeSheildSides(sheild){
     sheild.firstSide = addToPoint(sheild.sheildStart,Math.sin(sheild.angle+Math.PI/2)*sheild.width/2,Math.cos(sheild.angle+Math.PI/2)*sheild.width/2);
@@ -3190,13 +3324,13 @@ function enemyMovement(enemiesToRemove){
                     enemy.grappleTarget=null;
                 }*/
             }
-            enemy.x+=enemy.momentum.x;
-            enemy.y+=enemy.momentum.y;
+            enemy.x+=enemy.momentum.x*deltaTime;
+            enemy.y+=enemy.momentum.y*deltaTime;
             let angle = findAngle(new newPoint(0,0),enemy.momentum)+Math.PI;
             let dis = findDis(new newPoint(0,0),enemy.momentum);
-            dis-=enemy.friction;
+            dis/=1+(deltaTime/enemy.friction);
             if (dis<0){
-                dis=0
+                dis=0;
             }
             enemy.momentum.x=Math.sin(angle)*dis;
             enemy.momentum.y=Math.cos(angle)*dis;
@@ -3485,7 +3619,7 @@ function enemyMovement(enemiesToRemove){
                 }
             }else if (enemy.PFType===36){
                 enemy.targetSpeed = findDis(new newPoint(0,0),enemy.momentum);
-                if (enemy.speed<(2/deltaTime)){
+                if (enemy.gunCooldown<0){
                     enemy.size+=deltaTime*20;
                 }else{
                     enemy.color='black';
@@ -3510,6 +3644,8 @@ function shootBullet(bulletTemplate,direction,owner,bulletSpreadNum,shotSpread,a
         bullet.boringEffect=bulletTemplate.boringEffect;
         bullet.effect=bulletTemplate.effect;
         bullet.wallEffect=bulletTemplate.wallEffect;
+        bullet.drawBullet=bulletTemplate.drawBullet;
+        bullet.everyFrame=bulletTemplate.everyFrame;
         let thisBulletDirection = direction;
         if ((i%2)===1){
             thisBulletDirection-=(Math.floor((i+1)/2)/10)*shotSpread;
@@ -3633,7 +3769,7 @@ function enemyCollision(enemiesToRemove){
             for (enemy2 of enemyRoom){
                 //this makes it so the placeholder enemy and power ups that haveb't really gotton spawned yet don't get activated
                 //change the size 10
-                if (enemy1.size===0||enemy2.size===0||enemy1.team===2||enemy2.team===2||(enemy1.PFType===36&&enemy1.speed<5)||(enemy2.PFType===36&&enemy2.speed<5)){
+                if (enemy1.size===0||enemy2.size===0||enemy1.team===2||enemy2.team===2||(enemy1.PFType===36&&enemy1.gunCooldown<0)||(enemy2.PFType===36&&enemy2.gunCooldown<0)){
                     continue;
                 }
                 let skip=false;
@@ -3675,50 +3811,14 @@ function enemyCollision(enemiesToRemove){
 }
 function drawBullets(cam,useImage){
     for (bullet of bullets){
-        let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
-        let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
-        ctx.save();
-        let bulletScreenPos = offSetByCam(new newPoint(tailX,tailY));
-        if (useImage&&(bullet.type===0)){
-            ctx.translate(bulletScreenPos.x,bulletScreenPos.y);
-            ctx.rotate(-bullet.direction);
-            ctx.drawImage(bulletImage,0,0,cam.zoom*bullet.visualWidth,cam.zoom*bullet.tailLength);
-        }else if (bullet.type===50){
-            ctx.beginPath();
-            let screenBulletPos = offSetByCam(dupPoint(bullet),cam);
-            ctx.moveTo((bullet.owner.x-cam.x)*cam.zoom,(bullet.owner.y-cam.y)*cam.zoom);
-            ctx.lineTo(screenBulletPos.x,screenBulletPos.y);
-            ctx.strokeStyle=bullet.color;
-            ctx.lineWidth=bullet.visualWidth*cam.zoom;
-            ctx.stroke();
-        }else{
-            ctx.beginPath();
-            ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
-            ctx.lineTo((tailX-cam.x)*cam.zoom,(tailY-cam.y)*cam.zoom);
-    
-            //ctx.moveTo((bullet.x-cam.x)*cam.zoom,(bullet.y-cam.y)*cam.zoom);
-            //ctx.lineTo(((bullet.x)-cam.x)*cam.zoom,((bullet.y-bullet.tailLength)-cam.y)*cam.zoom);
-    
-            ctx.strokeStyle=bullet.color;
-            ctx.lineWidth=bullet.visualWidth*cam.zoom;
-            ctx.stroke();
-            //drawCircle(bullet.y,bullet.x,'yellow',false);
-        }
-        ctx.restore();
+        bullet.drawBullet(bullet);
     }
 }
-function moveBullets(){
+function moveBullets(bulletsToRemove){
     for (let i=0;i<bullets.length;i++){
         let bullet=bullets[i];
-        bullet.timeLeft-=deltaTime;
-        bullet.lastPosition = new newPoint(bullet.x,bullet.y);
-        bullet.x+=Math.sin(bullet.direction)*bullet.speed*deltaTime;
-        bullet.y+=Math.cos(bullet.direction)*bullet.speed*deltaTime;
-        if (bullet.timeLeft<1||bullet.enemiesLeft<1){
-            bullets.splice(i,1);
-            i--;
-        }
-        let homingStrength = bullet.owner.bulletHomingStrength
+        bullet.everyFrame(bullet,bulletsToRemove);
+        /*let homingStrength = bullet.owner.bulletHomingStrength
         if (homingStrength>0){
             let closestEnemy = findClosestEnemy(bullet,undefined,bullet.owner,true,true);
             if (closestEnemy===undefined){
@@ -3734,7 +3834,7 @@ function moveBullets(){
                     bullet.direction+=homingStrength;
                 }
             }
-        }
+        }*/
     }
 }
 function singleBulletEnemyCollision(bullet){
@@ -4153,6 +4253,10 @@ function drawHUD(){
     ctx.font=TEXT_SIZE+'px Courier New';
     ctx.fillText('Money:'+money,c.width-250,c.height-5);
     ctx.fillText('Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-600,c.height-5);
+    if (weaponChoice===9){ //this is when I'm bebuging and I have all the power ups, I can still see my health and money
+        ctx.fillText('Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-600,40);
+        ctx.fillText('Money:'+money,c.width-250,40);
+    }
     if (enemies[0].health===7&&enemies[0].maxHealth===11){
         //ctx.fillText('SLUUURRRPEE',c.width-(TEXT_SIZE*9),TEXT_SIZE*2);
     }
@@ -4168,7 +4272,7 @@ function drawHUD(){
             weapon='Sniper'
             break
         case 3:
-            weapon='Grenade Launcher'
+            weapon='Grenade Gun'
             break
         case 4:
             weapon='Necromancer'
@@ -4251,7 +4355,7 @@ function drawHUD(){
         let powerUpList = [];
         switch (k){
             case 0:
-                powerUpList = [newPowerUpPreset(8,false)] //this is a placeholder for the trash can
+                powerUpList = [newPowerUpPreset(8,false)] //this is a placeholder for the sell button. The sell button should be changed to cover any clicks in the entire black area
                 break
             case 1:
                 powerUpList = [newPowerUpPreset(28,false)] //this is a placeholder for  the upgrader
@@ -4502,7 +4606,7 @@ function findEligiblePowerUps(){
         minor:[],
         major:[]
     }
-    let offLimitsPowerUps = [8,13,19,28]; //maybe also make the granade launcher not availible if you didn't pick it at the beggining
+    let offLimitsPowerUps = [8,13,19,28]; //maybe also make the Grenade Gun not availible if you didn't pick it at the beggining
     for (let i=0;i<50;i++){
         let returnedPowerUp = newPowerUpPreset(i,false);
         if (returnedPowerUp===null||offLimitsPowerUps.includes(i)){
@@ -4551,7 +4655,7 @@ function startGame(weaponChoice){
         break
         case 4:
             //debug
-            powerUpsGrabbed.push(newPowerUpPreset(19,false));
+            powerUpsGrabbed.push(newPowerUpPreset(32,false));
             //eligibleMajorPowerUps = [0,1,2,22,23,24];
         break
         case 9:
@@ -4708,6 +4812,7 @@ function drawMouse(){
     }
 }
 function renderEverything(skipPlayers,camera){
+    waterBullets = [];
     //the camera mechanic is unfinished and probally doesn't work cause variables share names
     drawDebug(camera);
     drawWalls(camera,false);
@@ -4730,6 +4835,7 @@ function renderEverything(skipPlayers,camera){
 }
 let frameNum = 0;
 let enemiesToRemove = [];
+let bulletsToRemove = [];
 function repeat(){
     if (controller!=undefined){
         let axes = controller.axes;
@@ -4749,12 +4855,13 @@ function repeat(){
         screenShake-=deltaTime;
     }
     enemiesToRemove=[];
+    bulletsToRemove=[];
     if (keysToggle['l']&&devMode){
         enemies[0].health++;
         money=20;
     }
     updatePlayerStats();
-    moveBullets();
+    moveBullets(bulletsToRemove);
     if ((frameNum%targetRenderFPS)===0){
         PFBoxes=[];
     }
@@ -4773,12 +4880,21 @@ function repeat(){
     }
     gunEnemyMovement(enemies[0]);
     if (!(keys['n']&&devMode)){
-        bulletWallCollision();
+        bulletWallCollision(bulletsToRemove);
     }
     for (enemyToRemove of enemiesToRemove){
         enemyToRemove.deleted=true;
         removeFromEnemyRooms(enemyToRemove);
         enemies.splice(enemies.findIndex((passed)=>passed===enemyToRemove),1);
+    }
+    for (bulletToRemove of bulletsToRemove){
+        if (bulletToRemove.deleted===false){ //deleted might not actually be needed, but I'm too scared to remove it
+            bulletToRemove.deleted=true;
+            let index = bullets.findIndex((passed)=>passed===bulletToRemove);
+            if (index!=-1){
+                bullets.splice(index,1);
+            }
+        }
     }
     bulletEnemyCollision();
     //sheildEnemyCollision();
@@ -4857,7 +4973,9 @@ function switchMode(modeTarget){
     }
 }
 function repeat2(){
-    circlesToDraw = [];
+    if (mode!=1){
+        circlesToDraw = [];
+    }
     //textToDraw = [];
     rectsToDraw = [];
     if (keysUsed['6']&&keys['7']){
@@ -4881,6 +4999,7 @@ function repeat2(){
         renderEverything(false,cam);
     }else if (mode===1||mode===5){
         if (keysUsed['o']){
+            circlesToDraw = [];
             repeat();
             renderEverything(false,cam);
             keysUsed['o']=false;
@@ -4947,14 +5066,18 @@ function repeat2(){
         updateWallsList(walls);
         updateTilesList(savedwallBoxes,tilesExport);
     }else if (mode===6){
+        camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z'],0);
         ctx.fillStyle='black';
         ctx.font = '48px Creepster';
-        ctx.fillText('You Died! Press R To Play Again!',(c.width/4),(c.height/2));
+        let deathMessage = 'You Died! Press R To Play Again!';
+        let metrics = ctx.measureText(deathMessage);
+        ctx.fillText(deathMessage,(c.width/2)-(metrics.width/2),(c.height/2));
         ctx.font = '32px Creepster';
-        ctx.fillText('You Got All The Way To Room '+enemies[0].enemyRoom.roomNum+'!',(c.width/3),(2.5*c.height/4));
-        //this isn't a great way to do it. better would be to reset all the values so it doesn't have to actually reload
+        deathMessage = 'You Got All The Way To Room '+enemies[0].enemyRoom.roomNum+'!';
+        metrics = ctx.measureText(deathMessage);
+        ctx.fillText(deathMessage,(c.width/2)-(metrics.width/2),(2.5*c.height/4));
         if (keys['r']){
-            location.reload();
+            location.reload(); //this isn't a great way to do it. better would be to reset all the values so it doesn't have to actually reload
         }
     }else if (mode===7){
         //weapon select menu
@@ -4964,7 +5087,7 @@ function repeat2(){
         ctx.font='30px serif';
         ctx.fillText('Press 1 to use The Shotgun',(c.width/16),(c.height/2));
         ctx.fillText('Press 2 to use The Sniper',(c.width/3),(c.height/2));
-        ctx.fillText('  Press 3 to use Granade Launcher',(2*(c.width/3)),(c.height/2));
+        ctx.fillText('  Press 3 to use Grenade Gun',(2*(c.width/3)),(c.height/2));
         //add a little image of the weapon below it
         if (keys['1']||(mouseClickUsed&&mouse.x<c.width/3)){
             weaponChoice=1;
@@ -4978,10 +5101,10 @@ function repeat2(){
             weaponChoice=3;
             startGame(weaponChoice);
         }
-        /*if (keys['4']){
+        if (keys['4']){
             weaponChoice=4;
             startGame(weaponChoice);
-        }*/
+        }
         /*if (keys['7']){
             weaponChoice=7;
             startGame(weaponChoice);

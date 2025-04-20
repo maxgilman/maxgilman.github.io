@@ -237,8 +237,7 @@ enemies shoot more weapons
 maybe bonus for buying something you've never bought before
 make gameplay loop change while you're playing
 make cooldown in seconds
-change temp name to circle quist
-change floating point numbers for stuff(round)
+change floating point numbers for second labels
 fix controller support
 add shitty explosion gif (only to bosses)
 make more damage more powerful than shooting fast(the back and forth gameplay is more intresting)
@@ -256,10 +255,8 @@ upgrade:hitting enemies heals you a tiny bit (maybe less damage)
 more room templates
 mirror rooms to be lazy
 accidentaly threw away the power up
-remove trash can stats
 make a lot more power ups that give sniper a MUCH faster firing rate
 more range on shotgun(start off the bat with more range if get lucky)
-after beating boss, say reload to play again
 make resizing screen permanent
 implement upgrade rarity
 make stronger, rarer versions of minor upgrades

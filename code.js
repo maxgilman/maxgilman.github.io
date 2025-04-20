@@ -741,13 +741,13 @@ function newPowerUpPreset(PFType,isEffect){
             });
         break
         case 35:
-            powerUp = new newMinorPowerUp(PFType,'Turn Eccess HP Pickups into .5 Money','#ccff33',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Turn Excess HP Pickups into .5 Money','#ccff33',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
                     healthToMoneyRatio+=.5;
                 }
             })
         break
-        //power up idea: turn eccess health pickups into money
+        //power up idea:
         //each shot that hits an enemy has a 1/4 chance to drop a health pickup
         //spend $1 for a full heal
         //Illigal hacking: First, weapon gets damage boost, but The more you've used a specific instance of a weapon,the less damage it deals
@@ -2546,6 +2546,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (roomNum===targetNumOfRooms){
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2+roomPos.x,200+roomPos.y),14,0,'You am become death'));
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2+roomPos.x,250+roomPos.y),14,0,'Destroyer of world'));
+        enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2+roomPos.x,300+roomPos.y),14,0,'Reload to Play Again'));
     }
     //door length is twice as long to cover the entire wall and make a seamless wall
     if (topOpen){
@@ -4381,10 +4382,12 @@ function drawHUD(){
                 }
             }else{
                 if (powerUpList[i].PFType===34){ //34 is the placeholder, you should never be holding it
+                    console.log('swapped');
                     powerUpsGrabbed.splice(i,1,heldPowerUp)[0];
                     powerUpsGrabbed.push(newPowerUpPreset(34,false));
                     heldPowerUp=null;
                 }else{
+                    console.log('other swap')
                     heldPowerUp=powerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
                 }
             }
@@ -4501,7 +4504,7 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
             iconPos=new newPoint(leftX+(30*(numOnScreen+.5)),c.height-20);
         }
     }
-    iconPos.y-=30*(verticalNumOnScreen)
+    iconPos.y-=30*(verticalNumOnScreen);
     let iconSize = null;
     if (powerUp instanceof newMajorPowerUp){
         iconSize = 13;
@@ -4602,38 +4605,38 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                 relativePos.y+=20;
             }
         }
-        if (textToDraw.length>0){
-            let rectHeight = 0;
-            if (powerUpSelect){
-                rectHeight=100;
-            }else{
-                rectHeight=65;
+        if (mouseClickUsed){
+            mouseClickUsed=false;
+            if (numOnScreen===Math.round(numOnScreen)){
+                numOnScreen = onClick(numOnScreen,powerUpList);
             }
-            if (skipDrawDamage){
+        }else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
+            if (textToDraw.length>0){
+                let rectHeight = 0;
                 if (powerUpSelect){
-                    rectHeight-=60;
+                    rectHeight=100;
                 }else{
-                    rectHeight-=40;
+                    rectHeight=65;
                 }
-            }
-            if (examplePowerUp.secondLabel!=''){
-                if (powerUpSelect){
-                    rectHeight+=30;
-                }else{
-                    rectHeight+=20;
+                if (skipDrawDamage){
+                    if (powerUpSelect){
+                        rectHeight-=60;
+                    }else{
+                        rectHeight-=40;
+                    }
                 }
-            }
-            for (rect of rectsToDraw){
-                rect.y-=rectHeight+5;
-            }
-            //console.log(textToDraw[0].message);
-            if (mouseClickUsed){
-                mouseClickUsed=false;
-                if (numOnScreen===Math.round(numOnScreen)){
-                    numOnScreen = onClick(numOnScreen,powerUpList);
+                if (examplePowerUp.secondLabel!=''){
+                    if (powerUpSelect){
+                        rectHeight+=30;
+                    }else{
+                        rectHeight+=20;
+                    }
                 }
-            }else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
+                for (rect of rectsToDraw){
+                    rect.y-=rectHeight+5;
+                }
                 addRect(addToPoint(powerUpPos,-5,-rectHeight+10),maxTextWidth+10,rectHeight,'white',textToDraw);
+                //console.log(textToDraw[0].message);
             }
         }
     }

@@ -91,6 +91,7 @@ You have to throw bombs that grow after a set time and the "exploding" bomb(an e
 You shoot to the beat of the music. maybe you make the music before each level to add startagy. maybe you can't even move and the only thing you have control over when you shoot, in ther words, what the music is
 game where you're playing the economy like you're in the gilded age. playing other companies agaist each other
 having the circles on the corners of the rotated bullets looks really satifiying on the bombs
+every few rooms there is a challenge to mix it up
 
 resource management
 You can change what type of enemy an enemy is
@@ -221,22 +222,19 @@ get a damage bonus after gaining health
 enemies that you've killed orbit you as souls and block 1 hit if they happen to block
 enemies can damage each other
 grappling hook does damage
+money and health always gets sucked towards you
+bombs block bullets(might be too overpowered)
 
 Major Power ups:
 Shoot out balls that orbit around you(similar to souls but this does it on command)
 gatling gun, not much range but CRAZY knockback on user
 
-bomb throwing is bad and doesn't go towards your mouse
 doesn't know what halve cooldown does(make shiny)(change description to "this gun shoots 100% faster than normal" or smth)
-bombs shoot too fast
 make damage display *10 to make it seem better
-make bombs not block bullets(maybe upgrade)
 do something at upgrade shop if buy nothing(heal some HP)
-make upgrade text go behind upgrades on upgrade screen
-sell weapons for money
+make upgrade text go behind upgrades on upgrade screen 
 enemies shoot more weapons
 maybe bonus for buying something you've never bought before
-make major power ups the mouse icon like what sam said
 make gameplay loop change while you're playing
 make cooldown in seconds
 change temp name to circle quist
@@ -267,13 +265,15 @@ implement upgrade rarity
 make stronger, rarer versions of minor upgrades
 major upgrade that gives you more minor upgrdae slots and nothing else(backpack)
 add money and then with the money you can buy to make an upgrade permanent(doesn't take up any space and you can't get rid of it)
+locking in a +5 health shouldn't make you lose 5 health
+minor->upgrades
+major->gear
 
-make sell the entire black thing, not just the circle
 add death animation on enemies and on yourself
-fix grapple hook
+online scoreboard
+add arrow or something like a glow showing where to go
 
 make lots of room for stupid overpowered shit
-every few rooms there is a challenge to mix it up
 
 story:
 You start as a robot that gets off the assembly line and other robots are sent to destroy you

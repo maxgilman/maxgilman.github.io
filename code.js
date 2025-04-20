@@ -238,7 +238,24 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp = new newMajorPowerUp(PFType,'Grapple Hook','Yellow',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
-                let bullet = newBulletPreset(50);
+                let bullet =  new newBullet(0,0,60,0,'blue',40,5,50,20,1,new newPoint(0,0),thisEnemy,0,'',1,1);
+                bullet.effect = function(enemyHit,thisBullet){
+                    enemyHit.health-=thisBullet.damage;
+                    enemyHit.grappleTarget=dupPoint(thisBullet.owner);
+                }
+                bullet.wallEffect = function(wallHit,thisBullet,posOnWall,bulletsToRemove){
+                    thisBullet.owner.grappleTarget=dupPoint(posOnWall);
+                    bulletsToRemove.push(thisBullet);
+                }
+                bullet.drawBullet = function(bullet){
+                    ctx.beginPath();
+                    let screenBulletPos = offSetByCam(dupPoint(bullet),cam);
+                    ctx.moveTo((bullet.owner.x-cam.x)*cam.zoom,(bullet.owner.y-cam.y)*cam.zoom);
+                    ctx.lineTo(screenBulletPos.x,screenBulletPos.y);
+                    ctx.strokeStyle=bullet.color;
+                    ctx.lineWidth=bullet.visualWidth*cam.zoom;
+                    ctx.stroke();
+                }
                 shootBullet(bullet,findAngle(mouseShifted,thisEnemy),enemies[0],bullet.bulletSpreadNum,bullet.shotSpread,0,enemies[0],enemies[0].size);
                 /*aimCustomGun(thisEnemy,mouseShifted,thisPowerUp.damage,60,0,1,1,0,'red',20,1,1,function(enemyHit,thisBullet){
                     enemyHit.health-=thisBullet.damage;
@@ -310,10 +327,10 @@ function newPowerUpPreset(PFType,isEffect){
             },40,1,0);
         break
         case 3:
-            powerUp = new newMajorPowerUp(PFType,'Heal 2HP in a Button Press','#4ABBA8',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+            powerUp = new newMajorPowerUp(PFType,'Heal 1HP in a Button Press','#4ABBA8',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
-                thisEnemy.health+=2;
+                thisEnemy.health+=1;
             },100,0);
         break
         case 4:
@@ -445,7 +462,7 @@ function newPowerUpPreset(PFType,isEffect){
                     target=closestEnemy;
                 }
                 aimCustomGun(thisEnemy,target,thisPowerUp.damage,40,60,1,1,0,'red',thisPowerUp.range,Infinity,0);
-            },35,2,40);
+            },25,2,40);
         break
         case 8:
             powerUp = new newMajorPowerUp(PFType,'Click Here To Sell Item for $1','white',function (){},function(){
@@ -467,7 +484,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break*/  //this wouldn't work because the player usually doesn't take damage from bombs, although that could be changed
         case 9:
-            powerUp = new newMinorPowerUp(PFType,'Halve Cooldown on first Gun','#278978',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Half cooldown for gun on left click. If no gun','#278978',function (majorPowerUp,thisPowerUp){
                 for (powerUp of powerUpsGrabbed){
                     if (guns.includes(powerUp.PFType)){
                         if (majorPowerUp===powerUp){
@@ -477,6 +494,7 @@ function newPowerUpPreset(PFType,isEffect){
                     }
                 }
             })
+            powerUp.secondLabel = 'on left click, half cooldown for gun on right click';
         break
         case 10:
             powerUp = new newMinorPowerUp(PFType,'Decrease Cooldown on Guns by a Third','#414f40',function (majorPowerUp,thisPowerUp){
@@ -525,9 +543,8 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 15:
-            powerUp = new newMinorPowerUp(PFType,'Dash Heals 1HP but has Thrice as Long Cooldown','#4cd44e',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Using Dash Heals 1HP','#4cd44e',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp.PFType===0){
-                    majorPowerUp.coolDownMax*=3;
                     majorPowerUp.healthToHeal+=1;
                 }
             })
@@ -538,12 +555,12 @@ function newPowerUpPreset(PFType,isEffect){
                     if (majorPowerUp.var1=null){
                         majorPowerUp.var1 = 0;
                     }
-                    majorPowerUp.var1+=.3;
+                    majorPowerUp.var1+=.7;
                 }
             })
         break
         case 17:
-            powerUp = new newMinorPowerUp(PFType,'After Gaining Health Everything Deals Triple Damage for 3 Seconds','#f0c013',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'After Gaining Health, Deal Triple Damage for 3 Seconds','#f0c013',function (majorPowerUp,thisPowerUp){
                 if(enemies[0].health>thisPowerUp.var1){
                     thisPowerUp.var2+=90;
                 }
@@ -643,12 +660,15 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.var3 = 0; //var3 is the extra health
         break
         case 28:
-            powerUp = new newMajorPowerUp(PFType,'Click Here With A Small Power Up And Use $10 to Lock It In','White',function(){ //I think $10 is more fair
-                //this is the thing you click to upgrade an upgrade, doesn't do anything here
+            powerUp = new newMajorPowerUp(PFType,'Click Here With A Small Power Up And Use $5 to Lock It In','White',function(){},function(thisEnemy,thisPowerUp){
+                money-=thisPowerUp.var1;
+                thisPowerUp.var1+=5;
+                thisPowerUp.label = 'Click Here With A Small Power Up And Use $'+thisPowerUp.var1+' to Lock It In';
             });
+            powerUp.var1 = 5;
         break
         case 29:
-            powerUp = new newMinorPowerUp(PFType,'Every Room Cleared, Get $1 for every $5 you have','#99ff66',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Every Room Entered, Get $1 for every $5 you have','#99ff66',function (majorPowerUp,thisPowerUp){
                 if (thisPowerUp.var2===null){
                     thisPowerUp.var2 = enemies[0].enemyRoom; //var2 is whatever room the player is in
                 }
@@ -710,9 +730,21 @@ function newPowerUpPreset(PFType,isEffect){
             },10,.3,30);//the range here doesn't actually control anything
         break
         case 33:
-            powerUp = new newMinorPowerUp(PFType,'Gain a 20% Damage Boost for Every HP You Have','#33cc33',function (majorPowerUp,thisPowerUp){
-                thisPowerUp.secondLabel = 'Multiplier: '+(1+(enemies[0].health*.2));
-                majorPowerUp.damage*=1+(enemies[0].health*.2);
+            powerUp = new newMinorPowerUp(PFType,'Gain a 10% Damage Boost for Every HP You Have','#993300',function (majorPowerUp,thisPowerUp){
+                thisPowerUp.secondLabel = 'Current Multiplier: '+(1+(enemies[0].health*.1))+'X';
+                majorPowerUp.damage*=1+(enemies[0].health*.1);
+            });
+        break
+        case 34:
+            powerUp = new newMajorPowerUp(PFType,'','white',function (thisEnemy,thisPowerUp){},function(thisEnemy,thisPowerUp){
+                //this is a placeholder for just an invisible thing to click
+            });
+        break
+        case 35:
+            powerUp = new newMinorPowerUp(PFType,'Turn Eccess HP Pickups into .5 Money','#ccff33',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp===powerUpsGrabbed[0]){
+                    healthToMoneyRatio+=.5;
+                }
             })
         break
         //power up idea: turn eccess health pickups into money
@@ -889,7 +921,11 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 //gunMaxCoolDown is a timer until it despawns on this one
                 screenShake=1;
                 if (touchedEnemy.PFType===1){
-                    touchedEnemy.health+=1;
+                    if (touchedEnemy.health>=touchedEnemy.maxHealth){
+                        money+=healthToMoneyRatio;
+                    }else{
+                        touchedEnemy.health+=1;
+                    }
                     enemiesToRemove.push(thisEnemy);
                 }
             })
@@ -1441,7 +1477,7 @@ if (devMode==='true'){
 }else{
     devMode=false;
 }
-//devMode=true;
+devMode=true;
 let screenShake=0;
 let screenSize=1;
 let weaponChoice=0;
@@ -1549,8 +1585,10 @@ let minorPowerUpSpace = 5;
 let powerUpsGrabbed = [];
 let minorPowerUpsGrabbed = [];
 let permanentMinorPowerUps = [];
+let upgrader = newPowerUpPreset(28,false);
 let bulletsInClip = [];
 let getDuplicateMinorPowerUps = false;
+let healthToMoneyRatio = 0;
 let maximumMinions = 1;
 //enemies.push(new newEnemy(roomWidth/2,roomHeight,null,20,'brown',1,2,5));
 let camTarget = new newPoint(c.width/2,(c.height-HUDHeight)/2);
@@ -3251,6 +3289,9 @@ function enemyMovement(enemiesToRemove){
                 if (enemy.team===1||minionsDropLoot){
                     //let numMoney = Math.floor(Math.random()*mainEnemyRoom.difficulty);
                     let numMoney = Math.floor(Math.random()*(maxMoneyDrop+1));
+                    if (enemy.PFType===15){ //this makes it so bosses drop twice as much loot
+                        numMoney*=4;
+                    }
                     for (let i=0;i<numMoney;i++){
                         let moneyPos = new newPoint();
                         do{
@@ -3262,6 +3303,9 @@ function enemyMovement(enemiesToRemove){
                     //this is actually the num of health orbs
                     //numMoney = Math.floor(Math.random()*2)+1;
                     numMoney = Math.floor(Math.random()*(maxHealthDrop+1));
+                    if (enemy.PFType===15){
+                        numMoney*=4;
+                    }
                     for (let i=0;i<numMoney;i++){
                         let moneyPos = new newPoint();
                         do{
@@ -4114,7 +4158,7 @@ function gunEnemyMovement(target){
                 }*/
             }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3||enemy.PFType===2||enemy.PFType===17){
                 if (enemy.target.team!=undefined){
-                    let closestEnemy = findClosestEnemy(enemy,enemyRoom,enemy,false,true,mainEnemyRoom.walls);
+                    let closestEnemy = findClosestEnemy(enemy,enemyRoom,enemy,false,false,mainEnemyRoom.walls);
                     if (closestEnemy!=undefined){
                         aimGun(enemy,closestEnemy,'blue',undefined,mainEnemyRoom,true);
                     }
@@ -4244,7 +4288,10 @@ function drawPermanentSlots(permanentLeftX,permanentRightX){
     ctx.fill();*/
 
     ctx.font = '20px Times New Roman';
-    ctx.fillText('$10',permanentLeftX,c.height-permanentTopY-10);
+    let message = '$'+upgrader.var1;
+    //let metrics = ctx.measureText(message);
+    //let width = permanentRightX-permanentLeftX;
+    ctx.fillText(message,permanentLeftX,c.height-permanentTopY-10);
 }
 function drawHUD(){
     ctx.fillStyle='black';
@@ -4323,7 +4370,7 @@ function drawHUD(){
         return
     }
     let onClick = function (i,powerUpList){
-        if (heldPowerUp===null){
+        if (heldPowerUp===null&&powerUpList[i].PFType!=34){
             heldPowerUp=powerUpList.splice(i,1)[0]; //took
             //i--;
         }else if (heldPowerUp instanceof newMajorPowerUp){
@@ -4333,7 +4380,13 @@ function drawHUD(){
                     heldPowerUp=null;
                 }
             }else{
-                heldPowerUp=powerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
+                if (powerUpList[i].PFType===34){ //34 is the placeholder, you should never be holding it
+                    powerUpsGrabbed.splice(i,1,heldPowerUp)[0];
+                    powerUpsGrabbed.push(newPowerUpPreset(34,false));
+                    heldPowerUp=null;
+                }else{
+                    heldPowerUp=powerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
+                }
             }
         }else if (heldPowerUp instanceof newMinorPowerUp){
             if (powerUpList[0]===heldPowerUp||minorPowerUpsGrabbed.length===0){
@@ -4355,10 +4408,10 @@ function drawHUD(){
         let powerUpList = [];
         switch (k){
             case 0:
-                powerUpList = [newPowerUpPreset(8,false)] //this is a placeholder for the sell button. The sell button should be changed to cover any clicks in the entire black area
+                powerUpList = [newPowerUpPreset(8,false),newPowerUpPreset(8,false),newPowerUpPreset(8,false),newPowerUpPreset(8,false)] //this is a placeholder for the sell button. The sell button should be changed to cover any clicks in the entire black area
                 break
             case 1:
-                powerUpList = [newPowerUpPreset(28,false)] //this is a placeholder for  the upgrader
+                powerUpList = [upgrader] //this is a placeholder for  the upgrader
                 break
             case 2:
                 powerUpList=powerUpsGrabbed//major power ups
@@ -4395,12 +4448,12 @@ function drawHUD(){
                         }
                         return i;
                     }
-                    i=drawPowerUp(examplePowerUp,i,.16,actionOnClick,powerUpList,sellButtonLeftX,false,false,true);
+                    drawPowerUp(examplePowerUp,i/2,.16,actionOnClick,powerUpList,sellButtonLeftX,false,false,true);
                     break
                 case 1:
                     actionOnClick = function(i,powerUpList){
-                        if (heldPowerUp!=null&&heldPowerUp instanceof newMinorPowerUp&&money>=10){
-                            money-=10;
+                        if (heldPowerUp!=null&&heldPowerUp instanceof newMinorPowerUp&&money>=upgrader.var1){
+                            examplePowerUp.onClickEffect(enemies[0],examplePowerUp);
                             permanentMinorPowerUps.push(heldPowerUp);
                             heldPowerUp=null;
                         }
@@ -4409,7 +4462,7 @@ function drawHUD(){
                     i=drawPowerUp(examplePowerUp,permanentMinorPowerUps.length,-.28,actionOnClick,powerUpList,permanentLeftX+15,false,false,true,true);
                     break
                 case 2:
-                    i=drawPowerUp(examplePowerUp,i,0,onClick,powerUpList,majorLeftX);
+                    i=drawPowerUp(examplePowerUp,i,0,onClick,powerUpList,majorLeftX,false,false,examplePowerUp.PFType===34,false);
                     for (let j=0;j<examplePowerUp.minorPowerUps.length;j++){
                         let otherExamplePowerUp = examplePowerUp.minorPowerUps[j];
                         drawPowerUp(otherExamplePowerUp,i,j+1,function(){},powerUpList,majorLeftX);
@@ -4476,6 +4529,13 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
     }
     ctx.restore();
     iconPos.x-=10;
+    if (!powerUpSelect){
+        if (powerUp instanceof newMinorPowerUp){
+            iconSize = 14; //this makes the hovering over hitbox larger to prevent misclicks
+        }else{
+            iconSize = 19;
+        }
+    }
     if (findDis(iconPos,mouse)<iconSize){
         if (powerUpSelect){
             ctx.font = '32px impact';
@@ -4485,7 +4545,7 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
         let label = examplePowerUp.label;
         let metrics = ctx.measureText(label);
         let powerUpPos = new newPoint(Math.max(0,Math.min(mouse.x-(metrics.width/2),c.width-metrics.width)),Math.min(mouse.y-20,c.height-31))
-        let skipDrawDamage = isBullet||(examplePowerUp instanceof newMinorPowerUp)||(examplePowerUp.PFType===8)||(examplePowerUp.PFType===28);//I think this is needed but it might not be, a bullet doesn't have a cooldown atribute
+        let skipDrawDamage = isBullet||(examplePowerUp instanceof newMinorPowerUp)||(examplePowerUp.PFType===8)||(examplePowerUp.PFType===28)||(examplePowerUp.PFType===34);//I think this is needed but it might not be, a bullet doesn't have a cooldown atribute
         let textToDraw = [];
         let maxTextWidth = 20;
         let relativePos = new newPoint(5,20);
@@ -4497,6 +4557,14 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
             switch(i){
                 case 0:
                     text = label;
+                    if (undefined!=rectsToDraw.find((checkRect)=>checkRect.textToDraw[0].message===text)){
+                        if (powerUpSelect){
+                            relativePos.y+=30;
+                        }else{
+                            relativePos.y+=20;
+                        }
+                        continue;
+                    }
                     break
                 case 1:
                     text = examplePowerUp.secondLabel;
@@ -4512,13 +4580,13 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                     if (skipDrawDamage){
                         continue;
                     }
-                    text = 'Damage: '+examplePowerUp.damage
+                    text = 'Damage: '+roundTo2(examplePowerUp.damage,100);
                     break
                 case 3:
                     if (skipDrawDamage){
                         continue;
                     }
-                    text = 'Cooldown: '+examplePowerUp.coolDownMax;
+                    text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax,100);
                     break
             }
             /*if ((examplePowerUp.PFType===8)||(examplePowerUp.PFType===28)){
@@ -4534,36 +4602,39 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                 relativePos.y+=20;
             }
         }
-        let rectHeight = 0;
-        if (powerUpSelect){
-            rectHeight=100;
-        }else{
-            rectHeight=65;
-        }
-        if (skipDrawDamage){
+        if (textToDraw.length>0){
+            let rectHeight = 0;
             if (powerUpSelect){
-                rectHeight-=60;
+                rectHeight=100;
             }else{
-                rectHeight-=40;
+                rectHeight=65;
             }
-        }
-        if (examplePowerUp.secondLabel!=''){
-            if (powerUpSelect){
-                rectHeight+=30;
-            }else{
-                rectHeight+=20;
+            if (skipDrawDamage){
+                if (powerUpSelect){
+                    rectHeight-=60;
+                }else{
+                    rectHeight-=40;
+                }
             }
-        }
-        for (rect of rectsToDraw){
-            rect.y-=rectHeight+5;
-        }
-        if (mouseClickUsed){
-            mouseClickUsed=false;
-            if (numOnScreen===Math.round(numOnScreen)){
-                numOnScreen = onClick(numOnScreen,powerUpList);
+            if (examplePowerUp.secondLabel!=''){
+                if (powerUpSelect){
+                    rectHeight+=30;
+                }else{
+                    rectHeight+=20;
+                }
             }
-        }else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
-            addRect(addToPoint(powerUpPos,-5,-rectHeight+10),maxTextWidth+10,rectHeight,'white',textToDraw);
+            for (rect of rectsToDraw){
+                rect.y-=rectHeight+5;
+            }
+            //console.log(textToDraw[0].message);
+            if (mouseClickUsed){
+                mouseClickUsed=false;
+                if (numOnScreen===Math.round(numOnScreen)){
+                    numOnScreen = onClick(numOnScreen,powerUpList);
+                }
+            }else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
+                addRect(addToPoint(powerUpPos,-5,-rectHeight+10),maxTextWidth+10,rectHeight,'white',textToDraw);
+            }
         }
     }
     return numOnScreen
@@ -4606,7 +4677,7 @@ function findEligiblePowerUps(){
         minor:[],
         major:[]
     }
-    let offLimitsPowerUps = [8,13,19,28]; //maybe also make the Grenade Gun not availible if you didn't pick it at the beggining
+    let offLimitsPowerUps = [8,9,13,19,28,34]; //maybe also make the Grenade Gun not availible if you didn't pick it at the beggining
     for (let i=0;i<50;i++){
         let returnedPowerUp = newPowerUpPreset(i,false);
         if (returnedPowerUp===null||offLimitsPowerUps.includes(i)){
@@ -4674,6 +4745,9 @@ function startGame(weaponChoice){
             money=21;
         break
     }
+    while (powerUpsGrabbed.length<powerUpSpace){
+        powerUpsGrabbed.push(newPowerUpPreset(34,false));
+    }
     switchMode(0);
 }
 function fullEnemyWallColl(){
@@ -4696,6 +4770,7 @@ function updatePlayerStats(){
     getDuplicateMinorPowerUps = false;
     maxHealthDrop=1;
     maxMoneyDrop = 1;
+    healthToMoneyRatio = 0;
     for (majorPowerUp of powerUpsGrabbed){
         //majorPowerUp.coolDownMax=majorPowerUp.originalCoolDownMax;
         /*for (minorPowerUp of majorPowerUp.minorPowerUps){
@@ -4858,7 +4933,7 @@ function repeat(){
     bulletsToRemove=[];
     if (keysToggle['l']&&devMode){
         enemies[0].health++;
-        money=20;
+        money=9999;
     }
     updatePlayerStats();
     moveBullets(bulletsToRemove);
@@ -5121,7 +5196,7 @@ function repeat2(){
         camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z'],0);
         renderEverything(false,cam);
         powerUpSelect();
-        //drawText();
+        //drawHUD(); //this would draw the held power up above the power up select, but it causes it's own bugs 
         drawRects();
         drawMouse();
     }

@@ -50,6 +50,12 @@
         let mousePressed = false;
         let mouseClickUsed = false;
         document.onmousedown = function(e) {
+            while ((buttonsArray.length-1)<e.button){
+                buttonsArray.push(false);
+                if (buttonsArray.length>100){
+                    break;
+                }
+            }
             buttonsArray[e.button] = true;
             mousePressed = true;
             if (e.button===2){

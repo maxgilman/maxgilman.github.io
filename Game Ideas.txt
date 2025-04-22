@@ -1,11 +1,9 @@
 totorial and how well you do changes the difficulty for the rest of the game
 Maybe how you're doing in the game changes the difficulty
 enemy that runs away
-limit on speed upgrades
 turn while dashing
 dash has to be charged, so you preplan your inputs and do them all in quick seccusion
 miku skin
-
 
 Shop
 Dash doesn't scale with speed
@@ -224,6 +222,7 @@ enemies can damage each other
 grappling hook does damage
 money and health always gets sucked towards you
 bombs block bullets(might be too overpowered)
+the more money you have, more damage.(or maybe other way around)
 
 Major Power ups:
 Shoot out balls that orbit around you(similar to souls but this does it on command)
@@ -236,8 +235,6 @@ make upgrade text go behind upgrades on upgrade screen
 enemies shoot more weapons
 maybe bonus for buying something you've never bought before
 make gameplay loop change while you're playing
-make cooldown in seconds
-change floating point numbers for second labels
 fix controller support
 add shitty explosion gif (only to bosses)
 make more damage more powerful than shooting fast(the back and forth gameplay is more intresting)
@@ -246,7 +243,6 @@ draw health towards you slowly(only with magnet?)
 make magnet suck up health
 add some upgrades that add damage instead of multipling it
 after beating boss get more bulletspreadnum
-show that 30 is the maximum num of rooms
 make screen scaling on UI and power up select
 don't make enemies spawn by the door
 bombs on screen transtions
@@ -254,23 +250,36 @@ screen shake upgrade
 upgrade:hitting enemies heals you a tiny bit (maybe less damage)
 more room templates
 mirror rooms to be lazy
-accidentaly threw away the power up
 make a lot more power ups that give sniper a MUCH faster firing rate
-more range on shotgun(start off the bat with more range if get lucky)
 make resizing screen permanent
 implement upgrade rarity
 make stronger, rarer versions of minor upgrades
 major upgrade that gives you more minor upgrdae slots and nothing else(backpack)
-add money and then with the money you can buy to make an upgrade permanent(doesn't take up any space and you can't get rid of it)
 locking in a +5 health shouldn't make you lose 5 health
 minor->upgrades
 major->gear
+oliver thinks locking in should be by 2 each time instead of 5(I think it's working great)
+add knockback to bombs and water gun
+add a gain $2 button instead of getting an upgrade
+start with a sniper to learn the basics of the game
+slow down the beginning. Add mechanics slowly.
+    make first room only offer 1 major upgrade and the mouse is the only part of the UI visible
+    make the mouse blink/glow to show where to drag the ability
+    after beating the next room the small slots become visible and it offers you 2 small upgrades
+    After beating next room show sell button
+    adds all the upgrades as visible
+    once you have $5, completed another room, or filled up 5 slots or maybe even just 3, show the locking in UI(I'm not sure what should trigger it)
+didn't know:
+    What you had to drag or what the bottom even was
+    thought the major power ups could be in the small slots: add them one at a time so you learn what each looks like and what it does slowly
+full auto aim on controller?
+lots more auto aim for ease of new players
 
 add death animation on enemies and on yourself
 online scoreboard
 add arrow or something like a glow showing where to go
 
-make lots of room for stupid overpowered shit
+make lots of room for stupid overpowered stuff
 
 story:
 You start as a robot that gets off the assembly line and other robots are sent to destroy you

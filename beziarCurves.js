@@ -70,23 +70,47 @@ document.addEventListener('keyup', (event) => {
 function findDis(point1,point2){
     return Math.sqrt(Math.pow((point1.x-point2.x),2)+Math.pow((point1.y-point2.y),2))
 }
-let firstTry = [{"x":2.3203125,"y":739.55859375},{"x":2.12109375,"y":631.6640625},{"x":1.3515625,"y":633.5625},{"x":1.19140625,"y":739.875}]
-
+let curves = [];
 let points = [
     new newPoint(50,20),
     new newPoint(230,30),
     new newPoint(150,80),
     new newPoint(250,100),
 ];
-//points=firstTry;
 let start = points[0];
 let cp1 = points[1];
 let cp2 = points[2];
 let end = points[3];
 
+let range = new newPoint(end.x-start.x,end.y-start.y);
+
+for (let i=0;i<20;i++){
+    curves.push({
+        start: new newPoint(start.x,start.y),
+        end: mouse,
+        cp1: new newPoint(start.x+range.x*Math.random(),start.y+range.y*Math.random()),
+        cp2: new newPoint(start.x+range.x*Math.random(),start.y+range.y*Math.random()),
+    })
+}
 let imageHeight = 80*4;
+ctx.strokeStyle='aqua';
+ctx.lineWidth=5;
+function lerp(a,b,t){
+    return (1-t)*a+t*b;
+}
+function lerpV2(a,b,t){
+    return { x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t) };
+}
 function drawCurve(){
-    if (!mouseClickUsed){
+    for (curve of curves){
+        ctx.beginPath();
+        ctx.moveTo(curve.start.x,curve.start.y);
+        //let lerped = lerpV2(curve.start,curve.end,.2);
+        //ctx.lineTo(lerped.x,lerped.y);
+        ctx.bezierCurveTo(curve.cp1.x, curve.cp1.y, curve.cp2.x, curve.cp2.y, curve.end.x, curve.end.y);
+        ctx.stroke();
+    }
+    /*if (!mouseClickUsed){
         //ctx.drawImage(UIImage,0,c.height-imageHeight,imageHeight*5,imageHeight);
     }
     // Cubic Bézier curve
@@ -107,33 +131,95 @@ function drawCurve(){
     ctx.beginPath();
     ctx.arc(cp1.x, cp1.y, 5, 0, 2 * Math.PI); // Control point one
     ctx.arc(cp2.x, cp2.y, 5, 0, 2 * Math.PI); // Control point two
-    ctx.fill();
+    ctx.fill();*/
 }
 function mousePoints(){
-    for (pos of points){
-        if (keys['w']){
-            pos.y-=20;
-        }if (keys['s']){
-            pos.y+=20;
-        }
-        if (keys['a']){
-            pos.x-=20;
-        }if (keys['d']){
-            pos.x+=20;
-        }
-        if (mousePressed){
-            if (findDis(mouse,pos)<50){
-                pos.x=mouse.x;
-                pos.y=mouse.y;
-                return;
+    for (curve of curves){
+        for (let i=0;i<4;i++){
+            let pos;
+            switch (i){
+                case 0:
+                    pos=curve.start;
+                break
+                case 1:
+                    pos=curve.cp1;
+                break
+                case 2:
+                    pos=curve.cp2;
+                break
+                case 3:
+                    pos=curve.end;
+                break
             }
-        }   
+            if (pos.direction===undefined){
+                pos.direction=1;
+            }
+            if (keys['w']){
+                pos.y-=20;
+            }if (keys['s']){
+                pos.y+=20;
+            }
+            if (keys['a']){
+                pos.x-=20;
+            }if (keys['d']){
+                pos.x+=20;
+            }
+            if (mousePressed){
+                if (findDis(mouse,pos)<50){
+                    pos.x=mouse.x;
+                    pos.y=mouse.y;
+                    return;
+                }
+            }   
+        }
+    }
+    for (curve of curves){
+        for (let i=1;i<3;i++){
+            let pos;
+            switch (i){
+                case 1:
+                    pos=curve.cp1;
+                break
+                case 2:
+                    pos=curve.cp2;
+                break
+            }
+            if (!keys['o']){
+                pos.x+=10*pos.direction;
+            }
+            if (Math.random()>.9){
+                pos.direction*=Math.max(Math.random(),.5)*2;
+            }
+            if (pos.x<curve.start.x){
+                pos.x=curve.start.x;
+                pos.direction=Math.max(Math.random(),.25);
+                
+            }else if (pos.x>curve.end.x){
+                pos.x=curve.end.x;
+                pos.direction=-Math.max(Math.random(),.25)
+            }
+        }
     }
 }
+let frameCount = 0;
+let dashs = [];
+for (let i=0; i<5;i++){
+    dashs.push(0,0,Math.floor(Math.random()*100));
+}
 function repeat(){
+    frameCount++;
     ctx.clearRect(0,0,c.width,c.height);
+    /*if ((frameCount%10)===0){
+        if (dashs.length>5){
+            dashs.pop();
+            //console.log(dashs);
+            dashs[0]=dashs[0]+1;
+        }
+        ctx.setLineDash(dashs);
+    }*/
     mousePoints();
     drawCurve();
+
     if (keysUsed['e']){
         keysUsed['e']=false;
         imageHeight/=2;

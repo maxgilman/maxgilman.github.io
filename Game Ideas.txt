@@ -274,6 +274,12 @@ didn't know:
     thought the major power ups could be in the small slots: add them one at a time so you learn what each looks like and what it does slowly
 full auto aim on controller?
 lots more auto aim for ease of new players
+buff boss HP a lot
+fix art
+make dual wealding look better
+fix water gun and 1/4 chance
+make elemental combos with items
+add controller support for menus and swapping weapons
 
 add death animation on enemies and on yourself
 online scoreboard

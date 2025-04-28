@@ -105,7 +105,7 @@ class newParticle{
     }
 }
 class newMajorPowerUp{
-    constructor(PFType,label,color,upgradeEffect,onClickEffect,coolDownMax,damage,range){
+    constructor(PFType,label,color,upgradeEffect,onClickEffect,coolDownMax,damage,range,bulletKillPower){
         this.PFType=PFType;
         this.label=label;
         this.secondLabel = '';
@@ -121,6 +121,7 @@ class newMajorPowerUp{
         this.var1 = null;
         this.shotSpread = 2;
         this.range = range;
+        this.bulletKillPower=bulletKillPower;
     }
 }
 class newMinorPowerUp{
@@ -195,6 +196,8 @@ class newEnemy {
             if (PFType===1){
                 team=0;
             }
+        }else if (PFType===37||PFType===38){
+            team=1;
         }else{
             team=0;
         }
@@ -245,7 +248,7 @@ class newEnemy {
         this.statusEffects = []; //this is the effects EX: Shocked or on fire that is on the player format: {type:x,timeLeft:y}
     }
 }
-let guns = [2,6,7,32];
+let guns = [1,2,6,7];
 function newPowerUpPreset(PFType,isEffect){
     if (isEffect===undefined){
         isEffect=true;
@@ -263,7 +266,7 @@ function newPowerUpPreset(PFType,isEffect){
             },20,0,6);
         break
         case 1:
-            powerUp = new newMajorPowerUp(PFType,'Grapple Hook','#ffffcc',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+            powerUp = new newMajorPowerUp(PFType,'Grapple Gun','#ffffcc',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
                 let bullet =  new newBullet(0,0,60,0,'blue',40,5,50,20,1,new newPoint(0,0),thisEnemy,0,'',1,1);
@@ -289,7 +292,7 @@ function newPowerUpPreset(PFType,isEffect){
                     enemyHit.health-=thisBullet.damage;
                     enemyHit.grappleTarget=dupPoint(thisBullet.owner);
                 });*/
-            },20,0,30);//the range here doesn't actually control anything
+            },20,0,30,1);//the range here doesn't actually control anything
         break
         case 2:
             /*powerUp = new newMajorPowerUp(PFType,'Grenade Gun','#4A69BB',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){ //this was an attempt at making bullets into bombs, but it didn't work as well as enemies, so I scraped it
@@ -352,7 +355,7 @@ function newPowerUpPreset(PFType,isEffect){
                 let dropPoint= dupPoint(thisEnemy);
                 enemies.push(newEnemyPreset(dropPoint,36,1,undefined,thisPowerUp.damage,mouseShifted));
                 addToEnemyRooms(enemies[enemies.length-1]);
-            },40,1,0);
+            },40,1,0,Infinity);
         break
         case 3:
             powerUp = new newMajorPowerUp(PFType,'Heal 1HP in a Button Press','#4ABBA8',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
@@ -387,7 +390,7 @@ function newPowerUpPreset(PFType,isEffect){
             },30,0,400);
         break
         case 5:
-            powerUp = new newMajorPowerUp(PFType,'Push Enemies Away','#FFB475',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+            powerUp = new newMajorPowerUp(PFType,'Push Bullets and Enemies Away','#FFB475',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
                 let enemyRoomEnemies = thisEnemy.enemyRoom.enemies;
@@ -401,13 +404,26 @@ function newPowerUpPreset(PFType,isEffect){
                     let angle = findAngle(thisEnemy,enemy);
                     let dis = findDis(thisEnemy,enemy);
                     let force = 0;
-                    if (dis<200){
-                        force = -25;
-                    }else if (dis<400){
-                        force = -15;
+                    if (dis<300){
+                        force = -60;
+                    }else if (dis<600){
+                        force = -45;
                     }
                     //force = Math.max(20-(Math.max(dis,60)/40),0);
                     enemy.momentum = new newPoint(Math.sin(angle)*force,Math.cos(angle)*force);
+                }
+                for (bullet of bullets){
+                    if (findDis(bullet,thisEnemy)<600){
+                        if (undefined!=rayCast(bullet,thisEnemy,false,thisEnemy.enemyRoom.walls)){
+                            continue;
+                        }
+                        let bulletTail = findBulletTailPos(bullet);
+                        bullet.x=bulletTail.x;
+                        bullet.y=bulletTail.y;
+                        bullet.direction = findAngle(bullet,thisEnemy);
+                        bullet.owner = thisEnemy;
+                        bullet.speed*=2;
+                    }
                 }
             },30,0,400);
         break
@@ -454,8 +470,8 @@ function newPowerUpPreset(PFType,isEffect){
                     target=movementTarget;
                     shootingAngle = findAngle(target,enemies[0]);
                 }
-                aimCustomGun(thisEnemy,target,thisPowerUp.damage,30,40,3,thisPowerUp.shotSpread,0,'red',thisPowerUp.range,1);
-            },30,.5,7);
+                aimCustomGun(thisEnemy,target,thisPowerUp.damage,30,40,3,thisPowerUp.shotSpread,0,'red',thisPowerUp.range,thisPowerUp.bulletKillPower);
+            },30,.5,7,1);
         break
         case 7:
             powerUp = new newMajorPowerUp(PFType,'Sniper','grey',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
@@ -466,6 +482,25 @@ function newPowerUpPreset(PFType,isEffect){
                 }
                 let target = mouseShifted;
                 let targetAngle = findAngle(target,thisEnemy);
+                if (controller!=undefined){
+                    let movementTarget = dupPoint(enemies[0]);
+                    let axes = controller.axes;
+                    let skipped = true
+                    if (Math.abs(axes[2])>.1){ //this adds a deadzone
+                        movementTarget.x+=axes[2];
+                        skipped = false;
+                    }
+                    if (Math.abs(axes[3])>.1){
+                        movementTarget.y+=axes[3];
+                        skipped = false;
+                    }
+                    if (skipped){
+                        movementTarget = addToPoint(movementTarget,Math.sin(shootingAngle),Math.cos(shootingAngle));
+                    }
+                    target=movementTarget;
+                    shootingAngle = findAngle(target,enemies[0]);
+                    targetAngle=shootingAngle;
+                }
                 let closestEnemy = undefined;
                 if (thisPowerUp.var1!=0){
                     let closestAngle = Infinity;
@@ -489,8 +524,9 @@ function newPowerUpPreset(PFType,isEffect){
                 if (closestEnemy!=undefined){
                     target=closestEnemy;
                 }
-                aimCustomGun(thisEnemy,target,thisPowerUp.damage,40,60,1,1,0,'red',thisPowerUp.range,Infinity,0);
-            },25,2,40);
+                console.log(thisPowerUp);
+                aimCustomGun(thisEnemy,target,thisPowerUp.damage,40,60,1,1,0,'red',thisPowerUp.range,thisPowerUp.bulletKillPower,0);
+            },25,2,40,Infinity);
         break
         case 8:
             powerUp = new newMajorPowerUp(PFType,'Click Here To Sell Item for $1','white',function (){},function(){ //if change wording, change drawPowerup, it's looking for the old text
@@ -706,7 +742,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 32:
-            powerUp = new newMajorPowerUp(PFType,'Water Gun','aqua',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+            powerUp = new newMajorPowerUp(PFType,'Water Sprayer','aqua',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 //screenShake+=.5;
                 let bullet = new newBullet(0,0,15,0,'aqua',15,15,5,60,1,new newPoint(),thisEnemy,thisPowerUp.damage,'sploosh',1,0);
@@ -739,6 +775,7 @@ function newPowerUpPreset(PFType,isEffect){
                 bullet.effect = function(enemyHit,thisBullet){
                     enemyHit.health-=thisBullet.damage;
                     enemyHit.invinceable=enemyHit.maximumInvinceable;
+                    screenShake+=1;
                     if (undefined===enemyHit.statusEffects.find((effect)=>effect.type===0)){
                         enemyHit.statusEffects.push({
                             type:0,  //0 is the wet effect
@@ -747,10 +784,6 @@ function newPowerUpPreset(PFType,isEffect){
                             coolDownMax:3
                         });
                     }
-                }
-                bullet.boringEffect = function(enemyHit,thisBullet){
-                    thisBullet.enemiesHit.push(enemyHit);
-                    thisBullet.enemiesLeft--;
                 }
                 shootBullet(bullet,findAngle(mouseShifted,thisEnemy),enemies[0],bullet.bulletSpreadNum,bullet.shotSpread,.1,enemies[0],enemies[0].size);
                 /*aimCustomGun(thisEnemy,mouseShifted,thisPowerUp.damage,60,0,1,1,0,'red',20,1,1,function(enemyHit,thisBullet){
@@ -798,6 +831,7 @@ function newPowerUpPreset(PFType,isEffect){
                 }
                 bullet.effect = function(enemyHit,thisBullet){
                     enemyHit.health-=thisBullet.damage;
+                    screenShake+=1;
                     if (undefined===enemyHit.statusEffects.find((effect)=>effect.type===1)){
                         enemyHit.statusEffects.push({
                             type:1,  //1 is the shocked effect
@@ -807,10 +841,6 @@ function newPowerUpPreset(PFType,isEffect){
                         });
                     }
                 }
-                bullet.boringEffect = function(enemyHit,thisBullet){
-                    thisBullet.enemiesHit.push(enemyHit);
-                    thisBullet.enemiesLeft--;
-                }
                 shootBullet(bullet,findAngle(mouseShifted,thisEnemy),enemies[0],bullet.bulletSpreadNum,bullet.shotSpread,.1,enemies[0],enemies[0].size);
                 /*aimCustomGun(thisEnemy,mouseShifted,thisPowerUp.damage,60,0,1,1,0,'red',20,1,1,function(enemyHit,thisBullet){
                     enemyHit.health-=thisBullet.damage;
@@ -818,14 +848,44 @@ function newPowerUpPreset(PFType,isEffect){
                 });*/
             },20,0,30);//the range here doesn't actually control anything
         break
+        case 38:
+            powerUp = new newMajorPowerUp(PFType,'Spend $1 for a Full Heal','#4aba82',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
+                if (money>=1&&thisEnemy.health<thisEnemy.maxHealth){
+                    thisPowerUp.coolDown=thisPowerUp.coolDownMax;
+                    screenShake+=3;
+                    thisEnemy.health=thisEnemy.maxHealth;
+                    money--;
+                }
+            },300,0);
+        break
+        case 39:
+            powerUp = new newMinorPowerUp(PFType,'Guns Shoot Twice as Fast, But Do Half Damage','#07ed5f',function (majorPowerUp,thisPowerUp){
+                if (guns.includes(majorPowerUp.PFType)){
+                    majorPowerUp.coolDownMax/=2;
+                    majorPowerUp.damage/=2;
+                }
+            })
+        break
+        case 40:
+            powerUp = new newMinorPowerUp(PFType,'Each Bullet has a 1/4 Chance to Drop Enemy Half Loot on Hit','#bd8202',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp===powerUpsGrabbed[0]){
+                    onHitHPDropChance+=.25
+                }
+            })
+        break
+        case 41:
+            powerUp = new newMinorPowerUp(PFType,'Shotgun Bullets can Peirce Infinite Enemies','#b970e0',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp.PFType===6){
+                    majorPowerUp.bulletKillPower=Infinity;
+                }
+            })
+        break
         //power up ideas:
-        //each shot that hits an enemy has a 1/4 chance to drop a health pickup
-        //spend $1 for a full heal
         //Illigal hacking: First, weapon gets damage boost, but The more you've used a specific instance of a weapon,the less damage it deals
         //do more damage but take more damage
-        //higher fire rate but less damage and vice versa
         //add more upgrades concerning range
         //minor: health and money are always drawn towards you
+        //up the sell value of everything by 1 every room
     }
     if (powerUp instanceof newMajorPowerUp&&isEffect){
         let specialEffect = Math.random()*20;
@@ -851,6 +911,7 @@ function newPowerUpPreset(PFType,isEffect){
         powerUp.var1 = var1;
         powerUp.var2 = var2;
         powerUp.var3 = var3;
+        powerUp.originalCopy.bulletKillPower=powerUp.bulletKillPower;
     }
     return powerUp;
 }
@@ -1158,9 +1219,26 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                     }
                 }
             },undefined,undefined,undefined,undefined,undefined,undefined,enemyPower,undefined,undefined,undefined,undefined,targetAngle);
+            enemy.team=3;
             enemy.momentum = dupPoint(desiredVector);
             enemy.friction=3;
             enemy.gunCooldown=enemy.gunCoolDownMax;
+        break
+        //the boss and rider health is hard to get right and needs to be rebalenced
+        case 37:
+            //Link in the boss chain
+            enemy = new newEnemy(pos.x,pos.y,5+(enemyPower/2),40,'pink',37,target,Infinity,1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+                if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
+                    touchedEnemy.health--;
+                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                }
+            },3);
+            enemy.bossChainNum = bossChainNum;
+            bossChainNum+=1;
+        break
+        case 38:
+            //this is the enemy that snaps to the boss chain
+            enemy = new newEnemy(pos.x,pos.y,3,20,'green',PFType,target,45-(enemyPower*3),(5*Math.pow(2,enemyPower/1.5)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20+enemyPower);
         break
     }
     if (PFType!=7&&PFType!=16){//this isnt the best way to do it, it just stops the bad thing
@@ -1168,6 +1246,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
     }
     return enemy
 }
+let bossChainNum = 0;
 class newBullet {
     constructor(x,y,speed,direction,color,tailLength,visualWidth,type,maximumTime,enemyKillPower,lastPosition,owner,damage,label,bulletSpreadNum,shotSpread){
         this.x=x;
@@ -1197,11 +1276,16 @@ class newBullet {
         this.boringEffect = function(enemyHit,thisBullet){
             thisBullet.enemiesHit.push(enemyHit);
             thisBullet.enemiesLeft--;
-            screenShake+=1;
+            if (thisBullet.owner===enemies[0]){
+                if (Math.random()<onHitHPDropChance){
+                    dropEnemyLoot(enemyHit,enemy.enemyRoom,1/2);
+                }
+            }
         } //this will be the things that every bullet does, the boring stuff
         this.effect = function(enemyHit,thisBullet){
             enemyHit.health-=thisBullet.damage;
             enemyHit.invinceable=enemyHit.maximumInvinceable;
+            screenShake+=1;
         } //this will be what each bullet does, it will be special and change depending on the bullet
         //they're split up because I would have to copy boring effect every time I wanted to make a small actual change between bullets
         this.wallEffect = function(wallHit,thisBullet,posOnWall,bulletsToRemove){
@@ -1274,7 +1358,7 @@ function handleMouseMove(event){
     }
 }
 function handleMouseMove1(event) {
-    if (controller===undefined){
+    if (controller===undefined||true){
         let eventDoc, doc, body;
 
         event = event || window.event; // IE-ism
@@ -1552,6 +1636,10 @@ let wallsCopy = [];
 let particles = [];
 //this is the player
 enemies.push(newEnemyPreset(new newPoint(roomWidth/2,roomHeight-200),1));
+let explosionImages = [new Image(),new Image(),new Image(),new Image(),new Image(),new Image()];
+for (let i=0;i<6;i++){
+    explosionImages[i].src='Explosion_Frames/Explosion_'+(i+1)+'.tiff';
+}
 let playerImages = {
     back:new Image(),
     front:new Image(),
@@ -1559,10 +1647,29 @@ let playerImages = {
     right:new Image(),
     imagesList:null,
 }
-playerImages.front.src = 'Player_test_forward.png'
+/*playerImages.front.src = 'Player_test_forward.png'
 playerImages.right.src = 'Player_test_right.png'
 playerImages.left.src = 'Player_test_left.png'
-playerImages.back.src = 'Player_test_back.png'
+playerImages.back.src = 'Player_test_back.png'*/
+playerImages.front.src = 'Player_Images/Player_front_V1_cropped.png';
+playerImages.right.src = 'Player_Images/Player_front_V1_cropped.png';
+playerImages.left.src = 'Player_Images/Player_front_V1_cropped.png';
+playerImages.back.src = 'Player_Images/Player_front_V1_cropped.png';
+/*let gunImages = {
+    granadeLauncher: new Image(),
+    grappleGun: new Image(),
+    shotgun: new Image(),
+    sniper: new Image(),
+}
+gunImages.granadeLauncher.src='Gun_Images/Granade_Laucher.png';
+gunImages.grappleGun.src='Gun_Images/Grapple_Gun.png';
+gunImages.shotgun.src='Gun_Images/Shotgun.png';
+gunImages.sniper.src='Gun_Images/Sniper.png';*/
+let gunImages = [new Image(),new Image(),new Image(),new Image()];
+gunImages[0].src='Gun_Images/Grapple_Gun.png';
+gunImages[1].src='Gun_Images/Granade_Laucher.png';
+gunImages[2].src='Gun_Images/Shotgun.png';
+gunImages[3].src='Gun_Images/Sniper.png';
 let bulletImage=new Image();
 bulletImage.src='Bullet_test.png';
 playerImages.imagesList=[playerImages.front,playerImages.right,playerImages.back,playerImages.left];
@@ -1570,6 +1677,8 @@ let targetImage = new Image();
 targetImage.src='Target.png';
 let powerUpIconImage = new Image();
 powerUpIconImage.src = 'powerUpIcon.png';
+let bombImage = new Image();
+bombImage.src = 'Bomb.png';
 let shootingAngle = 0;
 let maximumDashCoolDown = 20;
 let dashCooldown = 0;
@@ -1582,12 +1691,13 @@ let upgrader = newPowerUpPreset(28,false);
 let bulletsInClip = [];
 let getDuplicateMinorPowerUps = false;
 let healthToMoneyRatio = 0;
+let onHitHPDropChance = 0;
 let maximumMinions = 1;
 //enemies.push(new newEnemy(roomWidth/2,roomHeight,null,20,'brown',1,2,5));
 let camTarget = new newPoint(c.width/2,(c.height-HUDHeight)/2);
 let collisionRepeat = 1;
 let lastMousePos = null;
-let autoAimStrength = 0;
+let autoAimStrength = 0.1;
 let minionsDropLoot = false;
 let minionDamage = .5;
 let minionReloadSpeed = 120;
@@ -1727,7 +1837,7 @@ function drawEnemies(cam){
         let enemyNum = 0;
         for (enemy of enemyRoom.enemies){
             let screenEnemyPos = offSetByCam(enemy);
-            if (enemy===enemies[0]){
+            if (enemy.PFType===1){
                 if (enemy.direction<0&&enemy.direction>-.1){
                     enemy.direction=0;
                     //this catchs a case where the direction is in this range and the formula doesn't work for some reason
@@ -1739,17 +1849,114 @@ function drawEnemies(cam){
                 }
                 //now movement direction is between 0 and 1
                 movementDirection=Math.floor(movementDirection*4);
-                let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size-18));
                 //the height has 6 added because of the drop shadow which adds 6 pixels to the height
-                ctx.drawImage(playerImages.imagesList[movementDirection],imagePos.x,imagePos.y,enemy.size*cam.zoom*2,(enemy.size+6)*cam.zoom*2);
+                let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));//this should subtract 18 from the Y
+                ctx.drawImage(playerImages.imagesList[movementDirection],imagePos.x,imagePos.y,enemy.size*cam.zoom*2,(enemy.size)*cam.zoom*2);
+                /*ctx.save();
+                let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
+                ctx.translate(imagePos.x,imagePos.y);
+                ctx.rotate(-enemy.direction);
+                ctx.drawImage(playerImages.imagesList[movementDirection],0,0);
+                ctx.restore();*/
+
+                let gunAngle = findAngle(mouseShifted,enemy);
+                if (controller!=undefined){
+                    /*let axes = controller.axes;
+                    if (Math.abs(axes[3])>.1||Math.abs(axes[2])>.1){
+                        gunAngle = findAngle(new newPoint(axes[2],axes[3]),new newPoint(0,0));
+                    }*/
+                    gunAngle=shootingAngle
+                }
+                let gunPos = offSetByCam(addToPoint(enemy,Math.sin(gunAngle)*enemy.size,Math.cos(gunAngle)*enemy.size));
+                let gunNum = 0;
+                let firstSlotGun = false;
+                let secondSlotGun = false;
+                if (guns.includes(powerUpsGrabbed[0].PFType)){
+                    firstSlotGun=true;
+                    gunNum++;
+                }
+                if (guns.includes(powerUpsGrabbed[1].PFType)){
+                    secondSlotGun=true;
+                    gunNum++;
+                }
+                let image;
+                if (secondSlotGun||firstSlotGun){
+                    if (secondSlotGun&&firstSlotGun){
+                        for (let i=0;i<2;i++){
+                            image=gunImages[guns.findIndex((gunCheck)=>gunCheck===powerUpsGrabbed[i].PFType)];//guns and gunImages are lined up together
+                            ctx.save();
+                            ctx.translate(gunPos.x,gunPos.y);
+                            ctx.rotate(-gunAngle);
+                            ctx.drawImage(image,(i*25)-22,0,image.width*cam.zoom,image.height*cam.zoom);
+                            ctx.restore();
+                        }
+                    }else {
+                        if (firstSlotGun){
+                            image=gunImages[guns.findIndex((gunCheck)=>gunCheck===powerUpsGrabbed[0].PFType)];
+                        }else{
+                            image=gunImages[guns.findIndex((gunCheck)=>gunCheck===powerUpsGrabbed[1].PFType)];
+                        }
+                        ctx.save();
+                        if (true){
+                            ctx.translate(gunPos.x,gunPos.y);
+                        }else{
+                            ctx.translate(gunPos.x-image.width,gunPos.y);
+                        }
+                        ctx.rotate(-gunAngle);
+                        if (true){
+                            ctx.drawImage(image,-10,0,image.width*cam.zoom,image.height*cam.zoom);
+                        }else{
+                            ctx.drawImage(image,10,0,image.width,-image.height);
+                        }
+                        ctx.restore();
+                    }
+                }
 
                 ctx.beginPath();
-                ctx.arc(screenEnemyPos.x,(enemy.y-12-cam.y)*cam.zoom,enemy.size*cam.zoom,0,Math.PI*2);
+                ctx.arc(screenEnemyPos.x,(enemy.y-cam.y)*cam.zoom,enemy.size*cam.zoom,0,Math.PI*2);
                 ctx.fillStyle = 'red';
                 ctx.globalAlpha = -((Math.min(enemy.health,5)/5/*enemy.maxHealth*/)-1);
                 ctx.fill();
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = 'black';
+            }else if(enemy.PFType===36){
+                if (enemy.gunCooldown>0){
+                    let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size-5));
+                    ctx.drawImage(bombImage,imagePos.x,imagePos.y);
+                }else {
+                    let image;
+                    switch (true){
+                        case enemy.gunCooldown>1:
+                            image = explosionImages[0];
+                        break
+                        case enemy.gunCooldown>-2:
+                            image = explosionImages[1];
+                        break
+                        case enemy.gunCooldown>-3:
+                            image = explosionImages[2];
+                        break
+                        case enemy.gunCooldown>-4:
+                            image = explosionImages[3];
+                        break
+                        default:
+                            image=explosionImages[5]
+                    }
+                    let imagePos = offSetByCam(addToPoint(enemy,-image.width/2,-image.height/2));
+                    ctx.drawImage(image,imagePos.x,imagePos.y);
+                    //use a switch statement and crop the images better
+                }/*if(enemy.gunCooldown>-1){//the explosion images start
+                    ctx.drawImage(explosionImages[0],imagePos.x,imagePos.y);
+                }else if(enemy.gunCooldown>-2){
+                    ctx.drawImage(explosionImages[1],imagePos.x,imagePos.y);
+                }else if(enemy.gunCooldown>-3){
+                    ctx.drawImage(explosionImages[2],imagePos.x,imagePos.y);
+                }else if(enemy.gunCooldown>-4){
+                    ctx.drawImage(explosionImages[3],imagePos.x,imagePos.y);
+                }else if(enemy.gunCooldown>-5){
+                    ctx.drawImage(explosionImages[4],imagePos.x,imagePos.y);
+                }else if(enemy.gunCooldown>-6){
+                    ctx.drawImage(explosionImages[5],imagePos.x,imagePos.y);
+                }*/
             }else{
                 ctx.beginPath();
                 ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);
@@ -1839,6 +2046,11 @@ function findMidNumber(num1,num2){
 function findMidPoint(point1,point2){
     return new newPoint(Math.min(point1.x,point2.x)+Math.abs((point1.x-point2.x)/2),Math.min(point1.y,point2.y)+Math.abs((point1.y-point2.y)/2));
 }
+function findBulletTailPos(bullet){
+    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
+    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
+    return new newPoint(tailX,tailY);
+}
 function findBulletMiddle(bullet){
     let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
     let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
@@ -1846,13 +2058,18 @@ function findBulletMiddle(bullet){
 }
 function drawWalls(cam,draw3d){
     let i = 0;
+    //this is an example of a crisp line, I can't figure out how to get the walls to look like this
+    /*ctx.beginPath();
+    ctx.moveTo(100.5,100);
+    ctx.lineTo(100.5,200);
+    ctx.stroke();*/
     for (enemyRoom of enemyRooms){
         if (enemyRoom.useExtraWalls===1){
             for (wall of enemyRoom.extraWalls){
                 if (!draw3d){
                     ctx.beginPath();
-                    ctx.moveTo(((wall.first.x-cam.x)*cam.zoom),(wall.first.y-cam.y)*cam.zoom);
-                    ctx.lineTo((wall.second.x-cam.x)*cam.zoom,(wall.second.y-cam.y)*cam.zoom);
+                    ctx.moveTo(((wall.first.x-cam.x)*cam.zoom),((wall.first.y-cam.y)*cam.zoom));
+                    ctx.lineTo(((wall.second.x-cam.x)*cam.zoom),((wall.second.y-cam.y)*cam.zoom));
                     ctx.stroke();
                 }else{
                     let newFirst = acountForZ(wall.first,47);
@@ -2412,7 +2629,8 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (roomNum===1){
         roomOption = roomOptions[0];
     }else if ((roomNum%10)===0){
-        roomOption = roomOptions[1];
+        roomOption = roomOptions[0];
+        //roomOption = roomOptions[1];
     }else{
         //the ones are there to skip the first and second item which is just a blank room and boss room respectively
         roomOption = roomOptions[Math.floor(Math.random()*(roomOptions.length-2))+2];
@@ -2484,8 +2702,17 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         enemyRoom.enemies.push(enemies[enemies.length-1]);
     }*/
     if ((roomNum%10)===0){
-        enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
-        enemyRoom.enemies.push(enemies[enemies.length-1]);
+        //enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
+        //enemyRoom.enemies.push(enemies[enemies.length-1]);
+        let previousEnemy = enemies[0];
+        bossChainNum=0;
+        for (let i=0;i<4;i++){
+            previousEnemy = newEnemyPreset(enemyPosition,37,undefined,undefined,difficulty,previousEnemy);
+            enemies.push(previousEnemy);
+            enemyRoom.enemies.push(previousEnemy);
+            enemies.push(newEnemyPreset(enemyPosition,38,undefined,undefined,difficulty,previousEnemy));
+            enemyRoom.enemies.push(enemies[enemies.length-1]);
+        }
     }
     for (let i = 0;i<numOfEnemies;i++){
         let randomNum = Math.floor(Math.random()*roomOption.spawnPoints.length);
@@ -3308,7 +3535,11 @@ function enemyMovement(enemiesToRemove){
             let enemy=enemyRoom[i];
             if(enemy.health<1){
                 if (enemy.team===1||minionsDropLoot){
-                    dropEnemyLoot(enemy,mainEnemyRoom);
+                    let multiplier=1;
+                    if (enemy.PFType===15){ //this makes it so bosses drop twice as much loot
+                        multiplier=4;
+                    }
+                    dropEnemyLoot(enemy,mainEnemyRoom,multiplier);
                 }
                 for (let i=0;i<20;i++){
                     particles.push(new newParticle(enemy.x,enemy.y,5,enemy.color,0,new newPoint((Math.random()-.5)*20,(Math.random()-.5)*20),1.3));
@@ -3377,7 +3608,7 @@ function enemyMovement(enemiesToRemove){
             }
             enemy.momentum.x=Math.sin(angle)*dis;
             enemy.momentum.y=Math.cos(angle)*dis;
-            if (enemy.PFType===0||enemy.PFType===4||enemy.PFType===15){
+            if (enemy.PFType===0||enemy.PFType===4||enemy.PFType===15||(enemy.PFType===37&&enemy.bossChainNum===0)){
                 if (enemy.speed>findDis(enemy,enemy.target)){
                     enemy.x=enemy.target.x;
                     enemy.y=enemy.target.y;
@@ -3419,14 +3650,29 @@ function enemyMovement(enemiesToRemove){
                 }
             }else if (enemy.PFType===36){
                 enemy.targetSpeed = findDis(new newPoint(0,0),enemy.momentum);
-                if (enemy.gunCooldown<0){
+                if (enemy.gunCooldown<-9){
+                    enemiesToRemove.push(enemy);
+                }else if (enemy.gunCooldown<0){
                     enemy.size+=deltaTime*20;
                 }else{
                     enemy.color='black';
                 }
                 if (enemy.size>100){
+                    enemy.size=0;
+                }
+            }else if(enemy.PFType===37){//this only triggers if boss chain num!=0
+                if (enemy.target.deleted===true){
                     enemiesToRemove.push(enemy);
                 }
+                enemyAngle = findAngle(enemy,enemy.target);
+                enemy.x=enemy.target.x+Math.sin(enemyAngle)*(enemy.size+enemy.target.size);
+                enemy.y=enemy.target.y+Math.cos(enemyAngle)*(enemy.size+enemy.target.size);
+            }else if (enemy.PFType===38){
+                if (enemy.target.deleted===true){
+                    enemiesToRemove.push(enemy);
+                }
+                enemy.x=enemy.target.x
+                enemy.y=enemy.target.y
             }
             //enemy.room.x=(floorTo((enemies[0].x+50),(roomWidth+(doorLength*2)))-50)-(c.width/2/cam.zoom)+(roomWidth/2)+doorLength;
             //enemy.room.y=(floorTo((enemies[0].y+50),(roomHeight+(doorLength*2)))-50)-((c.height-HUDHeight)/2/cam.zoom)+(roomHeight/2)+doorLength
@@ -3436,13 +3682,9 @@ function enemyMovement(enemiesToRemove){
         }
     }
 }
-function dropEnemyLoot(enemy,mainEnemyRoom){
+function dropEnemyLoot(enemy,mainEnemyRoom,lootMultiplier){
     //let numMoney = Math.floor(Math.random()*mainEnemyRoom.difficulty);
-    let numMoney = Math.floor(Math.random()*(maxMoneyDrop+1));
-    if (enemy.PFType===15){ //this makes it so bosses drop twice as much loot
-        numMoney++;
-        numMoney*=4;
-    }
+    let numMoney = Math.floor(Math.random()*(maxMoneyDrop+1)*lootMultiplier);
     for (let i=0;i<numMoney;i++){
         let moneyPos = new newPoint();
         do{
@@ -3453,11 +3695,7 @@ function dropEnemyLoot(enemy,mainEnemyRoom){
     }
     //this is actually the num of health orbs
     //numMoney = Math.floor(Math.random()*2)+1;
-    numMoney = Math.floor(Math.random()*(maxHealthDrop+1));
-    if (enemy.PFType===15){
-        numMoney++;
-        numMoney*=4;
-    }
+    numMoney = Math.floor(Math.random()*(maxHealthDrop+1)*lootMultiplier);
     for (let i=0;i<numMoney;i++){
         let moneyPos = new newPoint();
         do{
@@ -3753,6 +3991,7 @@ function aimCustomGun(enemy,target,damage,bulletSpeed,bulletLength,bulletSpreadN
         effect = function(enemyHit,thisBullet){
             enemyHit.health-=thisBullet.damage;
             enemyHit.invinceable=enemyHit.maximumInvinceable;
+            screenShake+=1;
         }
     }
     for (let i=0;i<bulletSpreadNum;i++){
@@ -3850,7 +4089,7 @@ function enemyCollision(enemiesToRemove){
             for (enemy2 of enemyRoom){
                 //this makes it so the placeholder enemy and power ups that haveb't really gotton spawned yet don't get activated
                 //change the size 10
-                if (enemy1.size===0||enemy2.size===0||enemy1.team===2||enemy2.team===2||(enemy1.PFType===36&&enemy1.gunCooldown<0)||(enemy2.PFType===36&&enemy2.gunCooldown<0)){
+                if (enemy1.size===0||enemy2.size===0||enemy1.team===2||enemy2.team===2||(enemy1.PFType===36&&enemy1.gunCooldown<0)||(enemy2.PFType===36&&enemy2.gunCooldown<0)||enemy1.PFType===38||enemy2.PFType===38){
                     continue;
                 }
                 let skip=false;
@@ -3922,6 +4161,9 @@ function singleBulletEnemyCollision(bullet){
     //bullet.room = new newPoint((bullet.x+doorLength)/(roomWidth+(doorLength*2)),(bullet.y+doorLength)/(roomHeight+(doorLength*2)));
     for (let i = 0;i<enemies.length;i++){
         let enemy = enemies[i];
+        if (bullet.enemiesHit.find((enemyCheck)=>enemyCheck===enemy)!=undefined){
+            continue;
+        }
         //this rotates the creature to be aligned with the bullet which is a rotated rectangle.
         let rotatedPoint = addToPoint(bullet,Math.sin(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet),Math.cos(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet))
         //Now the bullet can be desrcibed in relation to rotatedPoint as a axis aligned bounding box
@@ -3948,7 +4190,7 @@ function bulletEnemyCollision(){
         //let bulletOwnerIndex = enemies.findIndex((enemyCheck)=>enemyCheck===bullet.owner);
         if (enemy!=undefined){
             if (enemy!=bullet.owner&&(enemy.team!=2)&&enemy.PFType!=36){
-                if ((enemy.invinceable<1||enemy!=enemies[0])&&bullet.owner.team!=enemy.team&&bullet.enemiesHit.find((enemyCheck)=>enemyCheck===enemy)===undefined){
+                if ((enemy.invinceable<1||enemy!=enemies[0])&&bullet.owner.team!=enemy.team/*&&bullet.enemiesHit.find((enemyCheck)=>enemyCheck===enemy)===undefined*/){
                     bullet.boringEffect(enemy,bullet);
                     bullet.effect(enemy,bullet);
                     /*if (enemy===enemies[0]){ //this would make the screen flash red when you get hit
@@ -4193,7 +4435,7 @@ function gunEnemyMovement(target){
                     }
                     aimGun(enemy,mouseShifted,'red',undefined,mainEnemyRoom,true);
                 }*/
-            }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3||enemy.PFType===2||enemy.PFType===17||enemy.PFType===15){
+            }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3||enemy.PFType===2||enemy.PFType===17||enemy.PFType===15||enemy.PFType===37||enemy.PFType===38){
                 if (enemy.target.team!=undefined){
                     let closestEnemy = findClosestEnemy(enemy,enemyRoom,enemy,false,false,mainEnemyRoom.walls);
                     if (closestEnemy!=undefined){
@@ -4589,8 +4831,6 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
             ctx.font = '24px serif';
         }
         let label = examplePowerUp.label;
-        let metrics = ctx.measureText(label);
-        let powerUpPos = new newPoint(Math.max(0,Math.min(mouse.x-(metrics.width/2),c.width-metrics.width)),Math.min(mouse.y-20,c.height-31))
         let skipDrawDamage = isBullet||(examplePowerUp instanceof newMinorPowerUp)||(examplePowerUp.PFType===8)||(examplePowerUp.PFType===28)||(examplePowerUp.PFType===34);//I think this is needed but it might not be, a bullet doesn't have a cooldown atribute
         let textToDraw = [];
         let maxTextWidth = 20;
@@ -4633,7 +4873,11 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                         continue;
                     }
                     //text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax,100);
-                    text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax/30,100)+' Seconds';
+                    let secondsText = 'Seconds';
+                    if (roundTo2(examplePowerUp.coolDownMax/30,100)===1){
+                        secondsText='Second';
+                    }
+                    text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax/30,100)+' '+secondsText;
                     break
             }
             /*if ((examplePowerUp.PFType===8)||(examplePowerUp.PFType===28)){
@@ -4649,6 +4893,7 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                 relativePos.y+=20;
             }
         }
+        let powerUpPos = new newPoint(Math.max(5,Math.min(mouse.x-(maxTextWidth/2),c.width-(maxTextWidth+5))),Math.min(mouse.y-20,c.height-31))
         if (mouseClickUsed){
             mouseClickUsed=false;
             if (numOnScreen===Math.round(numOnScreen)){
@@ -4821,6 +5066,7 @@ function updatePlayerStats(){
     maxMoneyDrop = 1;
     healthToMoneyRatio = 0;
     minorPowerUpSpace=5;
+    onHitHPDropChance=0;
     if (weaponChoice===9){
         minorPowerUpSpace=minorPowerUpsGrabbed.length;
     }
@@ -4829,11 +5075,15 @@ function updatePlayerStats(){
         /*for (minorPowerUp of majorPowerUp.minorPowerUps){
             minorPowerUp.modifier(majorPowerUp,minorPowerUp);
         }*/
+        if (majorPowerUp.PFType===7){
+            majorPowerUp.var1=0;
+        }
         majorPowerUp.coolDownMax=majorPowerUp.originalCopy.coolDownMax;
         majorPowerUp.damage=majorPowerUp.originalCopy.damage;
         majorPowerUp.healthToHeal=majorPowerUp.originalCopy.healthToHeal;
         majorPowerUp.shotSpread=majorPowerUp.originalCopy.shotSpread;
         majorPowerUp.range=majorPowerUp.originalCopy.range;
+        majorPowerUp.bulletKillPower=majorPowerUp.originalCopy.bulletKillPower;
         //let checkPowerUps = [...minorPowerUpsGrabbed]+[...permanentMinorPowerUps];
         let checkPowerUps = minorPowerUpsGrabbed.concat(permanentMinorPowerUps);
         for (minorPowerUp of checkPowerUps){
@@ -4844,7 +5094,7 @@ function updatePlayerStats(){
 }
 function updatePlayerStats1(){
     maximumMinions=1;
-    autoAimStrength=0;
+    autoAimStrength=0.1;
     minionsDropLoot=false;
     minionDamage=.5;
     minionReloadSpeed=120;
@@ -4882,7 +5132,7 @@ function findEnemyRoom(enemy){
 function findEnemyRoomIndex(enemy){
     return enemyRooms.findIndex((enemyRoom)=>undefined!=enemyRoom.enemies.find((enemyCheck)=>enemyCheck===enemy))
 }
-function powerUpSelect(){
+function powerUpSelect(){//add a skip button that gives $2
     ctx.save();
     ctx.beginPath();
     ctx.rect(c.width/4,c.height/4,c.width/2,c.height/2);

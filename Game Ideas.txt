@@ -6,28 +6,22 @@ dash has to be charged, so you preplan your inputs and do them all in quick secc
 miku skin
 
 Shop
-Dash doesn't scale with speed
 Stats after you beat the final boss
 Better graphics
 Show how enemies move differently?
 Knockback on your shots upgrade
 Make AI miss (test with more playtesting to see if this is needed)
-Shooting stuns the enemies
-Bullets should have effects (like enemies)
+Shooting stuns the enemies(this would be an upgrade)
 cheese kill boss on wall (bullets dissappear on frame 1 and miss you)(can happen to other enemies too)
 enemy with sheild that needs line of sight to turn the sheild (meant to encourage flanking)(enemy can't itself shoot)
 enemies (espically boss)show how much health they have left?
 screen freeze when you shoot or get hit or hit an enemy(to emphasize the impact)
 audio
-power up shows up on you and you don't see what it is(make it take time before you can pick it up)
 bullets that are never visible shake the screen (maybe give more of an indicator that the enemy actually shot it)(particles?)
 enemies have more health but no visual indicator that they have more health(this might be ok)(what if enemies only power up after bosses)
 when you dash backwards into a wall and shoot the bullet dissapears on frame one
-multiple enemies spawning at the same spawner(bad?)
-boss needs more depth(and it's too easy)
-when an enemy dies it should spew out lots of particles(blood)
+boss needs more depth
 particle when a bullet hits anything
-upgrade that makes more health things drop(might not work because it's needed at the beginning when you don't have it, but not at the end when you do have it)(maybe remove invincability frames so people take more damage in endgame?)
 upgrade that lets you suck up tiny upgrades
 add an image of the weapon on the weapon select screen
 boss should have a more unique reward
@@ -35,7 +29,6 @@ make better pathfinding that doesn't generate the boxes every time, it uses a pr
 limit on gun reload upgrades?
 enemy that charges at you and doesn't turn
 windup on machine gun
-enemies shouldn't walk striaght at you(machine gun and sniper tears them to bits too easily)
 sniper have unique upgrade where every enemy you pierce makes it do more damage(encourages lining up enemies to snipe em all at once)
 make enemy that has full pathfinding but if it has line of sight it moves like the pink enemy
 add explosions (suicide bomber and weapon)
@@ -43,15 +36,11 @@ test enemy shooting through walls (I don't know what this means)(I think the ene
 add fast mode(less rooms but the power ups are stronger to compensate)
 bullet spread doean't help enough with shotgun
 He peeks out from a wall with the shotgun for a easy hit
-shotgun range upgrade (The max isn't very high)
 When he is on low health he plays defensive and boring (more health drops?)
 The enemies clump on walls(bad?)
 different weapons like  grenade laucher 
 homing bullets, their homing strength could be upgradeable
-Bombs as another pillar style
 add blood or something that spews out of enemies that is really satifiying to run and collect like the lego games studs
-try removing health and see what happens
-you can have 5 power ups active at the bottom and 5 more in your inventory, not active
 when you try to pick up one you don't have space for, it says something and you have to rearrage your upgrades to be ready
 maybe your first upgrade is twice as powerful?
 if you hold 3 directional buttons, they don't cancel out and you move diaganolly
@@ -96,16 +85,12 @@ You can change what type of enemy an enemy is
 make copies of yourself
 parry bullets
 bouncing shots
-major and minor upgrades (5 minor and 5 major)(minor changes stats, major adds gameplay changes)
 augmentations(minor upgrades can apply to anything) ex: damgage up could affect your bullets or your minions bullets
-each branch has 5 slots for minor upgrades(bullets,mines, or minions) but you have a very limited amount
 each major upgrades is a branch
 an upgrde that is just a downside for a room then becomes an upgrade(take on a curse for x rooms and have a choice between 3 or so upgrades)
-You get special bullets from killing enemies or maybe somehow else. Each bullet has an effect and you can see which ones will shoot next
-maybe you can change the order that the next 5 will shoot in
 
 major upgrades are now guns that can all shoot all the bullets
-but now each one has effects (maybe profeciency) in one area and a downside in another(ex: shoots another bullet for the shotgun bullet but niper bullets do half damage)
+but now each one has effects (maybe profeciency) in one area and a downside in another(ex: shoots another bullet for the shotgun bullet but sniper bullets do half damage)
 
 bullets:
 shotgun bullet
@@ -242,16 +227,15 @@ pathfinding lags on chromebook
 draw health towards you slowly(only with magnet?)
 make magnet suck up health
 add some upgrades that add damage instead of multipling it
-after beating boss get more bulletspreadnum
+add special power ups after the boss
 make screen scaling on UI and power up select
 don't make enemies spawn by the door
-bombs on screen transtions
+bombs on screen transtions(kinda fixed by making bombs not able to cross room boundaries)
 screen shake upgrade
 upgrade:hitting enemies heals you a tiny bit (maybe less damage)
 more room templates
 mirror rooms to be lazy
 make a lot more power ups that give sniper a MUCH faster firing rate
-make resizing screen permanent
 implement upgrade rarity
 make stronger, rarer versions of minor upgrades
 major upgrade that gives you more minor upgrdae slots and nothing else(backpack)
@@ -276,10 +260,16 @@ full auto aim on controller?
 lots more auto aim for ease of new players
 buff boss HP a lot
 fix art
-make dual wealding look better
-fix water gun and 1/4 chance
+    make guns look like actual guns
+    make everything have a sprite
+    make dual wealding look better(maybe ditch dual wealding)
+    add a sprite for every enemy
 make elemental combos with items
 add controller support for menus and swapping weapons
+make moving stuff in the menus not shoot the gun
+enemies can still shoot through walls
+gun moves back into you like it's got kick
+bombs on screen transition is still a problem
 
 add death animation on enemies and on yourself
 online scoreboard

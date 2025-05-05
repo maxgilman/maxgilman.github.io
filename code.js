@@ -1,5 +1,10 @@
 let c = document.getElementById("myCanvas");
 let ctx = c.getContext("2d");
+
+ctx.fillStyle='black';
+ctx.font='48px serif';
+ctx.fillText('Loading...',c.width/2.5,c.height/2);
+
 let hideMouse = false;
 //c.style.cursor='none'
 if (hideMouse){
@@ -190,7 +195,7 @@ class newEnemy {
         this.target = target;
         let team=1;
         if (target===enemies[0]){
-            if (PFType===6||PFType===14){
+            if (PFType===7||PFType===14){
                 team=2;
             }
             if (PFType===1){
@@ -969,8 +974,14 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         case 5:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/3),20,'lime',5,target,70-(enemyPower*3),1+(2*Math.pow(2,enemyPower/4)),'');
         break
+        case 6:
+            enemy = new newEnemy(pos.x,pos.y,6,20,'blue',PFType,target,50,5,'');//demo enemy that gets shot at the beginning
+            enemy.team=4;
+            enemy.direction=Math.PI;
+            enemy.gunCooldown=enemy.gunCoolDownMax;
+        break
         case 7:
-            enemy = new newEnemy(pos.x,pos.y,power,10,'yellow',6,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+            enemy = new newEnemy(pos.x,pos.y,power,10,'yellow',7,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 //gunMaxCoolDown is a timer until it despawns on this one
                 screenShake=1;
                 if (touchedEnemy.PFType===1){
@@ -982,6 +993,12 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                     enemiesToRemove.push(thisEnemy);
                 }
             })
+        break
+        case 8:
+            //guard
+            enemy = new newEnemy(pos.x,pos.y,0,20,'#3d3d3d',PFType,target,75-(enemyPower),1,'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
+            enemy.gunCooldown=100;//timer until the guard tells you to stop
+            enemy.target=pos;
         break
         case 10:
             enemy = new newEnemy(pos.x,pos.y,2+(enemyPower),20,'magenta',10,target,60-(enemyPower*2),4);
@@ -996,7 +1013,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 16:
             //money
-            enemy = new newEnemy(pos.x,pos.y,0,10,'green',6,target,Infinity,Infinity,'$',function(touchedEnemy,thisEnemy,enemiesToRemove){
+            enemy = new newEnemy(pos.x,pos.y,0,10,'green',7,target,Infinity,Infinity,'$',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if (touchedEnemy.PFType===1){
                     money++;
                     enemiesToRemove.push(thisEnemy);
@@ -1328,11 +1345,15 @@ let basicRoomTemplate = ',0.0.600.0,700.0.1300.0,600.0.600.-50,700.0.700.-50,130
 let wallsImport = '';
 //let tilesImport = ",665.-35,700.-35,0.315,0.350,0.385,665.735,700.735,1400.315,1400.350,1400.385";
 let tilesImport = "";
-//,100.310.200.310
 //,450.350.600.350,600.300.600.350,600.250.600.300,450.250.600.250,700.350.700.250,850.250.700.250,850.350.700.350,700.250.700.300,700.350.700.300,850.350.700.350
-let roomOptionsImport = '//,800.100.500.100,100.450.100.200,1200.450.1200.200,800.550.500.550,350.250.350.150,350.500.350.400,950.250.950.150,950.500.950.400/,550.200.550.650,800.450.800.0,1000.550.1000.300,350.450.350.100,350.450.100.450/,850.400.850.650,450.500.450.650,450.400.450.250,200.250.850.250,200.400.200.250,200.500.0.500,1050.400.850.400,850.100.850.250,400.0.400.150';
-let spawnPointsImport = '///,300.400,500.600,1150.150,1150.600/,950.500,100.600,350.300,450.50,1250.50,100.100,700.150';
-let roomOptions = [];
+let emptyRoom = JSON.parse("{\"walls\":[],\"spawnPoints\":[]}");
+let bossRoom = JSON.parse("{\"walls\":[{\"first\":{\"x\":800,\"y\":100},\"second\":{\"x\":500,\"y\":100}},{\"first\":{\"x\":100,\"y\":450},\"second\":{\"x\":100,\"y\":200}},{\"first\":{\"x\":1200,\"y\":450},\"second\":{\"x\":1200,\"y\":200}},{\"first\":{\"x\":800,\"y\":550},\"second\":{\"x\":500,\"y\":550}},{\"first\":{\"x\":350,\"y\":250},\"second\":{\"x\":350,\"y\":150}},{\"first\":{\"x\":350,\"y\":500},\"second\":{\"x\":350,\"y\":400}},{\"first\":{\"x\":950,\"y\":250},\"second\":{\"x\":950,\"y\":150}},{\"first\":{\"x\":950,\"y\":500},\"second\":{\"x\":950,\"y\":400}}],\"spawnPoints\":[]}");
+let experimentRoom = JSON.parse("{\"walls\":[{\"first\":{\"x\":750,\"y\":650},\"second\":{\"x\":750,\"y\":0}},{\"first\":{\"x\":550,\"y\":650},\"second\":{\"x\":550,\"y\":0}}],\"spawnPoints\":[{\"x\":1000,\"y\":600},{\"x\":150,\"y\":600},{\"x\":50,\"y\":350},{\"x\":1250,\"y\":350}]}");
+let guardRoom = JSON.parse("{\"walls\":[],\"spawnPoints\":[{\"x\":550,\"y\":250},{\"x\":750,\"y\":250}]}");
+let roomOptions = [
+    JSON.parse("{\"walls\":[{\"first\":{\"x\":550,\"y\":200},\"second\":{\"x\":550,\"y\":650}},{\"first\":{\"x\":800,\"y\":450},\"second\":{\"x\":800,\"y\":0}},{\"first\":{\"x\":1000,\"y\":550},\"second\":{\"x\":1000,\"y\":300}},{\"first\":{\"x\":350,\"y\":450},\"second\":{\"x\":350,\"y\":100}},{\"first\":{\"x\":350,\"y\":450},\"second\":{\"x\":100,\"y\":450}}],\"spawnPoints\":[{\"x\":300,\"y\":400},{\"x\":500,\"y\":600},{\"x\":1150,\"y\":150},{\"x\":1150,\"y\":600}]}"),
+    JSON.parse("{\"walls\":[{\"first\":{\"x\":850,\"y\":400},\"second\":{\"x\":850,\"y\":650}},{\"first\":{\"x\":450,\"y\":500},\"second\":{\"x\":450,\"y\":650}},{\"first\":{\"x\":450,\"y\":400},\"second\":{\"x\":450,\"y\":250}},{\"first\":{\"x\":200,\"y\":250},\"second\":{\"x\":850,\"y\":250}},{\"first\":{\"x\":200,\"y\":400},\"second\":{\"x\":200,\"y\":250}},{\"first\":{\"x\":200,\"y\":500},\"second\":{\"x\":0,\"y\":500}},{\"first\":{\"x\":1050,\"y\":400},\"second\":{\"x\":850,\"y\":400}},{\"first\":{\"x\":850,\"y\":100},\"second\":{\"x\":850,\"y\":250}},{\"first\":{\"x\":400,\"y\":0},\"second\":{\"x\":400,\"y\":150}}],\"spawnPoints\":[{\"x\":950,\"y\":500},{\"x\":100,\"y\":600},{\"x\":350,\"y\":300},{\"x\":450,\"y\":50},{\"x\":1250,\"y\":50},{\"x\":100,\"y\":100},{\"x\":700,\"y\":150}]}"),
+]
 let walls = [];
 let editorSpawnPoints = [];
 let shop = new newPoint(Infinity,Infinity);
@@ -1367,37 +1388,10 @@ if (devMode==='true'){
 //devMode=true;
 let screenShake=0;
 let screenSize=1;
-let weaponChoice=0;
 //cam.zoom=Math.min((c.height-HUDHeight)/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
 //cam.zoom=Math.min(window.innerHeight/((doorLength*2)+roomHeight),window.innerWidth/((doorLength*2)+roomWidth));
 let money = 0;
 let savedwallBoxes = [];
-function importRoomOptions(){
-    let roomOptionsStrings = roomOptionsImport.split('/');
-    let spawnOptionsStrings = spawnPointsImport.split('/');
-    roomOptionsStrings.splice(0,1);
-    spawnOptionsStrings.splice(0,1);
-    //It will do the amount of room options, not matter how many rooms worth of spawn points there are
-    for (let j=0;j<roomOptionsStrings.length;j++){
-        let wallsStrings = roomOptionsStrings[j].split(',');
-        //this might cause issues if there are more wall options than spawn options
-        let spawnStrings = spawnOptionsStrings[j].split(',');
-        wallsStrings.splice(0,1);
-        spawnStrings.splice(0,1);
-        let roomWalls = [];
-        let spawnPoints = []
-        for (let i = 0; i<wallsStrings.length;i++){
-            let wallsValues = wallsStrings[i].split('.');
-            roomWalls.push(new newWall(Number(wallsValues[0]),Number(wallsValues[1]),Number(wallsValues[2]),Number(wallsValues[3])));
-        }
-        for (let i = 0; i<spawnStrings.length;i++){
-            let spawnValues = spawnStrings[i].split('.');
-            spawnPoints.push(new newPoint(Number(spawnValues[0]),Number(spawnValues[1])));
-            //editorSpawnPoints.push(new newPoint(Number(spawnValues[0]),Number(spawnValues[1])));
-        }
-        roomOptions.push({walls:roomWalls,spawnPoints:spawnPoints});
-    }
-}
 function importWalls(imported,goal){
     let wallsStrings = imported.split(',');
     wallsStrings.splice(0,1);
@@ -1416,7 +1410,6 @@ function importTiles(){
 }
 importWalls(wallsImport,walls);
 importTiles();
-importRoomOptions();
 let dashSpeed = null;
 let circlesToDraw = [];
 let textToDraw = [];
@@ -1447,9 +1440,9 @@ let wallsCopy = [];
 let particles = [];
 //this is the player
 enemies.push(newEnemyPreset(new newPoint(roomWidth/2,roomHeight-200),1));
-let explosionImages = [new Image(),new Image(),new Image(),new Image(),new Image(),new Image()];
-for (let i=0;i<6;i++){
-    explosionImages[i].src='Explosion_Frames/Explosion_'+(i+1)+'.tiff';
+let explosionImages = [new Image(),new Image(),new Image(),new Image()];
+for (let i=0;i<4;i++){
+    explosionImages[i].src='Explosion_Frames/Explosion_'+(i+1)+'.png';
 }
 let playerImages = {
     back:new Image(),
@@ -1462,10 +1455,10 @@ let playerImages = {
 playerImages.right.src = 'Player_test_right.png'
 playerImages.left.src = 'Player_test_left.png'
 playerImages.back.src = 'Player_test_back.png'*/
-playerImages.front.src = 'Player_Images/Player_front_V1_cropped.png';
-playerImages.right.src = 'Player_Images/Player_front_V1_cropped.png';
-playerImages.left.src = 'Player_Images/Player_front_V1_cropped.png';
-playerImages.back.src = 'Player_Images/Player_front_V1_cropped.png';
+playerImages.front.src = 'Player_Images/Player_front_V2_cropped.png';
+playerImages.right.src = 'Player_Images/Player_front_V2_cropped.png';
+playerImages.left.src = 'Player_Images/Player_front_V2_cropped.png';
+playerImages.back.src = 'Player_Images/Player_front_V2_cropped.png';
 /*let gunImages = {
     granadeLauncher: new Image(),
     grappleGun: new Image(),
@@ -1514,6 +1507,14 @@ let minionDamage = .5;
 let minionReloadSpeed = 120;
 let maxHealthDrop = 1;
 let maxMoneyDrop = 1;
+let showHUD = {
+    majorPowerUps:false,
+    permanentMinorPowerUps:false,
+    minorPowerUps:false,
+    sellButton:false,
+    money:false,
+    health:false,
+}
 let knobs = ['bullet speed','enemy speed','enemy health','enemy size','bullet width','reload speed','num bullets in shot spread','bullet volley num','bullet damage','invincable time','slowing bullets','bullet range','pathfinding','homing bullets'];
 function findKnob(){
     return knobs[Math.floor(Math.random()*knobs.length)]
@@ -1648,7 +1649,7 @@ function drawEnemies(cam){
         let enemyNum = 0;
         for (enemy of enemyRoom.enemies){
             let screenEnemyPos = offSetByCam(enemy);
-            if (enemy.PFType===1){
+            if (enemy.PFType===1||enemy===enemies[0]){
                 if (enemy.direction<0&&enemy.direction>-.1){
                     enemy.direction=0;
                     //this catchs a case where the direction is in this range and the formula doesn't work for some reason
@@ -1662,7 +1663,8 @@ function drawEnemies(cam){
                 movementDirection=Math.floor(movementDirection*4);
                 //the height has 6 added because of the drop shadow which adds 6 pixels to the height
                 let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));//this should subtract 18 from the Y
-                ctx.drawImage(playerImages.imagesList[movementDirection],imagePos.x,imagePos.y,enemy.size*cam.zoom*2,(enemy.size)*cam.zoom*2);
+                let thisImage = playerImages.imagesList[movementDirection]
+                ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y)/*enemy.size*cam.zoom*2,(enemy.size)*cam.zoom*2*/);
                 /*ctx.save();
                 let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
                 ctx.translate(imagePos.x,imagePos.y);
@@ -1747,37 +1749,21 @@ function drawEnemies(cam){
                 }else {
                     let image;
                     switch (true){
-                        case enemy.gunCooldown>1:
+                        case enemy.gunCooldown>-2:
                             image = explosionImages[0];
                         break
-                        case enemy.gunCooldown>-2:
+                        case enemy.gunCooldown>-3:
                             image = explosionImages[1];
                         break
-                        case enemy.gunCooldown>-3:
+                        case enemy.gunCooldown>-4:
                             image = explosionImages[2];
                         break
-                        case enemy.gunCooldown>-4:
-                            image = explosionImages[3];
-                        break
                         default:
-                            image=explosionImages[5]
+                            image=explosionImages[3];
                     }
                     let imagePos = offSetByCam(addToPoint(enemy,-image.width/2,-image.height/2));
                     ctx.drawImage(image,imagePos.x,imagePos.y);
-                    //use a switch statement and crop the images better
-                }/*if(enemy.gunCooldown>-1){//the explosion images start
-                    ctx.drawImage(explosionImages[0],imagePos.x,imagePos.y);
-                }else if(enemy.gunCooldown>-2){
-                    ctx.drawImage(explosionImages[1],imagePos.x,imagePos.y);
-                }else if(enemy.gunCooldown>-3){
-                    ctx.drawImage(explosionImages[2],imagePos.x,imagePos.y);
-                }else if(enemy.gunCooldown>-4){
-                    ctx.drawImage(explosionImages[3],imagePos.x,imagePos.y);
-                }else if(enemy.gunCooldown>-5){
-                    ctx.drawImage(explosionImages[4],imagePos.x,imagePos.y);
-                }else if(enemy.gunCooldown>-6){
-                    ctx.drawImage(explosionImages[5],imagePos.x,imagePos.y);
-                }*/
+                }
             }else{
                 ctx.beginPath();
                 ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);
@@ -1826,7 +1812,8 @@ function drawEnemies(cam){
                 //message = messages[enemy.PFType];
                 message=enemy.label;
             }
-            ctx.fillText(message,screenEnemyPos.x-(cam.zoom*((13*message.length)/2)),screenEnemyPos.y-(cam.zoom*40));
+            let metrics = ctx.measureText(message);
+            ctx.fillText(message,screenEnemyPos.x-(metrics.width/2),screenEnemyPos.y-(cam.zoom*40));
             //this is drawing the sheild
             /*if (enemy===enemies[0]){
                 ctx.save();
@@ -2440,99 +2427,39 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRoom.wallBoxes = [];
     enemyRoom.difficulty = difficulty;
     enemyRoom.roomNum=roomNum;
-    if (roomNum!=1&&roomNum!=targetNumOfRooms){
+    enemyRoom.useExtraWalls=0;
+    enemyRoom.isPowerUpCollected = false;
+    enemyRoom.powerUps = [];
+    if (roomNum===0){
         enemyRoom.isPowerUpCollected = false;
-    }else{
+        enemyRoom.powerUps = [newPowerUpPreset(34,false),newPowerUpPreset(7,false),newPowerUpPreset(34,false)];
+    }else if (roomNum<0){
+        enemyRoom.isPowerUpCollected = true;
+    }else if (roomNum===targetNumOfRooms){//doing it like this is easier for me to understand
         enemyRoom.isPowerUpCollected = true;
     }
-    enemyRoom.powerUps=null;
     //enemyRooms.push([newEnemyPreset(addToPoint(roomPos,roomWidth/2,roomHeight/2),2)]);
     enemyRooms.push(enemyRoom);
     //enemies.push(enemyRooms[enemyRooms.length-1][0]);
     let roomOption = 0;
-    if (roomNum===1){
-        roomOption = roomOptions[0];
+    if (roomNum===-2){
+        roomOption = emptyRoom;
+    }else if(roomNum===-1){
+        roomOption = experimentRoom;
+        enemyRoom.useExtraWalls=2;//the extra walls cannot come back if the value is set to 2
+    }else if(roomNum===0){
+        roomOption = guardRoom;
     }else if ((roomNum%10)===0){
-        roomOption = roomOptions[0];
-        //roomOption = roomOptions[1];
-    }else{
-        //the ones are there to skip the first and second item which is just a blank room and boss room respectively
-        roomOption = roomOptions[Math.floor(Math.random()*(roomOptions.length-2))+2];
-    } 
-    enemyRoom.walls = JSON.parse(JSON.stringify(roomOption.walls));
-    let room = enemyRoom.walls;
-    enemyRoom.extraWalls = [];
-    let extraWalls=enemyRoom.extraWalls;
-    enemyRoom.useExtraWalls=0;
-    for(spawnPoint of roomOption.spawnPoints){
-        editorSpawnPoints.push(addToPoint(spawnPoint,roomPos.x,roomPos.y));
-    }
-    let numOfEnemies=0;
-    if (roomOption.spawnPoints.length>0){
-        numOfEnemies = Math.floor(((Math.random()/2)+.5)*(difficulty))+1;
-    }
-    const enemyPosition = addToPoint(roomPos,roomWidth/2,roomHeight/2);
-    /*if (roomNum!=1&&roomNum!=targetNumOfRooms){
-        let powerUpSeed = Math.random();
-        let powerUpType=null;
-        let currentPowerUpOptions = [...eligibleMajorPowerUps];
-        //this makes it so it doesn't spawn the same power up twice in a row
-        let powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===powerUpsSpawned[powerUpsSpawned.length-1])
-        if (powerUpToRemove!=-1){
-            currentPowerUpOptions.splice(powerUpToRemove,1);
-        }
-        if (undefined===powerUpsSpawned.find((powerUpOption)=>powerUpOption===9)){
-            //this removes the Reduce bullet spread until there are multiple bullets
-            powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===11);
-            if (powerUpToRemove!=-1){
-                currentPowerUpOptions.splice(powerUpToRemove,1);
-            }
-        }
-        let numOfbulletSpeed = 0;
-        for(i = 0; i < powerUpsSpawned.length; i++){
-            if(powerUpsSpawned[i] === 20){
-                numOfbulletSpeed++;
-            }
-        }
-        if (numOfbulletSpeed>=4){
-            //this removes the bullet speed upgrade when the bullets might pass through an enemy without hitting
-            powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===20);
-            currentPowerUpOptions.splice(powerUpToRemove,1);
-        }
-        let numOfDashPowerUps = 0;
-        for(i = 0; i < powerUpsSpawned.length; i++){
-            if(powerUpsSpawned[i] === 19){
-                numOfDashPowerUps++;
-            }
-        }
-        let fakeDashCoolDown = maximumDashCoolDown;
-        for (let i=0;i<numOfDashPowerUps;i++){
-            fakeDashCoolDown/=1.5;
-        }
-        if (fakeDashCoolDown<6){
-            //this removes the dash cooldown option if it wouldn't change anything
-            powerUpToRemove = currentPowerUpOptions.findIndex((powerUpOption)=>powerUpOption===19);
-            currentPowerUpOptions.splice(powerUpToRemove,1);
-        }
-        powerUpType=currentPowerUpOptions[Math.floor(powerUpSeed*currentPowerUpOptions.length)];
-        if ((roomNum%10)===0){
-            //9 is shoot more bullets
-            powerUpType=9;
-        }
-        powerUpsSpawned.push(powerUpType);
-        let power = 2;
-        enemies.push(newEnemyPreset(enemyPosition,powerUpType,power,undefined,0));
-        //enemyRooms[enemyRooms.length-1].push(enemies[enemies.length-1]);
-        enemyRoom.enemies.push(enemies[enemies.length-1]);
-    }*/
-    if ((roomNum%10)===0){
+        const enemyPosition = addToPoint(roomPos,roomWidth/2,roomHeight/2);
         let bossType = Math.floor(Math.random()*2);
         switch (bossType){
             case 0:
-                    enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
-                    enemyRoom.enemies.push(enemies[enemies.length-1]);
+                roomOption = bossRoom;
+                enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
+                enemyRoom.enemies.push(enemies[enemies.length-1]);
                 break
             case 1:
+                roomOption = emptyRoom;
                 let previousEnemy = enemies[0];
                 for (let i=0;i<4;i++){
                     previousEnemy = newEnemyPreset(enemyPosition,37,undefined,undefined,difficulty,previousEnemy);
@@ -2543,15 +2470,43 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
                 }
                 break
         }
+    }else{
+        roomOption = roomOptions[Math.floor(Math.random()*(roomOptions.length))];
+    } 
+    enemyRoom.walls = JSON.parse(JSON.stringify(roomOption.walls));
+    let room = enemyRoom.walls;
+    enemyRoom.extraWalls = [];
+    let extraWalls=enemyRoom.extraWalls;
+    for(spawnPoint of roomOption.spawnPoints){
+        editorSpawnPoints.push(addToPoint(spawnPoint,roomPos.x,roomPos.y));
+    }
+    let numOfEnemies=0;
+    if (roomOption.spawnPoints.length>0){
+        if (roomNum<=0){
+            numOfEnemies=roomOption.spawnPoints.length;
+        }else{
+            numOfEnemies = Math.floor(((Math.random()/2)+.5)*(difficulty))+1;
+        }
     }
     for (let i = 0;i<numOfEnemies;i++){
         let randomNum = Math.floor(Math.random()*roomOption.spawnPoints.length);
+        let enemyRandomNum = Math.random();
+        if (roomNum<=0){
+            randomNum = i; //every spawn point gets an enemy if this is the experiment room
+        }
         let enemyPos = roomOption.spawnPoints[randomNum];
         //this adds the newest enemy to both lists
-        let enemyRandomNum = Math.random();
         let enemyType = 4;
         let scaledRandomNum = ((-Math.pow(3,-((enemyRandomNum*difficulty))))+1);
-        if (roomNum===2){
+        if (roomNum===-1){
+            if (randomNum<2){
+                enemyType=6;
+            }else{
+                enemyType=2;
+            }
+        }else if(roomNum===0){
+            enemyType=8;
+        }else if (roomNum<2){
             enemyType=2;
         }else if (roomNum<5){
             if (scaledRandomNum<.3){
@@ -2582,14 +2537,20 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
                 enemyType = 17;
             }
         }
-        enemies.push(newEnemyPreset(addTwoPoints(enemyPos,roomPos),enemyType,undefined,undefined,difficulty));
-        //enemyRooms[enemyRooms.length-1].push(enemies[enemies.length-1]);
-        enemyRoom.enemies.push(enemies[enemies.length-1]);
+        let enemy = newEnemyPreset(addTwoPoints(enemyPos,roomPos),enemyType,undefined,undefined,difficulty);
+        if (roomNum===-1){
+            enemy.gunCooldown=60;
+            if (randomNum>=2){
+                enemy.team=0;//the players team so they don't shoot at the player
+            }
+        }
+        enemies.push(enemy);
+        enemyRoom.enemies.push(enemy);
     }
-    if (roomNum===1){
+    if (roomNum===-2){
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,150),14,0,'Move with WASD'));
-        enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,200),14,0,'Shoot with the Mouse'));
-        enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,250),14,0,'Hold to shoot continuously'));
+        //enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,200),14,0,'Shoot with the Mouse'));
+        //enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,250),14,0,'Hold to shoot continuously'));
         //enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,300),14,0,'Dash with the Space Bar or Shift'));
         //nemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,350),14,0,'Hit the space bar with your left hand thumb you psycho'));
     }
@@ -2670,13 +2631,13 @@ function generateRooms(targetNumOfRooms,finalDifficulty,eligibleMajorPowerUps){
     roomsToMake = [{
         x:0,
         y:0,
-        parentDirection:null
+        parentDirection:null,
+        setDoors:[0],
     }];
     finishedRooms = [];
     //this is set to one because the first room exists as a room
     let numOfRooms = 1;
-    let done = false;
-    while(!done){
+    while(roomsToMake.length>0){
         let room = roomsToMake[0];
         //These are the door directions that will be drawn/added to the current room
         let up = false;
@@ -2693,7 +2654,7 @@ function generateRooms(targetNumOfRooms,finalDifficulty,eligibleMajorPowerUps){
             case 3:left = true;
             break;
         }
-        let notOptions = [];
+        let notOptions = [...room.setDoors]; //this initializes the function and gives makes it not copy these doors
         notOptions.push(room.parentDirection);
         let listofListCheck = [finishedRooms,roomsToMake,offLimitRooms];
         for (listCheck of listofListCheck){
@@ -2726,15 +2687,17 @@ function generateRooms(targetNumOfRooms,finalDifficulty,eligibleMajorPowerUps){
             }
         }
         let options = [];
-        for (let i = 0;i<4;i++){
-            if (notOptions.find(passed => passed===i)===undefined){
-                options.push(i);
+        let numOfDoors = 0;
+        if (room.setDoors.length>0){
+            options=room.setDoors;
+        }else{
+            for (let i = 0;i<4;i++){
+                if (notOptions.find(passed => passed===i)===undefined){
+                    options.push(i);
+                }
             }
         }
-        if (room.parentDirection===null){
-            options=[0];
-        }
-        let numOfDoors = Math.floor(Math.random()*(options.length+1));
+        numOfDoors = Math.floor(Math.random()*(options.length+1));
         //lot of other changes would need to be made to make more sprawling room generation, mostly making it so rooms are added to the back of the list using .push, nit the front
         //Right now it generates the first path, then generates all the side dead ends, which makes it so there aren't long paths the break off that don't lead anywhere
         if (options.length>0){
@@ -2755,8 +2718,9 @@ function generateRooms(targetNumOfRooms,finalDifficulty,eligibleMajorPowerUps){
         }
         numOfRooms+=numOfDoors;
         for(let i=0;i<numOfDoors;i++){
+            let doorPos = 0;
             let randomNum = Math.floor(Math.random()*(options.length));
-            let doorPos = options[randomNum];
+            doorPos = options[randomNum];
             notOptions.push(randomNum);
             options.splice(randomNum,1);
             switch(doorPos){
@@ -2783,6 +2747,10 @@ function generateRooms(targetNumOfRooms,finalDifficulty,eligibleMajorPowerUps){
                 doorPos-=2;
             }
             roomsToMake[0].parentDirection = doorPos;
+            roomsToMake[0].setDoors = [];
+            if (finishedRooms.length<2){
+                roomsToMake[0].setDoors.push(0);
+            }
             //roomsToMake[roomsToMake.length-1].parentDirection = doorPos;
             //0 should be roomsToMake.length-1
         }
@@ -2822,14 +2790,11 @@ function generateRooms(targetNumOfRooms,finalDifficulty,eligibleMajorPowerUps){
         //fyi these splices change the lists
         /*finishedRooms.push(roomsToMake[0]);
         roomsToMake.splice(0,1);*/
-        if (roomsToMake.length<=0){
-            done = true;
-        }
     }
     let i=0;
     for (room of finishedRooms){
         i++;
-        walls = walls.concat(generateRoom(room.up,room.right,room.down,room.left,room.roomPos,i,((i/targetNumOfRooms)*(finalDifficulty-1))+1,eligibleMajorPowerUps));
+        walls = walls.concat(generateRoom(room.up,room.right,room.down,room.left,room.roomPos,i-3,((i/targetNumOfRooms)*(finalDifficulty-1))+1,eligibleMajorPowerUps));
     }
     for (let i=0;i<originalLength;i++){
         addToEnemyRooms(enemies[i]);
@@ -3311,7 +3276,7 @@ function enemyStatusEffects(enemy){
         }
     }
 }
-function enemyMovement(enemiesToRemove){
+function enemyMovement(enemiesToRemove,skipPlayer){
     let start = floorPoint(enemies[0],boxSize);
     dashCooldown-=deltaTime;
     if (PFBoxes.find((element) => isSamePoint(element,start))===undefined){
@@ -3444,13 +3409,79 @@ function enemyMovement(enemiesToRemove){
                     enemy.x-=Math.sin(enemyAngle)*enemy.speed;
                     enemy.y-=Math.cos(enemyAngle)*enemy.speed;
                 }
-            }else if (enemy.PFType===1){
+            }else if (enemy.PFType===1&&!skipPlayer){
                 playerMovement(enemy,mainEnemyRoom);
             }else if (enemy.PFType===3||enemy.PFType===5||enemy.PFType===17){
                 pathfindingMovement(enemy,mainEnemyRoom);
+            }else if (enemy.PFType===6){
+                if (enemy.gunCooldown<0){
+                    enemy.gunCooldown=enemy.gunCoolDownMax;
+                    enemy.direction+=Math.PI;
+                }
+                enemy.x+=Math.sin(enemy.direction)*enemy.speed;
+                enemy.y+=Math.cos(enemy.direction)*enemy.speed;
             }else if (enemy.PFType===7){
                 if (enemy.gunCooldown<0){
                     enemiesToRemove.push(enemy);
+                }
+            }else if (enemy.PFType===8){
+                //guard
+                if (enemy.targetSpeed===0){
+                    enemy.x=enemy.target.x;
+                    enemy.y=enemy.target.y;
+                    if (enemies[0].y<enemy.y){
+                        enemy.targetSpeed=5;
+                        if (enemies[0].PFType!=0){
+                            enemy.target = addToPoint(enemies[0],-30,-10); //this counts on the enemies being in the right order
+                            enemies[0].PFType=0;
+                            enemies[0].target = addToPoint(enemies[0],0,100);
+                            modeTimer = 60;
+                            if (devMode){
+                                modeTimer=5;
+                            }
+                        }else{
+                            enemy.target = addToPoint(enemies[0],30,-10);
+                        }
+                    }
+                }else{
+                    if (enemy.speed>findDis(enemy,enemy.target)){
+                        enemy.x=enemy.target.x;
+                        enemy.y=enemy.target.y;
+
+                        let screenEnemyPos = offSetByCam(enemy);
+                        let text = 'Halt'
+                        if (rectsToDraw.length===1){
+                            text = "Don't do Any Funny Business";
+                            modeTimer-=deltaTime;
+                            if (modeTimer<0){
+                                mainEnemyRoom.isPowerUpCollected=true;
+                                switchMode(8);
+                                enemies[0].PFType=1;
+                            }
+                        }
+                        if (modeTimer<0){
+                            enemy.PFType=-1;//the enemy will never move again
+                        }
+                        let textToDraw = [];
+                        ctx.font = '32px serif'
+                        let metrics = ctx.measureText(text);
+                        let rectHeight = 35;
+                        addText(text,new newPoint(5,rectHeight-7),ctx.font,'black',metrics.width,textToDraw);
+                        addRect(addToPoint(screenEnemyPos,-40,-60),metrics.width+10,rectHeight,'white',textToDraw);
+                        if (rectsToDraw.length===2){
+                            let rect1 = rectsToDraw[0];
+                            let rect2 = rectsToDraw[1];
+                            /*let distance = rect2.x-rect1.x;
+                            rect1.x-=(distance/2);
+                            rect2.x+=(distance/2);*/
+                            rect1.x-=20;
+                            rect2.x+=20;
+                        }
+                    }else{
+                        enemyAngle = findAngle(enemy,enemy.target);
+                        enemy.x-=Math.sin(enemyAngle)*enemy.speed;
+                        enemy.y-=Math.cos(enemyAngle)*enemy.speed;
+                    }
                 }
             }else if (enemy.PFType===10){
                 let xDis=enemy.x-enemy.target.x;
@@ -3895,7 +3926,7 @@ function enemyCollisionEffects(enemiesToRemove){
                     if ((enemyDis<enemy1.size+enemy2.size)&&(rayCast(enemy1,enemy2,false,mainEnemyRoom.walls,false)===undefined)){
                         enemy1.effect(enemy2,enemy1,enemiesToRemove);
                         enemy2.effect(enemy1,enemy2,enemiesToRemove);
-                    }else if ((enemy2.PFType===6||enemy1.PFType===6)&&enemyDis<=Math.max(enemy1.size,20)+Math.max(enemy2.size,20)){
+                    }else if ((enemy2.PFType===7||enemy1.PFType===7)&&enemyDis<=Math.max(enemy1.size,20)+Math.max(enemy2.size,20)){//this makes the hitbox larger
                         enemy1.effect(enemy2,enemy1,enemiesToRemove);
                         enemy2.effect(enemy1,enemy2,enemiesToRemove);
                     }
@@ -4001,8 +4032,8 @@ function singleBulletEnemyCollision(bullet){
         //this rotates the creature to be aligned with the bullet which is a rotated rectangle.
         let rotatedPoint = addToPoint(bullet,Math.sin(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet),Math.cos(-bullet.direction+findAngle(enemy,bullet))*findDis(enemy,bullet))
         //Now the bullet can be desrcibed in relation to rotatedPoint as a axis aligned bounding box
-        let topLeft = new newPoint(bullet.x-bullet.visualWidth/2,bullet.y-bullet.tailLength);
-        let bottomRight = new newPoint(bullet.x+bullet.visualWidth/2,bullet.y);
+        let topLeft = new newPoint(bullet.x-bullet.realWidth/2,bullet.y-bullet.tailLength);
+        let bottomRight = new newPoint(bullet.x+bullet.realWidth/2,bullet.y);
         let closestPoint = new newPoint(Math.max(topLeft.x,Math.min(rotatedPoint.x,bottomRight.x)),Math.max(topLeft.y,Math.min(rotatedPoint.y,bottomRight.y)));
         if (findDis(closestPoint,rotatedPoint)<enemy.size){
             return enemy
@@ -4411,38 +4442,24 @@ function drawHUD(){
     //ctx.fillRect(0,c.height-HUDHeight,c.width,HUDHeight); //this would draw a bos that covers up things if HUDHeight !=0
     const TEXT_SIZE = 40;
     ctx.font=TEXT_SIZE+'px Courier New';
-    ctx.fillText('Money:'+roundTo2(money,10),c.width-275,c.height-5);
-    ctx.fillText('Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-600,c.height-5);
-    ctx.fillText('Room:'+enemies[0].enemyRoom.roomNum+'/30',c.width-990,c.height-10);
-    if (weaponChoice===9){ //this is when I'm bebuging and I have all the power ups, I can still see my health and money
+    if (showHUD.money){
+        ctx.fillText('Money:'+roundTo2(money,10),c.width-275,c.height-5);
+    }else if (money>0){
+        showHUD.money=true;
+    }
+    if (showHUD.health){
+        ctx.fillText('Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-600,c.height-5);
+    }
+    if (enemies[0].enemyRoom.roomNum>0){
+        ctx.fillText('Room:'+enemies[0].enemyRoom.roomNum+'/30',c.width-990,c.height-10);
+    }
+    /*){ //this is when I'm bebuging and I have all the power ups, I can still see my health and money
         ctx.fillText('Money:'+money,c.width-250,40);
         ctx.fillText('Health:'+enemies[0].health+'/'+enemies[0].maxHealth,c.width-600,40);
-    }
+    }*/
     if (enemies[0].health===7&&enemies[0].maxHealth===11){
         //ctx.fillText('SLUUURRRPEE',c.width-(TEXT_SIZE*9),TEXT_SIZE*2);
     }
-    let weapon = '';
-    switch (weaponChoice){
-        case 0:
-            weapon='None'
-            break
-        case 1:
-            weapon='Shotgun'
-            break
-        case 2:
-            weapon='Sniper'
-            break
-        case 3:
-            weapon='Grenade Gun'
-            break
-        case 4:
-            weapon='Necromancer'
-            break
-        case 9:
-            weapon='Classic'
-            break
-    }
-    //ctx.fillText('Starting Weapon: '+weapon,c.width-(TEXT_SIZE*10*screenSize),TEXT_SIZE*screenSize);
     let damage = 0;
     if (powerUpsGrabbed.length>0){
         damage=powerUpsGrabbed[0].damage
@@ -4466,19 +4483,30 @@ function drawHUD(){
     let permanentLeftX = 10;
     //let permanentLeftX = (minorLeftX+minorPowerUpSpace*30)+25;
     let permanentRightX = permanentLeftX+((permanentMinorPowerUps.length+2)*30);
-    drawPermanentSlots(permanentLeftX,permanentRightX);
+    if (money>=5){
+        showHUD.permanentMinorPowerUps=true;
+    }
+    if (showHUD.permanentMinorPowerUps){
+        drawPermanentSlots(permanentLeftX,permanentRightX);
+    }
 
     let majorLeftX = 55;
     let majorRightX = (majorLeftX+powerUpSpace*40);
 
-    drawHUDMouse(majorLeftX,majorRightX);
+    if (showHUD.majorPowerUps){
+        drawHUDMouse(majorLeftX,majorRightX);
+    }
 
     let minorLeftX = (majorRightX)+10;
     let minorRightX = (minorLeftX+minorPowerUpSpace*30);
-    drawMinorSlots(minorLeftX,minorRightX);
+    if (showHUD.minorPowerUps){
+        drawMinorSlots(minorLeftX,minorRightX);
+    }
 
     let sellButtonLeftX = (minorLeftX+minorPowerUpSpace*30)+10;
-    drawSellButton(sellButtonLeftX);
+    if (showHUD.sellButton){
+        drawSellButton(sellButtonLeftX);
+    }
 
     if (mode===1&&devMode){
         return
@@ -4501,6 +4529,7 @@ function drawHUD(){
                     powerUpsGrabbed.splice(i,1,heldPowerUp)[0];
                     powerUpsGrabbed.push(newPowerUpPreset(34,false));
                     heldPowerUp=null;
+                    showHUD.health=true;
                 }else{
                     heldPowerUp=powerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
                 }
@@ -4525,9 +4554,15 @@ function drawHUD(){
         let powerUpList = [];
         switch (k){
             case 0:
+                if (!showHUD.sellButton){
+                    continue;
+                }
                 powerUpList = [newPowerUpPreset(8,false),newPowerUpPreset(8,false),newPowerUpPreset(8,false),newPowerUpPreset(8,false)] //this is a placeholder for the sell button. The sell button should be changed to cover any clicks in the entire black area
                 break
             case 1:
+                if (!showHUD.permanentMinorPowerUps){
+                    continue;
+                }
                 powerUpList = [upgrader] //this is a placeholder for  the upgrader
                 break
             case 2:
@@ -4537,6 +4572,9 @@ function drawHUD(){
                 powerUpList=minorPowerUpsGrabbed//minor power ups
                 break
             case 4:
+                if (!showHUD.permanentMinorPowerUps){
+                    continue;
+                }
                 powerUpList = permanentMinorPowerUps;//permanent minor power ups
                 break
             case 5:
@@ -4816,7 +4854,7 @@ function findEligiblePowerUps(){
     }
     return powerUps;
 }
-let targetNumOfRooms=30;
+let targetNumOfRooms=33;//there is an extra 3 to account for the first 3 totorial rooms
 let eligibleMajorPowerUps = [];
 let eligibleMinorPowerUps = [];
 function startGame(weaponChoice){
@@ -4835,6 +4873,9 @@ function startGame(weaponChoice){
     eligibleMajorPowerUps = powerUps.major;
     eligibleMinorPowerUps = powerUps.minor;
     switch(weaponChoice){
+        case 0:
+            //no weapon
+        break
         case 1:
             //shotgun
             powerUpsGrabbed.push(newPowerUpPreset(6,false));
@@ -4899,7 +4940,7 @@ function updatePlayerStats(){
     healthToMoneyRatio = 0;
     minorPowerUpSpace=5;
     onHitHPDropChance=0;
-    if (weaponChoice===9){
+    if (minorPowerUpsGrabbed>minorPowerUpSpace&&devMode){
         minorPowerUpSpace=minorPowerUpsGrabbed.length;
     }
     for (majorPowerUp of powerUpsGrabbed){
@@ -4976,12 +5017,14 @@ function powerUpSelect(){//add a skip button that gives $2
     ctx.font='48px impact';
     ctx.fillStyle='black';
     ctx.fillText('Chose a power up',c.width/2.7,c.height/3);
+    ctx.font='32px impact';
+    let text = 'Then Drag it into a Similarly Sized Slot'
+    let stats = ctx.measureText(text);
+    ctx.fillText(text,(c.width/2)-(stats.width/2),2*c.height/3);
     let enemyRoomIndex =findEnemyRoomIndex(enemies[0]);
     let enemyRoom = enemyRooms[enemyRoomIndex];
     let powerUps=enemyRoom.powerUps;
-    if (powerUps===null){
-        enemyRoom.powerUps=[];
-        powerUps=enemyRoom.powerUps;
+    if (powerUps.length===0){
         if (eligibleMinorPowerUps.length<powerUpSpace+2){
             getDuplicateMinorPowerUps=true;
         }
@@ -5013,7 +5056,15 @@ function powerUpSelect(){//add a skip button that gives $2
             heldPowerUp=powerUpList[i];
             switchMode(0);
         }
-        drawPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,false,true);
+        if (examplePowerUp.PFType!=34){
+            if (enemies[0].enemyRoom.roomNum>0){
+                showHUD.minorPowerUps=true;
+            }
+            if (enemies[0].enemyRoom.roomNum>1){
+                showHUD.sellButtons=true;
+            }
+            drawPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,false,true);
+        }
     }
 }
 function drawMouse(){
@@ -5111,6 +5162,20 @@ function repeat(){
     if (!(keys['n']&&devMode)){
         bulletWallCollision(bulletsToRemove);
     }
+    for (enemyToRemove of enemiesToRemove){
+        enemyToRemove.deleted=true;
+        removeFromEnemyRooms(enemyToRemove);
+        enemies.splice(enemies.findIndex((passed)=>passed===enemyToRemove),1);
+    }
+    for (bulletToRemove of bulletsToRemove){
+        if (bulletToRemove.deleted===false){ //deleted might not actually be needed, but I'm too scared to remove it
+            bulletToRemove.deleted=true;
+            let index = bullets.findIndex((passed)=>passed===bulletToRemove);
+            if (index!=-1){
+                bullets.splice(index,1);
+            }
+        }
+    }
     bulletEnemyCollision();
     //sheildEnemyCollision();
     for (let i=0;i<bullets.length;i++){
@@ -5153,34 +5218,21 @@ function repeat(){
         enemies[0].size=0;
         switchMode(6);
     }
-    for (enemyToRemove of enemiesToRemove){
-        enemyToRemove.deleted=true;
-        removeFromEnemyRooms(enemyToRemove);
-        enemies.splice(enemies.findIndex((passed)=>passed===enemyToRemove),1);
-    }
-    for (bulletToRemove of bulletsToRemove){
-        if (bulletToRemove.deleted===false){ //deleted might not actually be needed, but I'm too scared to remove it
-            bulletToRemove.deleted=true;
-            let index = bullets.findIndex((passed)=>passed===bulletToRemove);
-            if (index!=-1){
-                bullets.splice(index,1);
-            }
-        }
-    }
 }
 let modeTimer = 0;
 function switchMode(modeTarget){
-    if (modeTarget===6){
-        modeTimer=20;
+    if (modeTarget===8){
+        showHUD.majorPowerUps=true;
+        if (enemies[0].enemyRoom.roomNum>=10){
+            showHUD.permanentMinorPowerUps=true;
+        }
     }
     if (modeTarget===mode&&modeTarget!=0){
         switchMode(0);
     }else if(modeTarget===0){
         if (mode===3){
             let spawnerExport = null;
-            console.log('copy everyting after the 5 on the second line')
-            console.log(wallsExport);
-            console.log(updateTilesList(editorSpawnPoints,spawnerExport));
+            console.log(JSON.stringify({walls:walls,spawnPoints:editorSpawnPoints}));
             spawnerExport=updateTilesList(editorSpawnPoints,spawnerExport);
             walls=wallsCopy;
             wallBoxes = generateWallBoxes(2,walls,wallBoxes);
@@ -5191,7 +5243,6 @@ function switchMode(modeTarget){
             wallsCopy=walls;
             walls=[];
             editorSpawnPoints=[];
-            importWalls(basicRoomTemplate,walls);
         }
         mode=3;
         wallBoxes = generateWallBoxes(2,walls,wallBoxes);
@@ -5333,32 +5384,19 @@ function repeat2(){
         ctx.drawImage(gunImages[1],(2.3*(c.width/3)),(2.3*c.height/4),gunImages[1].width*3,gunImages[1].height*3)
         //add a little image of the weapon below it
         if (keys['1']||(mouseClickUsed&&mouse.x<c.width/3)){
-            weaponChoice=1;
-            startGame(weaponChoice);
+            startGame(1);
         }
         if (keys['2']||(mouseClickUsed&&mouse.x>c.width/3&&mouse.x<(2*c.width/3))){
-            weaponChoice=2;
-            startGame(weaponChoice);
+            startGame(2);
         }
         if (keys['3']||(mouseClickUsed&&mouse.x>(2*c.width/3))){
-            weaponChoice=3;
-            startGame(weaponChoice);
+            startGame(3);
         }
-        if (keys['4']){
-            weaponChoice=4;
-            startGame(weaponChoice);
+        if (keys['4']&&devMode){
+            startGame(4);
         }
-        /*if (keys['7']){
-            weaponChoice=7;
-            startGame(weaponChoice);
-        }
-        if (keys['8']&&devMode){
-            weaponChoice=8;
-            startGame(weaponChoice);
-        }*/
         if (keys['9']&&devMode){
-            weaponChoice=9;
-            startGame(weaponChoice);
+            startGame(9);
         }
     }else if(mode===8){
         camControl(true,enemies[0],keysToggle['c'],!keysToggle['x'],keys['z'],0);
@@ -5396,4 +5434,5 @@ let startTime = Date.now();
 //let oldWalls = JSON.parse(JSON.stringify(walls))
 const targetFPS = 30;
 const targetRenderFPS = 60;
+startGame(0);//this is to skip the rest and start you with no weapon
 setInterval(repeat3,1000/targetRenderFPS);

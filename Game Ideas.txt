@@ -264,14 +264,17 @@ fix art
     make everything have a sprite
     make dual wealding look better(maybe ditch dual wealding)
     add a sprite for every enemy
+    shop
 make elemental combos with items
 add controller support for menus and swapping weapons
 make moving stuff in the menus not shoot the gun
 enemies can still shoot through walls
 gun moves back into you like it's got kick
 bombs on screen transition is still a problem
+make a message pop up if you try to buy something without enough money(maybe make the rects have a time they stay up for)
+2 1/4 chances should be independant, not 1/2
+make the menus actually work with controllers, not just copying the mouse
 
-add death animation on enemies and on yourself
 online scoreboard
 add arrow or something like a glow showing where to go
 

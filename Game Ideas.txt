@@ -5,7 +5,6 @@ turn while dashing
 dash has to be charged, so you preplan your inputs and do them all in quick seccusion
 miku skin
 
-Shop
 Stats after you beat the final boss
 Better graphics
 Show how enemies move differently?
@@ -17,7 +16,6 @@ enemy with sheild that needs line of sight to turn the sheild (meant to encourag
 enemies (espically boss)show how much health they have left?
 screen freeze when you shoot or get hit or hit an enemy(to emphasize the impact)
 audio
-bullets that are never visible shake the screen (maybe give more of an indicator that the enemy actually shot it)(particles?)
 enemies have more health but no visual indicator that they have more health(this might be ok)(what if enemies only power up after bosses)
 when you dash backwards into a wall and shoot the bullet dissapears on frame one
 boss needs more depth
@@ -79,6 +77,7 @@ You shoot to the beat of the music. maybe you make the music before each level t
 game where you're playing the economy like you're in the gilded age. playing other companies agaist each other
 having the circles on the corners of the rotated bullets looks really satifiying on the bombs
 every few rooms there is a challenge to mix it up
+showing the corners and second corners when a bullet hits a wall looks really cool. When shot directly into a wall that is
 
 resource management
 You can change what type of enemy an enemy is
@@ -106,39 +105,31 @@ grapple hook?
 Power up ideas
 you are invincable for longer
 you do more damage while invincable right after taking damage
-dash
 dash makes you invincable
 jump?
 shoot through infinite enemies
 each enemy your bullet goes through, the damage doubles
-you do more damge on lower health
+you do more damage on lower health
 more bullet speed
 bullet speeds up as it travels
 bullet slows down as it travels
-enemies drop more health
-turn escess health into something usefull(ult meter)
-bombs (or mines)
 the more enemies a bomb hits at once, the more damage it does
-explosion damage up
 chance of a bullet doing a crit with nice sound or turning into something cool
-more damage on full health
-more autoaim
 more range
 bullets move as fast as you are moving
 bullet speed is porportional to how much damage they do
-go faster
 become more accurate
 whenever you get a max health power up, heal to full
 homing bullet(there is still bullet range)
 another life after death, but you lose most or all of your power ups after death
+    maybe it starts as if you die, you keep all the power ups, but the more rooms you beat holding that power up, the more power ups you will lose once you die
+    or every time you die you will lose 1 more power up next death
 each consecutive shot that hits an enemy does more damage(have to hold?)
 invisibility
-pull enemies to you (magnet)
-push enemies away from you
 every room cleared with this, do .5 more damage
 turret you can place? shoots health at you?
 flamethrower(bullets can leave a lingering flame)
-the longer since the last shot, the more damage(up to a limit)(meant to encourage low fire rate builds, not wait in a room to charge up a shot)
+STAR the longer since the last shot, the more damage(up to a limit)(meant to encourage low fire rate builds, not wait in a room to charge up a shot)
 bullets explode when hitting a wall(or maybe just on hitting an enemy)
 wavy bullets
 bullet kick(the amount the move back when shooting) is tripled
@@ -210,61 +201,36 @@ bombs block bullets(might be too overpowered)
 the more money you have, more damage.(or maybe other way around)
 
 Major Power ups:
-Shoot out balls that orbit around you(similar to souls but this does it on command)
 gatling gun, not much range but CRAZY knockback on user
 
-doesn't know what halve cooldown does(make shiny)(change description to "this gun shoots 100% faster than normal" or smth)
-make damage display *10 to make it seem better
-do something at upgrade shop if buy nothing(heal some HP)
-make upgrade text go behind upgrades on upgrade screen 
 enemies shoot more weapons
 maybe bonus for buying something you've never bought before
 make gameplay loop change while you're playing
-fix controller support
-add shitty explosion gif (only to bosses)
-make more damage more powerful than shooting fast(the back and forth gameplay is more intresting)
-pathfinding lags on chromebook
 draw health towards you slowly(only with magnet?)
 make magnet suck up health
 add some upgrades that add damage instead of multipling it
 add special power ups after the boss
-make screen scaling on UI and power up select
 don't make enemies spawn by the door
-bombs on screen transtions(kinda fixed by making bombs not able to cross room boundaries)
-screen shake upgrade
 upgrade:hitting enemies heals you a tiny bit (maybe less damage)
 more room templates
 mirror rooms to be lazy
-make a lot more power ups that give sniper a MUCH faster firing rate
 implement upgrade rarity
 make stronger, rarer versions of minor upgrades
-major upgrade that gives you more minor upgrdae slots and nothing else(backpack)
 locking in a +5 health shouldn't make you lose 5 health
-minor->upgrades
-major->gear
-oliver thinks locking in should be by 2 each time instead of 5(I think it's working great)
-add knockback to bombs and water gun
-add a gain $2 button instead of getting an upgrade
-start with a sniper to learn the basics of the game
-slow down the beginning. Add mechanics slowly.
-    make first room only offer 1 major upgrade and the mouse is the only part of the UI visible
-    make the mouse blink/glow to show where to drag the ability
-    after beating the next room the small slots become visible and it offers you 2 small upgrades
-    After beating next room show sell button
-    adds all the upgrades as visible
-    once you have $5, completed another room, or filled up 5 slots or maybe even just 3, show the locking in UI(I'm not sure what should trigger it)
+add knockback to water gun
+add a gain $2 button instead of getting an upgrade(or heal)
 didn't know:
     What you had to drag or what the bottom even was
-    thought the major power ups could be in the small slots: add them one at a time so you learn what each looks like and what it does slowly
-full auto aim on controller?
-lots more auto aim for ease of new players
-buff boss HP a lot
+    thought the major power ups could be in the small slots
+buff boss HP a lot(maybe not needed)
 fix art
     make guns look like actual guns
-    make everything have a sprite
-    make dual wealding look better(maybe ditch dual wealding)
+        pistol!
+    make dual wealding look better
     add a sprite for every enemy
     shop
+    bosses
+    enemies should be holding weapons
 make elemental combos with items
 add controller support for menus and swapping weapons
 make moving stuff in the menus not shoot the gun
@@ -274,6 +240,14 @@ bombs on screen transition is still a problem
 make a message pop up if you try to buy something without enough money(maybe make the rects have a time they stay up for)
 2 1/4 chances should be independant, not 1/2
 make the menus actually work with controllers, not just copying the mouse
+make a controller last frame to consolidate the different variables
+bullets have particle when hitting a wall or enemy
+things to improve the mouse
+    make the power ups screws
+    make the power ups usb sticks
+    replace the mouse with two arms that repersanet the robots arms
+getting a major power up from the first power up select may be sending a mixed message compared to you always getting a minor in every single later one. Maybe have it drop onto you and you pick it up and equip it
+add pistol to guns list(it needs a sprite first)
 
 online scoreboard
 add arrow or something like a glow showing where to go

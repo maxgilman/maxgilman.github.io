@@ -81,17 +81,23 @@ let start = points[0];
 let cp1 = points[1];
 let cp2 = points[2];
 let end = points[3];
+curves.push({
+    start: start,
+    end: end,
+    cp1: cp1,
+    cp2: cp2,
+})
 
 let range = new newPoint(end.x-start.x,end.y-start.y);
 
-for (let i=0;i<20;i++){
+/*for (let i=0;i<20;i++){
     curves.push({
         start: new newPoint(start.x,start.y),
         end: mouse,
         cp1: new newPoint(start.x+range.x*Math.random(),start.y+range.y*Math.random()),
         cp2: new newPoint(start.x+range.x*Math.random(),start.y+range.y*Math.random()),
     })
-}
+}*/
 let imageHeight = 80*4;
 ctx.strokeStyle='aqua';
 ctx.lineWidth=5;
@@ -117,7 +123,7 @@ function drawCurve(){
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
     ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-    ctx.stroke();
+    ctx.stroke();*/
 
     // Start and end points
     ctx.fillStyle = "blue";
@@ -131,7 +137,7 @@ function drawCurve(){
     ctx.beginPath();
     ctx.arc(cp1.x, cp1.y, 5, 0, 2 * Math.PI); // Control point one
     ctx.arc(cp2.x, cp2.y, 5, 0, 2 * Math.PI); // Control point two
-    ctx.fill();*/
+    ctx.fill();
 }
 function mousePoints(){
     for (curve of curves){
@@ -173,7 +179,7 @@ function mousePoints(){
             }   
         }
     }
-    for (curve of curves){
+    /*for (curve of curves){
         for (let i=1;i<3;i++){
             let pos;
             switch (i){
@@ -199,7 +205,7 @@ function mousePoints(){
                 pos.direction=-Math.max(Math.random(),.25)
             }
         }
-    }
+    }*/
 }
 let frameCount = 0;
 let dashs = [];

@@ -225,12 +225,12 @@ didn't know:
 buff boss HP a lot(maybe not needed)
 fix art
     make guns look like actual guns
-        pistol!
     make dual wealding look better
     add a sprite for every enemy
     shop
     bosses
     enemies should be holding weapons
+    update the art and center the lock on the minor powe ups
 make elemental combos with items
 add controller support for menus and swapping weapons
 make moving stuff in the menus not shoot the gun
@@ -247,7 +247,8 @@ things to improve the mouse
     make the power ups usb sticks
     replace the mouse with two arms that repersanet the robots arms
 getting a major power up from the first power up select may be sending a mixed message compared to you always getting a minor in every single later one. Maybe have it drop onto you and you pick it up and equip it
-add pistol to guns list(it needs a sprite first)
+shop only appears affter bosses?
+make money and stuff not drop from "enemies" you shoot EX: black hole
 
 online scoreboard
 add arrow or something like a glow showing where to go

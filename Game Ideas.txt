@@ -6,7 +6,6 @@ dash has to be charged, so you preplan your inputs and do them all in quick secc
 miku skin
 
 Stats after you beat the final boss
-Better graphics
 Show how enemies move differently?
 Knockback on your shots upgrade
 Make AI miss (test with more playtesting to see if this is needed)
@@ -17,30 +16,17 @@ enemies (espically boss)show how much health they have left?
 screen freeze when you shoot or get hit or hit an enemy(to emphasize the impact)
 audio
 enemies have more health but no visual indicator that they have more health(this might be ok)(what if enemies only power up after bosses)
-when you dash backwards into a wall and shoot the bullet dissapears on frame one
-boss needs more depth
 particle when a bullet hits anything
 upgrade that lets you suck up tiny upgrades
-add an image of the weapon on the weapon select screen
 boss should have a more unique reward
 make better pathfinding that doesn't generate the boxes every time, it uses a preset web
-limit on gun reload upgrades?
 enemy that charges at you and doesn't turn
 windup on machine gun
 sniper have unique upgrade where every enemy you pierce makes it do more damage(encourages lining up enemies to snipe em all at once)
-make enemy that has full pathfinding but if it has line of sight it moves like the pink enemy
-add explosions (suicide bomber and weapon)
-test enemy shooting through walls (I don't know what this means)(I think the enemies can shoot through walls like what happened to Miles)
+add suicide bomber enemy
 add fast mode(less rooms but the power ups are stronger to compensate)
-bullet spread doean't help enough with shotgun
-He peeks out from a wall with the shotgun for a easy hit
-When he is on low health he plays defensive and boring (more health drops?)
-The enemies clump on walls(bad?)
-different weapons like  grenade laucher 
-homing bullets, their homing strength could be upgradeable
-add blood or something that spews out of enemies that is really satifiying to run and collect like the lego games studs
+Make the health and money really satifiying to pick up
 when you try to pick up one you don't have space for, it says something and you have to rearrage your upgrades to be ready
-maybe your first upgrade is twice as powerful?
 if you hold 3 directional buttons, they don't cancel out and you move diaganolly
 improce screen shake, make it more thoughtful instead of just random
 you have an ult which power ups can change what it does, charged up killing enemies, maybe with the lego studs idea
@@ -124,7 +110,7 @@ homing bullet(there is still bullet range)
 another life after death, but you lose most or all of your power ups after death
     maybe it starts as if you die, you keep all the power ups, but the more rooms you beat holding that power up, the more power ups you will lose once you die
     or every time you die you will lose 1 more power up next death
-each consecutive shot that hits an enemy does more damage(have to hold?)
+each consecutive shot that hits an enemy does more damage
 invisibility
 every room cleared with this, do .5 more damage
 turret you can place? shoots health at you?
@@ -219,22 +205,17 @@ make stronger, rarer versions of minor upgrades
 locking in a +5 health shouldn't make you lose 5 health
 add knockback to water gun
 add a gain $2 button instead of getting an upgrade(or heal)
-didn't know:
-    What you had to drag or what the bottom even was
-    thought the major power ups could be in the small slots
-buff boss HP a lot(maybe not needed)
 fix art
     make guns look like actual guns
     make dual wealding look better
     add a sprite for every enemy
-    shop
+    shop (the image was resized from its orignal size of 100 to 145 to fit the game)
     bosses
     enemies should be holding weapons
     update the art and center the lock on the minor powe ups
+    souls image is too complex? can't see it while it's moving, too blurry
 make elemental combos with items
-add controller support for menus and swapping weapons
 make moving stuff in the menus not shoot the gun
-enemies can still shoot through walls
 gun moves back into you like it's got kick
 bombs on screen transition is still a problem
 make a message pop up if you try to buy something without enough money(maybe make the rects have a time they stay up for)
@@ -248,10 +229,23 @@ things to improve the mouse
     replace the mouse with two arms that repersanet the robots arms
 getting a major power up from the first power up select may be sending a mixed message compared to you always getting a minor in every single later one. Maybe have it drop onto you and you pick it up and equip it
 shop only appears affter bosses?
-make money and stuff not drop from "enemies" you shoot EX: black hole
+change the mouse icon to look good and not be a target since you're not shooting at it
+add an controller option to shoot at the mouse
+souls can catch on wall and stop the player from moving
+make black hole gun deal damage
+make more things you can do with the souls
+    use one to heal
+    send them out to attack? Clicking the button in a direction
+stop bullets from hitting two enemies at once
+fix bullets hitting you and wall on first/same frame, invincibility
+souls still clump on walls
+weird that shop just appears? Make it fly in from offscreen?
+add a internal auto length option for single text boxes
+if on right side of screen, the second guards text goes offscreen
+maybe bombs heal you their damage needs to be half their damage
+more power ups involving money? maybe nerf the ones already in the game
 
-online scoreboard
-add arrow or something like a glow showing where to go
+add arrow or something like a glow showing where to go. Or something showing where to NOT go
 
 make lots of room for stupid overpowered stuff
 

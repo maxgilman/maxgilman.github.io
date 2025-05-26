@@ -207,6 +207,21 @@ add knockback to water gun
 add a gain $2 button instead of getting an upgrade(or heal)
 fix art
     make guns look like actual guns
+        dash
+        make grapple gun art line up
+        update grenade gun
+        heal 1HP. The robot is getting charged from a battery. Little charging animation
+        magnet? Rework?
+        push away enemies and bullets. Make the effects bullets stretch to each other like the water. make the bullets move at variable speeds to make it wiggly
+        water sprayer? Remove?
+        lightning staff
+        spend $1 for a full heal
+        soul summoner. Purple swirls(or another shape)(internally they could be particles with a friction of less than 1) fly in/fade in to the staff where they combine into a soul.
+            this could be reworked into drones if that fits the theme better
+        screen shake?
+        black hole gun. Might remove this gun
+        pulverizor
+        ice staff
     make dual wealding look better
     add a sprite for every enemy
     shop (the image was resized from its orignal size of 100 to 145 to fit the game)
@@ -240,7 +255,6 @@ stop bullets from hitting two enemies at once
 fix bullets hitting you and wall on first/same frame, invincibility
 souls still clump on walls
 weird that shop just appears? Make it fly in from offscreen?
-add a internal auto length option for single text boxes
 if on right side of screen, the second guards text goes offscreen
 maybe bombs heal you their damage needs to be half their damage
 more power ups involving money? maybe nerf the ones already in the game

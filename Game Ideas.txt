@@ -216,7 +216,7 @@ fix art
         water sprayer? Remove?
         lightning staff
         spend $1 for a full heal
-        soul summoner. Purple swirls(or another shape)(internally they could be particles with a friction of less than 1) fly in/fade in to the staff where they combine into a soul.
+        soul summoner
             this could be reworked into drones if that fits the theme better
         screen shake?
         black hole gun. Might remove this gun
@@ -224,17 +224,14 @@ fix art
         ice staff
     make dual wealding look better
     add a sprite for every enemy
-    shop (the image was resized from its orignal size of 100 to 145 to fit the game)
+    shop (the image was resized from its orignal size of 100 to 150 to fit the game. Should be redrawn and cleaned up to remove blur)
     bosses
     enemies should be holding weapons
-    update the art and center the lock on the minor powe ups
     souls image is too complex? can't see it while it's moving, too blurry
 make elemental combos with items
 make moving stuff in the menus not shoot the gun
 gun moves back into you like it's got kick
-bombs on screen transition is still a problem
 make a message pop up if you try to buy something without enough money(maybe make the rects have a time they stay up for)
-2 1/4 chances should be independant, not 1/2
 make the menus actually work with controllers, not just copying the mouse
 make a controller last frame to consolidate the different variables
 bullets have particle when hitting a wall or enemy
@@ -258,8 +255,14 @@ weird that shop just appears? Make it fly in from offscreen?
 if on right side of screen, the second guards text goes offscreen
 maybe bombs heal you their damage needs to be half their damage
 more power ups involving money? maybe nerf the ones already in the game
+soft nerf for hp boss(or maybe enemy) that eats hp dropped on the ground(uses) and u have to kill it to prevent it from eating all ur health drops
+make each gun have an offset to make the bullet come out of the gun barrel? Might cause clipping through walls
+maybe add a catlog where you can chose any weapon, and if you use a debuff the next room, you get the weapon
+    or maybe after beating a boss you just get any weapon you want
+add a way to replay a room at 4X difficulty to get another modifier
+add the portal to the boss rush after the game
 
-add arrow or something like a glow showing where to go. Or something showing where to NOT go
+add arrow or something like a glow showing where to go. Or something showing where to NOT go(maybe walls)
 
 make lots of room for stupid overpowered stuff
 

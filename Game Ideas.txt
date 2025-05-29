@@ -224,7 +224,7 @@ fix art
         ice staff
     make dual wealding look better
     add a sprite for every enemy
-    shop (the image was resized from its orignal size of 100 to 150 to fit the game. Should be redrawn and cleaned up to remove blur)
+    shop (the image was resized from its orignal size of 100 to 150 to fit the game. Should be redrawn and cleaned up to remove blur)(also make the yellow thing a welcome mat)
     bosses
     enemies should be holding weapons
     souls image is too complex? can't see it while it's moving, too blurry
@@ -260,7 +260,7 @@ make each gun have an offset to make the bullet come out of the gun barrel? Migh
 maybe add a catlog where you can chose any weapon, and if you use a debuff the next room, you get the weapon
     or maybe after beating a boss you just get any weapon you want
 add a way to replay a room at 4X difficulty to get another modifier
-add the portal to the boss rush after the game
+Gun of crippling debt: really strong. Shouts money.(takes money to shoot). You don't need to have the money to shoot it, but you can go into immense amounts of debt
 
 add arrow or something like a glow showing where to go. Or something showing where to NOT go(maybe walls)
 

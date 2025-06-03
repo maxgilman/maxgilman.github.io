@@ -2,7 +2,7 @@ totorial and how well you do changes the difficulty for the rest of the game
 Maybe how you're doing in the game changes the difficulty
 enemy that runs away
 turn while dashing
-dash has to be charged, so you preplan your inputs and do them all in quick seccusion
+dash has to be charged, so you preplan your inputs and do them all in quick succusion
 miku skin
 
 Stats after you beat the final boss
@@ -12,7 +12,6 @@ Make AI miss (test with more playtesting to see if this is needed)
 Shooting stuns the enemies(this would be an upgrade)
 cheese kill boss on wall (bullets dissappear on frame 1 and miss you)(can happen to other enemies too)
 enemy with sheild that needs line of sight to turn the sheild (meant to encourage flanking)(enemy can't itself shoot)
-enemies (espically boss)show how much health they have left?
 screen freeze when you shoot or get hit or hit an enemy(to emphasize the impact)
 audio
 enemies have more health but no visual indicator that they have more health(this might be ok)(what if enemies only power up after bosses)
@@ -27,7 +26,6 @@ add suicide bomber enemy
 add fast mode(less rooms but the power ups are stronger to compensate)
 Make the health and money really satifiying to pick up
 when you try to pick up one you don't have space for, it says something and you have to rearrage your upgrades to be ready
-if you hold 3 directional buttons, they don't cancel out and you move diaganolly
 improce screen shake, make it more thoughtful instead of just random
 you have an ult which power ups can change what it does, charged up killing enemies, maybe with the lego studs idea
 make each upgrade an article of clothing so when you have a combo your charecter looks really funny
@@ -206,11 +204,11 @@ locking in a +5 health shouldn't make you lose 5 health
 add knockback to water gun
 add a gain $2 button instead of getting an upgrade(or heal)
 fix art
-    make guns look like actual guns
+    make all abilities have art
         dash
         make grapple gun art line up
         update grenade gun
-        heal 1HP. The robot is getting charged from a battery. Little charging animation
+        heal 1HP. 
         magnet? Rework?
         push away enemies and bullets. Make the effects bullets stretch to each other like the water. make the bullets move at variable speeds to make it wiggly
         water sprayer? Remove?

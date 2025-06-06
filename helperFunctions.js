@@ -67,9 +67,8 @@ function floorPoint(point,divisor){
 function roundPoint(point,divisor){
     return new newPoint(Math.round(point.x / divisor)*divisor,Math.round(point.y / divisor)*divisor)
 }
+/** is, "check," inside box specified by point 1 and 2. 'extra' makes the bounding box bigger by the specified amount*/
 function boundingBox(point1,point2,check,extraX,extraY){
-    //is, "check," inside box specified by point 1 and 2
-    //'extra' makes the bounding box bigger by the specified amount
     let xUpperBound = Math.max(point1.x, point2.x)+extraX;
     let xLowerBound = Math.min(point1.x, point2.x)-extraX;
     let yUpperBound = Math.max(point1.y, point2.y)+extraY;
@@ -86,4 +85,21 @@ function turnRoomIntoRealPos(roomPos){
 }
 function sameRoomPos(point,roomPos){
     return isSamePoint(floorPoint(point,1),floorPoint(roomPos,1))
+}
+/**this function doesn't change the original point, rather it returns a new point*/
+function bringPointIntoRange(point,maxDis){
+    let angle = findAngle(point,new newPoint(0,0));
+    let dis = Math.min(findDis(new newPoint(0,0),point),maxDis);
+    return new newPoint(Math.sin(angle)*dis,Math.cos(angle)*dis);
+}
+/**Moves num up or down by increments of (max-min) until it's between max and min. Min is inclusive, max is exclusive*/
+function bringNumIntoRange(num,min,max){
+    let difference = max-min;
+    while(num<min){
+        num+=difference;
+    }
+    while(num>=max){
+        num-=difference;
+    }
+    return num;
 }

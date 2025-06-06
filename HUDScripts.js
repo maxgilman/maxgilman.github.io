@@ -180,6 +180,11 @@ function drawHealthBar(leftX,topY,color,enemy){
     }
     ctx.strokeStyle = 'black';
 }
+function drawMoney(){
+    money = roundTo2(money,10);
+    ctx.strokeText('Money:'+money,c.width-275,c.height-5);
+    ctx.fillText('Money:'+money,c.width-275,c.height-5);
+}
 function drawHUD(){
     ctx.fillStyle='black';
     //ctx.fillRect(0,c.height-HUDHeight,c.width,HUDHeight); //this would draw a bos that covers up things if HUDHeight !=0
@@ -188,9 +193,7 @@ function drawHUD(){
     ctx.lineWidth = 3;
     ctx.strokeStyle = 'white';
     if (showHUD.money){
-        money = roundTo2(money,10);
-        ctx.strokeText('Money:'+money,c.width-275,c.height-5);
-        ctx.fillText('Money:'+money,c.width-275,c.height-5);
+        drawMoney();
     }else if (money>0){
         showHUD.money=true;
     }

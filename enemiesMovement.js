@@ -118,16 +118,6 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                     enemy.grappleTarget=null;
                 }*/
             }
-            enemy.x+=enemy.momentum.x*deltaTime;
-            enemy.y+=enemy.momentum.y*deltaTime;
-            let angle = findAngle(new newPoint(0,0),enemy.momentum)+Math.PI;
-            let dis = findDis(new newPoint(0,0),enemy.momentum);
-            dis/=1+(deltaTime/enemy.friction);
-            if (dis<0){
-                dis=0;
-            }
-            enemy.momentum.x=Math.sin(angle)*dis;
-            enemy.momentum.y=Math.cos(angle)*dis;
             if (enemy.PFType===0||enemy.PFType===4||enemy.PFType===15||(enemy.PFType===37&&enemy.target.team===0)){
                 if (enemy.speed>findDis(enemy,enemy.target)){
                     enemy.x=enemy.target.x;
@@ -139,6 +129,9 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 }
             }else if (enemy.PFType===1&&!skipPlayer){
                 playerMovement(enemy,mainEnemyRoom);
+            }else if (enemy.PFType===2){
+                enemy.x=enemy.originalCopy.x; //this locks the enemy in place
+                enemy.y=enemy.originalCopy.y;
             }else if (enemy.PFType===3||enemy.PFType===5||enemy.PFType===17){
                 pathfindingMovement(enemy,mainEnemyRoom);
             }else if (enemy.PFType===6){
@@ -329,11 +322,23 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 if (enemy.target.deleted===true){
                     enemy.PFType=2;//this is the other black enemy. Effectively, the enemy "dismounts"
                     enemy.target=player;
+                    enemy.originalCopy.x=enemy.x; //pftype 2 enemies stick in place at the original point, so this sets the place it sill stick to
+                    enemy.originalCopy.y=enemy.y;
                 }else{
                     enemy.x=enemy.target.x
                     enemy.y=enemy.target.y
                 }
             }
+            enemy.x+=enemy.momentum.x*deltaTime;
+            enemy.y+=enemy.momentum.y*deltaTime;
+            let angle = findAngle(new newPoint(0,0),enemy.momentum)+Math.PI;
+            let dis = findDis(new newPoint(0,0),enemy.momentum);
+            dis/=1+(deltaTime/enemy.friction);
+            if (dis<0){
+                dis=0;
+            }
+            enemy.momentum.x=Math.sin(angle)*dis;
+            enemy.momentum.y=Math.cos(angle)*dis;
             //enemy.room.x=(floorTo((player.x+50),(roomWidth+(doorLength*2)))-50)-(c.width/2/cam.zoom)+(roomWidth/2)+doorLength;
             //enemy.room.y=(floorTo((player.y+50),(roomHeight+(doorLength*2)))-50)-((c.height-HUDHeight)/2/cam.zoom)+(roomHeight/2)+doorLength
             if (!isSamePoint(enemy,enemy.lastPosition)&&enemy.PFType!=11){ //the dashing boss shouldn't have it's dash direction messed up by this
@@ -417,7 +422,7 @@ function playerMovement(enemy,mainEnemyRoom){
     enemy.timer1-=deltaTime/2;//go down a frame in the charging animation
     let enemyRoom = mainEnemyRoom.enemies;
     if (keysToggle['b']&&devMode){
-        enemy.speed = 20;
+        enemy.speed = 80;
     }
     let movementTarget = new newPoint(0,0);
     if (dashFramesLeft>0){
@@ -476,6 +481,16 @@ function playerMovement(enemy,mainEnemyRoom){
     let movementAngle = findAngle(new newPoint(0,0),movementTarget);
     if (movementTarget.x!=0||movementTarget.y!=0){
         let currentSpeed = Math.min(1,findDis(new newPoint(0,0),movementTarget));
+        /*if (findDis(new newPoint(0,0),enemy.momentum)<enemy.targetSpeed){
+            enemy.momentum.x-=Math.sin(movementAngle)*enemy.speed*currentSpeed*enemy.friction; 
+            enemy.momentum.y-=Math.cos(movementAngle)*enemy.speed*currentSpeed*enemy.friction;
+        }else{
+            enemy.momentum = new newPoint(-enemy.speed*Math.sin(movementAngle),-enemy.speed*Math.cos(movementAngle));
+        }*/
+        //enemy.momentum.x += (Math.sin(movementAngle)*enemy.targetSpeed*currentSpeed)/enemy.targetSpeed; //fix this to make the force that's applied porportional to how fast you're moving and how different the direction you want to go compared to which way you're actualy moving
+        //enemy.momentum.y += (Math.cos(movementAngle)*enemy.targetSpeed*currentSpeed)/enemy.targetSpeed;
+        //enemy.momentum.x = -Math.sin(movementAngle)*enemy.targetSpeed*currentSpeed;
+        //enemy.momentum.y = -Math.cos(movementAngle)*enemy.targetSpeed*currentSpeed;
         enemy.x-=Math.sin(movementAngle)*enemy.speed*currentSpeed;
         enemy.y-=Math.cos(movementAngle)*enemy.speed*currentSpeed;
     }

@@ -88,6 +88,7 @@ let circlesToDraw = [];
 let textToDraw = [];
 let rectsToDraw = [];
 let bullets = [];
+let bossChainEnemies = []; //this will have every boss in the same list, so it won't work if rooms are skipped
 let changePlayerColor = false;
 let mode =7;
 //this is outdated
@@ -122,6 +123,24 @@ playerImages.front.src = 'Player_Images/Player_front_V2_cropped.png';
 playerImages.right.src = 'Player_Images/Player_front_V2_cropped.png';
 playerImages.left.src = 'Player_Images/Player_front_V2_cropped.png';
 playerImages.back.src = 'Player_Images/Player_front_V2_cropped.png';
+
+let enemyImages = {
+    nonMoving:[],
+    nonMovingOffset:[],//array of points that the image uses to aline itself
+}
+for (let i=0;i<8;i++){
+    enemyImages.nonMoving.push(new Image());
+    enemyImages.nonMoving[i].src = 'Enemy_Images/Non_Moving/'+i+'.png';
+}
+enemyImages.nonMovingOffset[0] = new newPoint(-4,0)
+enemyImages.nonMovingOffset[1] = new newPoint(-4,0)
+enemyImages.nonMovingOffset[2] = new newPoint(-4,0)
+enemyImages.nonMovingOffset[3] = new newPoint(-4,0)
+enemyImages.nonMovingOffset[4] = new newPoint(-4,0)
+enemyImages.nonMovingOffset[5] = new newPoint(-9,0)
+enemyImages.nonMovingOffset[6] = new newPoint(-12,0)
+enemyImages.nonMovingOffset[7] = new newPoint(-7,0)
+
 let bulletImage=new Image();
 bulletImage.src='Bullet_test.png';
 playerImages.imagesList=[playerImages.front,playerImages.right,playerImages.back,playerImages.left];
@@ -194,7 +213,13 @@ function removeFromEnemyRooms(enemy){
 }
 function addToEnemyRooms(enemy){
     let enemyRoom = enemyRooms.find((enemyRoomDuplicate) => isSamePoint(floorPoint(enemy.room,1),floorPoint(enemyRoomDuplicate,1)))
-    if (enemyRoom!=undefined){
+    if (enemyRoom===undefined){
+        enemy.x=enemy.lastPosition.x; //if enemy moved so fast they moved into an area that has no room in a frame, they get teleported back their lastposition, which is hopefully a safe position
+        enemy.y=enemy.lastPosition.y; //player can clip into other actual rooms if going too fast
+        //showHUD.roomNum=true;
+        enemy.room = new newPoint((enemy.x+doorLength)/(roomWidth+(doorLength*2)),(enemy.y+doorLength)/(roomHeight+(doorLength*2)));
+        addToEnemyRooms(enemy); //hopefully this doesn't make an infinite loop
+    }else{
         if (enemy.PFType===16||enemy.PFType===7){
             enemyRoom.enemyPickUps.push(enemy)
         }else{
@@ -286,7 +311,7 @@ function enemyWallCollision(enemyRoom){
                             enemy.y+=Math.sin(angle4)*(enemy.size-Math.abs(finDis));
                             enemy.x+=Math.cos(angle4)*(enemy.size-Math.abs(finDis));
                             //addCircle(dupPoint(enemy),'purple');
-                            if (enemy.PFType===36){
+                            if (enemy.PFType===36||true){
                                 enemy.momentum = subtractFromPoint(enemy,enemy.lastPosition);
                             }
                         }
@@ -969,6 +994,7 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
     if (overPowered===undefined){
         overPowered=0;
     }
+    enemy.gunAngle = findAngle(target,enemy);
     if(enemy.gunCooldown<0){
         //screenShake+=enemy.bulletLength*(2 +(enemy.bulletSpreadNum/5))/60;
         screenShake+=2+(enemy.bulletSpreadNum/5);
@@ -984,11 +1010,13 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
         }
     }
 }
-function spawn1000Money(){
-    for (let i=0;i<1000;i++){
+function spawnMoney(){
+    let numMoney = 100000;
+    for (let i=0;i<numMoney;i++){
         let enemy = newEnemyPreset(addToPoint(player,50,50),16,1,'',1,undefined);
         player.enemyRoom.enemyPickUps.push(enemy);
     }
+    console.log(numMoney);
 }
 function moveBullets(bulletsToRemove){
     for (let i=0;i<bullets.length;i++){
@@ -1118,7 +1146,8 @@ function addAutoRect(point,text,font,maxWidth,isMoveable,autoCenter){
     let textToDraw = [];
     ctx.font = font;
     let metrics = ctx.measureText(text);
-    let height = metrics.emHeightAscent+metrics.emHeightDescent;
+    let height = metrics.fontBoundingBoxAscent+metrics.fontBoundingBoxDescent;
+    //let height = metrics.emHeightAscent+metrics.emHeightDescent;
     if (autoCenter){
         point.x=(c.width/2)-((metrics.width+10)/2)
     }
@@ -1611,6 +1640,8 @@ function updateEnemiesEnemyRoom(){
 }
 let playerEnemyRoom = null;
 let timeSpentInRoom = 0;
+let background = '#FFFFFF';
+let screenTint = {color:'white',opacity:0};
 let flippedControls = false;
 let doBulletWallCollision = true;
 let doDrawEnemies = true;
@@ -1626,17 +1657,27 @@ function challengeRooms(){
     }
     flippedControls=false;
     doBulletWallCollision = true;
+    doDrawEnemies=true;
+    background = '#FFFFFF';
+    screenTint = {color:'white',opacity:0};
     let firstEnemy = playerEnemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1);
     if (firstEnemy!=undefined){ //makes the challenges stop once you beat a room
         switch(challengeRoom){ //0 means no challenge room
+            /*case 1:
+                screenTint.color = '65E1FF';
+                screenTint.opacity = .3;
+            break
+            case 1:
+                background = '#1E1E1E'; //maybe bad as the player can't see much. Maybe make more mechanics that make lights out work better
+            break
+            case 1:
+                doDrawEnemies=false;
+            break*/
             case 1:
                 doBulletWallCollision = false; //bullets can go through walls
             break
             case 2:
                 deltaTime*=2;//speeds up time by 2. This might speed up things not meant to speed up like timer
-            break
-            case 50:
-                doDrawEnemies=false;//stops drawing all enemies. Includes the player
             break
             case 3:
                 if ((!player.inDoorWay)&&(timeSpentInRoom>10)){
@@ -1692,7 +1733,6 @@ function repeat(){
     }*/
     enemyMovement(enemiesToRemove);
     updateShopPos();
-    updateEnemiesEnemyRoom();
     if (keys['c']){
         console.log(enemyRooms);
     }
@@ -1706,6 +1746,7 @@ function repeat(){
         }
         fullEnemyWallColl();
     }
+    updateEnemiesEnemyRoom();
     gunEnemyMovement(player);
     //drawBullets(cam,false);
     moveParticles();
@@ -1868,7 +1909,7 @@ function repeat2(){
     }
     if (mode===0||mode===4){
         repeat();
-        renderEverything(keys['g'],cam);
+        renderEverything(keys['g']&&devMode,cam);
         drawHUD();
         if (controller!=undefined&&mouse.show){
             drawMouse();

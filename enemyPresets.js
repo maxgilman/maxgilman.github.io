@@ -30,7 +30,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.timer1=-1;
         break
         case 2:
-            enemy = new newEnemy(pos.x,pos.y,0,20,'black',2,target,75-(enemyPower),1.4+(enemyPower/2),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
+            enemy = new newEnemy(pos.x,pos.y,0,30,'black',2,target,75-(enemyPower),1.4+(enemyPower/2),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
         break
         case 3:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'grey',3,target,30-(enemyPower*2.5),3+(enemyPower/5),'',undefined,undefined,undefined,1,undefined,undefined,undefined,undefined,50);
@@ -107,12 +107,6 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                     player.lastPosition = dupPoint(player);
                     generateRooms(31,30,true);
                     wallBoxes = generateWallBoxes(2,walls,wallBoxes);
-                    for (enemyRoom of enemyRooms){
-                        for (enemy of enemyRoom.enemies){
-                            removeFromEnemyRooms(enemy);
-                            addToEnemyRooms(enemy);
-                        }
-                    }
                     enemyRooms[0].enemies.push(player);
                     timerGo = true;
                     enemiesToRemove.push(thisEnemy);

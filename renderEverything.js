@@ -1,5 +1,6 @@
 function renderEverything(skipPlayers,camera){
     waterBullets = [];
+    drawBackground();
     //the camera mechanic is unfinished and probally doesn't work cause variables share names
     drawDebug(camera);
     drawWalls(camera,false);
@@ -15,10 +16,21 @@ function renderEverything(skipPlayers,camera){
     drawShop();
     drawCircles(camera);
     drawParticles();
+    drawScreenTint();
     drawBorder();
     if (shop.inShop&&mode===0){
         drawShopItemSelect();
     }
+}
+function drawBackground(){
+    ctx.fillStyle = background; //this is a color, maybe in the future this may be an image
+    ctx.fillRect(0,0,c.width,c.height);
+}
+function drawScreenTint(){
+    ctx.globalAlpha = screenTint.opacity;
+    ctx.fillStyle = screenTint.color; //this is a color, maybe in the future this may be an image
+    ctx.fillRect(0,0,c.width,c.height);
+    ctx.globalAlpha=1;
 }
 function drawDebug(cam){
     if (changePlayerColor){
@@ -164,6 +176,25 @@ function drawWalls(cam,draw3d){
         }
     }
 }
+function drawTintOnEnemy(enemy,drawHealthTint,offset){
+    let screenEnemyPos = offSetByCam(enemy);
+    ctx.beginPath();
+    ctx.arc(screenEnemyPos.x+offset.x,screenEnemyPos.y+offset.y,enemy.size*cam.zoom,0,Math.PI*2);
+    ctx.fillStyle = 'red';
+    if (drawHealthTint){
+        if (enemy.health>=5&&enemy.invinceable>=0){
+            ctx.globalAlpha = .2;
+        }else{
+            ctx.globalAlpha = -((Math.min(enemy.health,5)/5/*enemy.maxHealth*/)-1);
+        }
+    }else if (enemy.invinceable>=0){
+        ctx.globalAlpha = .4;
+    }else{
+        return;
+    }
+    ctx.fill();
+    ctx.globalAlpha = 1;
+}
 function drawEnemy(enemy){
     let screenEnemyPos = offSetByCam(enemy);
     if (enemy.PFType===1||enemy===player){
@@ -196,16 +227,7 @@ function drawEnemy(enemy){
         ctx.drawImage(playerImages.imagesList[movementDirection],0,0);
         ctx.restore();*/
 
-        ctx.beginPath();
-        ctx.arc(screenEnemyPos.x,(enemy.y-cam.y)*cam.zoom,enemy.size*cam.zoom,0,Math.PI*2);
-        ctx.fillStyle = 'red';
-        if (enemy.health>=5&&enemy.invinceable>=0){
-            ctx.globalAlpha = .2;
-        }else{
-            ctx.globalAlpha = -((Math.min(enemy.health,5)/5/*enemy.maxHealth*/)-1);
-        }
-        ctx.fill();
-        ctx.globalAlpha = 1;
+        drawTintOnEnemy(enemy,true,new newPoint(0,0));
         ctx.fillStyle = 'black';
 
         let gunPos = offSetByCam(addToPoint(enemy,Math.sin(gunAngle)*enemy.size/2,Math.cos(gunAngle)*enemy.size/2));
@@ -303,6 +325,18 @@ function drawEnemy(enemy){
             let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
             ctx.drawImage(portalImage,imagePos.x,imagePos.y,enemy.size*2,enemy.size*2);
         }
+    }else if (enemy.PFType===2){
+        let imageIndex = Math.round((enemy.gunAngle/(Math.PI*2))*8);
+        //console.log('start')
+        //console.log(imageIndex);
+        imageIndex = bringNumIntoRange(imageIndex,0,8);
+        //console.log(imageIndex);
+        let image = enemyImages.nonMoving[imageIndex];
+        let offset = enemyImages.nonMovingOffset[imageIndex];
+        let imageScale = 2;
+        let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
+        ctx.drawImage(image,imagePos.x+(offset.x*imageScale),imagePos.y+(offset.y*imageScale),image.width*imageScale,image.height*imageScale);
+        drawTintOnEnemy(enemy,false,new newPoint(-4,0));
     }else{
         ctx.beginPath();
         ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);

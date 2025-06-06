@@ -180,6 +180,7 @@ class newEnemy {
             direction=0;
         }
         this.direction=direction;
+        this.gunAngle = 0;
         this.inDoorWay=false;
         if (upgradeEffect===undefined){
             upgradeEffect=function(){}
@@ -207,7 +208,6 @@ class newEnemy {
 let guns = [2,6,7,45,48,49];
 let bulletPowerUps = [6,7,37,45,49,51];
 let waterBullets = [];
-let bossChainEnemies = []; //this will have every boss in the same list, so it won't work if rooms are skipped
 class newBullet {
     constructor(x,y,speed,direction,color,tailLength,visualWidth,type,maximumTime,enemyKillPower,lastPosition,owner,damage,label,bulletSpreadNum,shotSpread){
         this.x=x;

@@ -1,4 +1,5 @@
 function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
+    bossChainEnemies = []
     let offLimitRooms = [];
     let bossesSpawned = [];
     //if the targetNumOfRooms is big, it will take a while to generate, it has probbally not crashed
@@ -169,9 +170,12 @@ function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
         addToEnemyRooms(enemies[i]);
     }*/
 }
-function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,difficulty,bossesSpawned,bossRush,challengeRooms){ //not implemented yet, but this would make sure if 5 rooms pass without a challenge, it makes one
-    //let enemiesPerRoom = 0;
-    //this makes a new list with a placeholder enemy that will always be in the room
+function consoleChallengeRooms(){
+    for (enemyRoom of enemyRooms){
+        console.log('challenge:'+enemyRoom.challengeRoom+' Room Num:'+enemyRoom.roomNum);
+    }
+}
+function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,difficulty,bossesSpawned,bossRush){
     //this aligns the cordinates as (-1,1) is the room one to the left of the beginning, not at the actual cordiate (-1,0)
     let enemyRoom = turnIntoRoomPos(roomPos);
     enemyRoom.enemies=[];
@@ -196,12 +200,24 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         enemyRoom.isPowerUpCollected = true;
     }
     if (roomNum>5&&(roomNum%10)!=0){ //once room 5 and not a boss room, rooms can start to be challenge rooms
-        let randomNum = Math.random();
-        randomNum-=.75;
-        randomNum*=4;
-        randomNum=Math.floor(randomNum*4); //randomNum is now between 0-3 is challenge room, below 0 if else
-        enemyRoom.challengeRoom = Math.max(0,randomNum);
-        //enemyRoom.challengeRoom = 3;
+        let lastChallengeRoomNum = 0;
+        for (enemyRoomCheck of enemyRooms){ //this won't find this room, as 
+            if (enemyRoomCheck.challengeRoom>0){
+                lastChallengeRoomNum = enemyRoomCheck.roomNum;
+            }
+        }
+        let roomsSinceChallengeRoom = enemyRoom.roomNum-lastChallengeRoomNum; //I think this sometimes skips one. Its kinda weird.
+        //console.log(roomsSinceChallengeRoom);
+        if (roomsSinceChallengeRoom>1){
+            let randomNum = Math.random();
+            if (roomsSinceChallengeRoom<5){ //this allows four rooms to not be challenge rooms before it forces one
+                randomNum-=.75;
+                randomNum*=4; //randomNum is now between -3 and 1
+            } //else the number is already above 0, it will always be a challenge room
+            randomNum=Math.floor(randomNum*4); //randomNum is now between 0-3 is challenge room, below 0 if else
+            enemyRoom.challengeRoom = Math.max(0,randomNum);
+        }
+        enemyRoom.challengeRoom = 1; //debug option
     }
     //enemyRooms.push([newEnemyPreset(addToPoint(roomPos,roomWidth/2,roomHeight/2),2)]);
     enemyRooms.push(enemyRoom);

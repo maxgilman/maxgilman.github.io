@@ -210,7 +210,7 @@ fix art
         update grenade gun
         heal 1HP. 
         magnet? Rework?
-        push away enemies and bullets. Make the effects bullets stretch to each other like the water. make the bullets move at variable speeds to make it wiggly
+        push away enemies and bullets. Make the effects bullets stretch to each other like the water. make the bullets move at variable speeds to make it wiggly. Make it like the top of the enemy is slamming down to create the shockwave
         water sprayer? Remove?
         lightning staff
         spend $1 for a full heal
@@ -259,6 +259,7 @@ maybe add a catlog where you can chose any weapon, and if you use a debuff the n
     or maybe after beating a boss you just get any weapon you want
 add a way to replay a room at 4X difficulty to get another modifier
 Gun of crippling debt: really strong. Shouts money.(takes money to shoot). You don't need to have the money to shoot it, but you can go into immense amounts of debt
+organize the files. Put more things in folders
 
 add arrow or something like a glow showing where to go. Or something showing where to NOT go(maybe walls)
 

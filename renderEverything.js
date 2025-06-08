@@ -9,7 +9,7 @@ function renderEverything(skipPlayers,camera){
             enemyRoom[1].color = 'orange'
         }
     }*/
-    if (!skipPlayers&&doDrawEnemies){
+    if (!skipPlayers){
         drawEnemies(camera);
     }
     drawBullets(camera,false);
@@ -212,12 +212,14 @@ function drawEnemy(enemy){
             if (enemy.timer1<0){
                 movementDirection=Math.floor(movementDirection*4);
                 let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
-                let thisImage = playerImages.imagesList[movementDirection]
-                ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y)/*enemy.size*cam.zoom*2,(enemy.size)*cam.zoom*2*/);
+                let thisImage = playerImages.imagesList[movementDirection];
+                let imageSizeRatio = Math.max(1,Math.round(enemy.size*cam.zoom*2/thisImage.width/*it would be slightly different if image height is used*/));
+                ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y),imageSizeRatio*thisImage.width,imageSizeRatio*thisImage.height);
             }else{//the player is playing the charging animation
                 let imagePos = addToPoint(offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size)),0,-17);
                 let thisImage = playerImages.chargingList[Math.floor(enemy.timer1)];
-                ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y));
+                let imageSizeRatio = Math.max(1,Math.round(enemy.size*cam.zoom*2/thisImage.width/*it would be slightly different if image height is used*/));
+                ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y),imageSizeRatio*thisImage.width,imageSizeRatio*thisImage.height);
             }
         }
         /*ctx.save();
@@ -412,10 +414,14 @@ function drawEnemy(enemy){
 function drawEnemies(cam){
     for (enemyRoom of enemyRooms){
         for (enemy of enemyRoom.enemyPickUps){
-            drawEnemy(enemy);
+            if (drawEnemyCheck(enemy)){
+                drawEnemy(enemy);
+            }
         }
         for (enemy of enemyRoom.enemies){
-            drawEnemy(enemy);
+            if (drawEnemyCheck(enemy)){
+                drawEnemy(enemy);
+            }
         }
     }
 }

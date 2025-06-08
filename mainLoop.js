@@ -232,29 +232,6 @@ function addToEnemyRooms(enemy){
         enemy.enemyRoom=enemyRoom;
     }
 }
-let d = 50;
-function betterAccountForZ(point,z){
-    return new newPoint(((point.x)*d)/z,((point.y)*d)/z);
-}
-function accountForZ(point,z){
-    return new newPoint((((point.x-cam.x)-c.width/2)*d)/z+c.width/2,(((point.y-cam.y)-(c.height-HUDHeight)/2)*d)/z+(c.height-HUDHeight)/2)
-}
-function findMidNumber(num1,num2){
-    return Math.min(num1,num2)+Math.abs((num1-num2)/2)
-}
-function findMidPoint(point1,point2){
-    return new newPoint(Math.min(point1.x,point2.x)+Math.abs((point1.x-point2.x)/2),Math.min(point1.y,point2.y)+Math.abs((point1.y-point2.y)/2));
-}
-function findBulletTailPos(bullet){
-    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
-    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
-    return new newPoint(tailX,tailY);
-}
-function findBulletMiddle(bullet){
-    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
-    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
-    return findMidPoint(new newPoint(tailX,tailY),dupPoint(bullet));
-}
 function enemyWallCollision(enemyRoom){
     if (enemyRoom===undefined){
         for (targetEnemyRoom of enemyRooms){
@@ -278,7 +255,7 @@ function enemyWallCollision(enemyRoom){
                 continue;
             }
             let thisWallsCheck = extraWallsCheck;
-            if ((enemy.team===0||enemy.team===3)&&enemyRoom.useExtraWalls!=1){
+            if (enemy.team===0&&enemyRoom.useExtraWalls!=1){
                 thisWallsCheck=wallsCheck;
             }
             for (let i=0;i<2;i++){
@@ -311,7 +288,7 @@ function enemyWallCollision(enemyRoom){
                             enemy.y+=Math.sin(angle4)*(enemy.size-Math.abs(finDis));
                             enemy.x+=Math.cos(angle4)*(enemy.size-Math.abs(finDis));
                             //addCircle(dupPoint(enemy),'purple');
-                            if (enemy.PFType===36||true){
+                            if (enemy.PFType===36){
                                 enemy.momentum = subtractFromPoint(enemy,enemy.lastPosition);
                             }
                         }
@@ -666,7 +643,7 @@ function boxCollision(checkBounding){
         let extraWallsCheck = wallsCheck.concat(enemyRoom.extraWalls);
         for(enemy of enemyRoom.enemies){
             let thisWallsCheck = extraWallsCheck;
-            if ((enemy.team===0||enemy.team===3)&&enemyRoom.useExtraWalls!=1){
+            if (enemy.team===0&&enemyRoom.useExtraWalls!=1){
                 thisWallsCheck=wallsCheck;
             }
             let intersection = rayCast(enemy,enemy.lastPosition,checkBounding,thisWallsCheck,true);
@@ -1151,7 +1128,7 @@ function addAutoRect(point,text,font,maxWidth,isMoveable,autoCenter){
     if (autoCenter){
         point.x=(c.width/2)-((metrics.width+10)/2)
     }
-    addText(text,new newPoint(5,metrics.emHeightAscent),font,'black',maxWidth,textToDraw);
+    addText(text,new newPoint(5,metrics.fontBoundingBoxAscent),font,'black',maxWidth,textToDraw);
     addRect(point,metrics.width+10,height,'white',textToDraw,isMoveable);
 }
 function addRect(point,width,height,color,textToDraw,isMoveable){
@@ -1320,6 +1297,7 @@ function updatePlayerStats(){
     }
     player.targetSpeed=player.originalCopy.targetSpeed;
     player.maxHealth=player.originalCopy.maxHealth;
+    player.size=player.originalCopy.size;
     getDuplicateMinorPowerUps = false;
     maxHealthDrop=1;
     maxMoneyDrop = 1;
@@ -1561,6 +1539,7 @@ function updateShopPos(){
                 wall = prospectWalls[i];
                 enemyRoomWalls.splice(0,0,wall);
             }
+            //make it check if enemy loot is inside, to either be deleted or automatically collected to avoid it getting stuck inside
         }
         if (boundingBox(addToPoint(shop,-5,115),addToPoint(shop,115,165),player,0,0)){
             shop.inShop=true;
@@ -1644,7 +1623,10 @@ let background = '#FFFFFF';
 let screenTint = {color:'white',opacity:0};
 let flippedControls = false;
 let doBulletWallCollision = true;
-let doDrawEnemies = true;
+let drawEnemyCheck = function(enemy){
+    return true;
+}
+let playerNoStop = false;
 function challengeRooms(){
     timeSpentInRoom+=deltaTime;
     if (playerEnemyRoom!=player.enemyRoom){
@@ -1657,32 +1639,81 @@ function challengeRooms(){
     }
     flippedControls=false;
     doBulletWallCollision = true;
-    doDrawEnemies=true;
+    drawEnemyCheck = function(enemy){
+        return true;
+    }
+    playerNoStop=false;
     background = '#FFFFFF';
     screenTint = {color:'white',opacity:0};
     let firstEnemy = playerEnemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1);
     if (firstEnemy!=undefined){ //makes the challenges stop once you beat a room
         switch(challengeRoom){ //0 means no challenge room
-            /*case 1:
-                screenTint.color = '65E1FF';
-                screenTint.opacity = .3;
-            break
             case 1:
-                background = '#1E1E1E'; //maybe bad as the player can't see much. Maybe make more mechanics that make lights out work better
-            break
-            case 1:
-                doDrawEnemies=false;
-            break*/
-            case 1:
-                doBulletWallCollision = false; //bullets can go through walls
+                playerEnemyRoom.timer1-=deltaTime;
+                if (playerEnemyRoom.timer1<-25){
+                    playerEnemyRoom.timer1=25;
+                    for (let i=0;i<10;i++){
+                        let spawnPoint = randomPosInRoom(playerEnemyRoom,10);//the 10 is the size of the bomb
+                        let bomb = newEnemyPreset(spawnPoint,36,0,undefined,1,spawnPoint);
+                        bomb.originalCopy.gunCoolDownMax=30;
+                        bomb.gunCoolDownMax=bomb.originalCopy.gunCoolDownMax;
+                        bomb.gunCooldown=bomb.gunCoolDownMax;
+                        bomb.team=1;//the enemies team
+                        playerEnemyRoom.enemies.push(bomb);
+                    }
+                }
             break
             case 2:
-                deltaTime*=2;//speeds up time by 2. This might speed up things not meant to speed up like timer
+                if ((timeSpentInRoom%60)>40){
+                    deltaTime*=3;
+                }else{
+                    deltaTime/=3;
+                }
             break
             case 3:
+                drawEnemyCheck = function(enemy){
+                    return enemy.PFType!=1;
+                }
+            break
+            case 4:
+                for (powerUp of powerUpsGrabbed){
+                    powerUp.range/=4;
+                }
+            break
+            case 5:
+                player.size*=2;
+            break
+            case 6:
+                deltaTime*=2;//speeds up time by 2. This might speed up things not meant to speed up like timer
+            break
+            //unused challenges
+            case 1:
                 if ((!player.inDoorWay)&&(timeSpentInRoom>10)){
                     flippedControls=true; //controlls are flipped. this is handled in the player's script
                 }
+            break 
+            case 1:
+                drawEnemyCheck = function(enemy){ //bad. can't see pink enemies. maybe make all enemies have particles when they move
+                    return enemy.team===0;
+                }
+            break
+            case 1:
+                doBulletWallCollision = false; //bullets can go through walls
+            break
+            case 1: //icey. Not finished, needs to affect player controls
+                screenTint.color = '65E1FF';
+                screenTint.opacity = .3;
+            break
+            case 1://lights out
+                background = '#1E1E1E'; //maybe bad as the player can't see much. Maybe make more mechanics that make lights out work better
+            break
+            case 1:
+                drawEnemyCheck = function(enemy){
+                    return false;
+                }
+            break
+            case 1:
+                playerNoStop=true;
             break
         }
     }
@@ -1708,8 +1739,8 @@ function repeat(){
         portal.effect(player,portal,enemiesToRemove);
     }
     if (keysToggle['l']&&devMode){
-        powerUpsGrabbed = [newPowerUpPreset(7,false),newPowerUpPreset(34,false)];
-        minorPowerUpsGrabbed = [newPowerUpPreset(33),newPowerUpPreset(33),newPowerUpPreset(33),newPowerUpPreset(33),newPowerUpPreset(33)];
+        powerUpsGrabbed = [newPowerUpPreset(7,false),newPowerUpPreset(38,false)];
+        minorPowerUpsGrabbed = [newPowerUpPreset(20),newPowerUpPreset(33),newPowerUpPreset(33),newPowerUpPreset(33),newPowerUpPreset(33)];
         player.health=player.maxHealth;
         money=9999;
         showHUD.majorPowerUps=true;
@@ -1720,8 +1751,8 @@ function repeat(){
     if (keys['9']&&devMode){
         giveAllPowerUps();
     }
-    challengeRooms();
     updatePlayerStats();
+    challengeRooms();
     findPlayerGunAngle();
     moveBullets(bulletsToRemove);
     if ((frameNum%targetRenderFPS)===0){
@@ -1733,9 +1764,6 @@ function repeat(){
     }*/
     enemyMovement(enemiesToRemove);
     updateShopPos();
-    if (keys['c']){
-        console.log(enemyRooms);
-    }
     if (!(keysToggle['n']&&devMode)){
         fullEnemyWallColl();
         for (let i = 0; i<1; i++){
@@ -1801,6 +1829,7 @@ function repeat(){
         for (let i=0;i<40;i++){
             particles.push(new newParticle(player.x,player.y,7,player.defaultColor,0,new newPoint((Math.random()-.5)*20,(Math.random()-.5)*20),1.05));
         }
+        timerGo = false;
         //enemiesToRemove.push(player);
         player.size=0;
         switchMode(6);
@@ -1996,7 +2025,12 @@ function repeat2(){
         let metrics = ctx.measureText(deathMessage);
         ctx.fillText(deathMessage,(c.width/2)-(metrics.width/2),(c.height/2));
         ctx.font = '32px Courier New';
-        deathMessage = 'You Got All The Way To Room '+player.enemyRoom.roomNum+'!';
+        deathMessage = 'You Got All The Way To Room '+player.enemyRoom.roomNum;
+        if (beatGame){
+            deathMessage+=' in the Boss Rush!';
+        }else{
+            deathMessage+='!';
+        }
         metrics = ctx.measureText(deathMessage);
         ctx.fillText(deathMessage,(c.width/2)-(metrics.width/2),(2.5*c.height/4));
         if (keys['r']){

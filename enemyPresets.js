@@ -47,7 +47,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.direction=Math.PI;
             enemy.gunCooldown=enemy.gunCoolDownMax;
         break
-        case 7:
+        case 7://health
             enemy = new newEnemy(pos.x,pos.y,power,10,'yellow',7,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 //gunMaxCoolDown is a timer until it despawns on this one
                 if (touchedEnemy.PFType===1){
@@ -61,14 +61,12 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 }
             })
         break
-        case 8:
-            //guard
+        case 8://guard
             enemy = new newEnemy(pos.x,pos.y,0,20,'#3d3d3d',PFType,target,75-(enemyPower),1,'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
             enemy.gunCooldown=100;//timer until the guard tells you to stop
             enemy.target=pos;
         break
-        case 9:
-            //Soul that orbits you
+        case 9://Soul that orbits you
             enemy = new newEnemy(pos.x,pos.y,.5,10,'#900FBE',PFType,target,Infinity,1,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if (touchedEnemy.team!=thisEnemy&&touchedEnemy.team===1){
                     touchedEnemy.health-=thisEnemy.damage;
@@ -84,7 +82,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 11:
             //Dashing boss
-            enemy = new newEnemy(pos.x,pos.y,40,40,'#4C5C7D',11,target,40/*maybe scale this with difficulty*/,1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+            enemy = new newEnemy(pos.x,pos.y,30+(enemyPower),40,'#4C5C7D',11,target,40-(2*enemyPower/3),1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health--;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
@@ -95,7 +93,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 12:
             //teleporting boss
-            enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,60/*maybe scale this with difficulty*/,1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
+            enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,70-(enemyPower),1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
             enemy.bulletSpeed=20;
         break
         case 13://portal to the boss rush
@@ -119,12 +117,10 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             //placeholder for text
             enemy = new newEnemy(pos.x,pos.y,0,0,'white',14,target,Infinity,Infinity,message);
         break
-        case 15:
-            //boss
+        case 15: //basic boss
             enemy = new newEnemy(pos.x,pos.y,3,40,'black',15,target,45-(enemyPower*4.3),1+(10*Math.pow(2,enemyPower/1.5)),'',undefined,3);
         break
-        case 16:
-            //money
+        case 16: //money
             enemy = new newEnemy(pos.x,pos.y,0,10,'green',16,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if (touchedEnemy.PFType===1){
                     money++;
@@ -150,18 +146,16 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.gunCooldown=enemy.gunCoolDownMax;
         break
         case 36: //this is the actual bomb
-            //the momentum doesn't go the same distance at different frames rates, but the difference is not that big so I haven't fixed it
-            let targetSpeed = Math.min((findDis(target,player)/3.5),100); //100 is the range
+            //the momentum doesn't go the same distance at different frames rates
+            let targetSpeed = Math.min((findDis(target,player)/3.5),power); //power is the range
             let targetAngle = gunAngle
             let desiredVector = new newPoint(Math.sin(targetAngle)*targetSpeed,Math.cos(targetAngle)*targetSpeed);
             enemy = new newEnemy(pos.x,pos.y,targetSpeed,10,'red',PFType,target,15/*this is the default explosion time, but it will be modified by the power up*/,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
-                if ((touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2&&thisEnemy.gunCooldown<0){
+                if (touchedEnemy.PFType!=thisEnemy.PFType&&touchedEnemy.team!=2&&thisEnemy.gunCooldown<0){
                     if (undefined===thisEnemy.touchedEnemies.find((enemyCheck)=>enemyCheck===touchedEnemy)){
-                        if (touchedEnemy.team===0){
-                            if (bombsHealYou){
-                                touchedEnemy.health+=thisEnemy.damage;
-                            }
-                        }else{
+                        if (bombsHealYou&&touchedEnemy.team===0){
+                            touchedEnemy.health+=thisEnemy.damage;
+                        }else if (touchedEnemy.team!=thisEnemy.team){
                             touchedEnemy.health-=thisEnemy.damage;
                             touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
                         }
@@ -172,13 +166,12 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                     }
                 }
             },undefined,undefined,undefined,undefined,100/*the size of the explosion*/,undefined,enemyPower,undefined,undefined,undefined,undefined,targetAngle);
-            enemy.team=3;
+            enemy.team=0;
             enemy.momentum = dupPoint(desiredVector);
             enemy.friction=3;
             enemy.gunCooldown=enemy.gunCoolDownMax;
         break
-        case 37:
-            //Link in the boss chain
+        case 37: //Link in the boss chain
             enemy = new newEnemy(pos.x,pos.y,5+(enemyPower/2),40,'pink',37,target,Infinity,1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health--;
@@ -187,8 +180,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             },3);
             bossChainEnemies.push(enemy);
         break
-        case 38:
-            //this is the enemy that snaps to the boss chain
+        case 38: //this is the enemy that snaps to the boss chain(the rider)
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'black',PFType,target,45-(enemyPower*3),(5*Math.pow(2,enemyPower/1.5)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20+enemyPower);
         break
     }

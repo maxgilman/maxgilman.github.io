@@ -61,7 +61,7 @@ function newPowerUpPreset(PFType,isEffect){
                 screenShake+=3;
                 //let dropPoint = addToPoint(thisEnemy,Math.sin(thisEnemy.direction)*40,Math.cos(thisEnemy.direction)*40)
                 let dropPoint= dupPoint(thisEnemy);
-                let enemy = newEnemyPreset(dropPoint,36,1,undefined,thisPowerUp.damage,mouseShifted);
+                let enemy = newEnemyPreset(dropPoint,36,thisPowerUp.range,undefined,thisPowerUp.damage,mouseShifted);
                 enemy.gunCoolDownMax=thisPowerUp.var1;
                 enemy.gunCooldown=enemy.gunCoolDownMax;
                 enemy.bulletLength=thisPowerUp.var2;
@@ -69,7 +69,7 @@ function newPowerUpPreset(PFType,isEffect){
                 enemy.enemyRoom = thisEnemy.enemyRoom;
                 //enemies.push(enemy);
                 addToEnemyRooms(enemy);
-            },40,1,0,Infinity);
+            },40,1,100,Infinity);
             powerUp.var1 = 15; //the explosion time for the bombs
             powerUp.var2 = 200; //the explosion size of the bombs
             powerUp.image.src = 'Gun_Images/Grenade_Launcher.png';
@@ -138,7 +138,8 @@ function newPowerUpPreset(PFType,isEffect){
                 thisPowerUp.var1 = 10; //the bullets pushing away effect will linger
                 screenShake+=3;
                 let enemyRoomEnemies = thisEnemy.enemyRoom.enemies;
-                let bullet=new newBullet(0,0,40,0,'#FFB475',20,40,1,10,1,new newPoint(0,0),thisEnemy,0,'',20,(Math.PI*2)/2); //make this the blue of the player. The energy is moving outwards. Maybe also make it squiggly
+                let bulletSpeed = 40;
+                let bullet=new newBullet(0,0,bulletSpeed,0,'#FFB475',20,40,1,thisPowerUp.range/bulletSpeed,1,new newPoint(0,0),thisEnemy,0,'',20,(Math.PI*2)/2); //make this the blue of the player. The energy is moving outwards. Maybe also make it squiggly
                 for (extraEffect of thisPowerUp.extraBulletEffects){
                     bullet.effects.push(extraEffect);
                 }
@@ -153,9 +154,9 @@ function newPowerUpPreset(PFType,isEffect){
                     let angle = findAngle(thisEnemy,enemy);
                     let dis = findDis(thisEnemy,enemy);
                     let force = 0;
-                    if (dis<300){
+                    if (dis<3*thisPowerUp.range/4){
                         force = -60;
-                    }else if (dis<400){
+                    }else if (dis<thisPowerUp.range){
                         force = -45;
                     }
                     //force = Math.max(20-(Math.max(dis,60)/40),0);
@@ -214,14 +215,14 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.secondLabel = 'on left click, 1/2 cooldown for gun on right click';
         break
         case 10:
-            powerUp = new newMinorPowerUp(PFType,'Cooldown on guns 2/3','#414f40',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Cooldown on guns 3/4','#414f40',function (majorPowerUp,thisPowerUp){
                 if (guns.includes(majorPowerUp.PFType)){
-                    majorPowerUp.coolDownMax*=.66666;
+                    majorPowerUp.coolDownMax*=3/4;
                 }
             })
         break
         case 11:
-            powerUp = new newMinorPowerUp(PFType,'Grenades Deal 1.5X Damage','#FF6E6E',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
+            powerUp = new newMinorPowerUp(PFType,'Your Grenades Deal 1.5X Damage','#FF6E6E',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
                 if (majorPowerUp.PFType===2){
                     majorPowerUp.damage*=1.5;
                 }
@@ -255,8 +256,10 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.var3 = 1; //var3 is the multiplier
         break
         case 14:
-            powerUp = new newMinorPowerUp(PFType,'Cooldown on everything 3/4','#104239',function (majorPowerUp,thisPowerUp){
-                majorPowerUp.coolDownMax*=.75;
+            powerUp = new newMinorPowerUp(PFType,"1/2 Cooldown on Everything that isn't a Gun",'#104239',function (majorPowerUp,thisPowerUp){
+                if (!guns.includes(majorPowerUp.PFType)){
+                    majorPowerUp.coolDownMax/=2;
+                }
             })
         break
         case 15:
@@ -529,7 +532,7 @@ function newPowerUpPreset(PFType,isEffect){
                     bullet.effects.push(extraEffect);
                 }
                 shootBullet(bullet,gunAngle,player,bullet.bulletSpreadNum,bullet.shotSpread,.1,player,player.size);
-            },45,.5,60,1,undefined,' every 2 Seconds to Enemy');
+            },45,.5,40,1,undefined,' every 2 Seconds to Enemy');
         break
         case 38:
             powerUp = new newMajorPowerUp(PFType,'Spend $1 for a Full Heal','#4aba82',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp){
@@ -543,9 +546,9 @@ function newPowerUpPreset(PFType,isEffect){
             },180,0);
         break
         case 39:
-            powerUp = new newMinorPowerUp(PFType,'2/3 Cooldown on everything, But Everything Does 2/3 Damage','#07ed5f',function (majorPowerUp,thisPowerUp){
-                majorPowerUp.coolDownMax*=2/3;
-                majorPowerUp.damage*=2/3;
+            powerUp = new newMinorPowerUp(PFType,'1/2 Cooldown on everything, But Everything Does 1/2 Damage','#07ed5f',function (majorPowerUp,thisPowerUp){
+                majorPowerUp.coolDownMax/=2;
+                majorPowerUp.damage/=2;
             })
         break
         case 40:
@@ -562,21 +565,19 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 41:
-            powerUp = new newMinorPowerUp(PFType,'Shotgun Bullets can Peirce Infinite Enemies','#b970e0',function (majorPowerUp,thisPowerUp){
-                if (majorPowerUp.PFType===6){
-                    majorPowerUp.bulletKillPower=Infinity;
-                }
+            powerUp = new newMinorPowerUp(PFType,'All Bullets can Peirce Infinite Enemies','#b970e0',function (majorPowerUp,thisPowerUp){
+                majorPowerUp.bulletKillPower=Infinity;
             })
         break
         case 42:
-            powerUp = new newMinorPowerUp(PFType,'1/2 Cooldown for Ability Bound to Left Click','#86E6F1',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'2/3 Cooldown for Ability Bound to Left Click','#86E6F1',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
-                    majorPowerUp.coolDownMax/=2;
+                    majorPowerUp.coolDownMax*=2/3;
                 }
             })
         break
         case 43:
-            powerUp = new newMinorPowerUp(PFType,"Grenades Heal You and your Souls The Grenade's Damage",'#1a37c7',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,"Explosives Heal You and your Souls The Explosive's Damage",'#1a37c7',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
                     bombsHealYou=true;
                 }
@@ -664,16 +665,16 @@ function newPowerUpPreset(PFType,isEffect){
                 screenShake+=3;
                 //let dropPoint = addToPoint(thisEnemy,Math.sin(thisEnemy.direction)*40,Math.cos(thisEnemy.direction)*40)
                 let dropPoint= dupPoint(thisEnemy);
-                let enemy = newEnemyPreset(dropPoint,35,1,undefined,thisPowerUp.damage,mouseShifted);
+                let enemy = newEnemyPreset(dropPoint,35,thisPowerUp.range,undefined,thisPowerUp.damage,mouseShifted);
                 enemy.enemyRoomEnemyLink = thisEnemy;
                 enemy.enemyRoom = thisEnemy.enemyRoom;
                 //this doesn't scale right with frame rate differences
-                enemy.targetSpeed = Math.min((findDis(mouseShifted,player)/3.5),100); //100 is the range
+                enemy.targetSpeed = Math.min((findDis(mouseShifted,player)/3.5),thisPowerUp.range);
                 enemy.momentum = new newPoint(Math.sin(gunAngle)*enemy.targetSpeed,Math.cos(gunAngle)*enemy.targetSpeed);
                 enemy.direction = gunAngle;
                 //enemies.push(enemy);
                 addToEnemyRooms(enemy);
-            },40,0,0,Infinity);
+            },40,0,100,Infinity);
             powerUp.image.src = 'Gun_Images/Grenade_Launcher.png';
         break
         case 49:
@@ -700,7 +701,7 @@ function newPowerUpPreset(PFType,isEffect){
                 thisPowerUp.var1+=deltaTime;
                 thisPowerUp.coolDown=0; //this makes this function trigger every frame, it doesn't have to wait
                 thisPowerUp.var2=true;
-            },30,5,100,Infinity);
+            },30,5,30,Infinity);
             powerUp.var1 = 0; //the current charge level
             powerUp.var2 = false; //button held last frame
             //powerUp.var3 = 0; //frame counter for the flashing gun effect
@@ -757,17 +758,17 @@ function newPowerUpPreset(PFType,isEffect){
                     bullet.effects.push(extraEffect);
                 }
                 shootBullet(bullet,gunAngle,player,bullet.bulletSpreadNum,bullet.shotSpread,.1,player,player.size);
-            },45,.2,60,1);
+            },45,.2,40,1);
         break
         case 52:
-            powerUp = new newMinorPowerUp(PFType,'Grenades take 0.5X as Long to Explode','#464B9A',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
+            powerUp = new newMinorPowerUp(PFType,'Your Grenades take 0.5X as Long to Explode','#464B9A',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
                 if (majorPowerUp.PFType===2){
                     majorPowerUp.var1*=.5;
                 }
             })
         break
         case 53:
-            powerUp = new newMinorPowerUp(PFType,'Grenades have 1.5X Explosion Size','#6247C9',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
+            powerUp = new newMinorPowerUp(PFType,'Your Grenades have 1.5X Explosion Size','#6247C9',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
                 if (majorPowerUp.PFType===2){
                     majorPowerUp.var2*=1.5;
                 }
@@ -867,18 +868,21 @@ function newPowerUpPreset(PFType,isEffect){
         //enemy can be shocked(or any other status effect) multiple times over
         //gravity gun has a explosion at the end(non damaging)
         //ice staff freeze effects are 2X as strong
-        //grenades push you away 4X as far/strong
+        //granades push you away 4X as far/strong
     }
     if (powerUp instanceof newMajorPowerUp&&isEffect){
         let specialEffect = Math.random()*50;
         if (specialEffect<1&&isGun){
             powerUp.secondLabel='This Gun Has 4X Damage!!';
+            powerUp.price+=5;
             powerUp.damage*=4;
         }else if (specialEffect<6&&isGun){
             powerUp.secondLabel='This Gun Has 2X Damage!';
+            powerUp.price+=3;
             powerUp.damage*=2;
         }else if (specialEffect<10){
             powerUp.secondLabel='This Ability Has 1/2 Cooldown!';
+            powerUp.price+=3;
             powerUp.coolDownMax*=.5;
         }
     }

@@ -62,7 +62,11 @@ class newMajorPowerUp{
         this.range = range;
         this.bulletKillPower=bulletKillPower;
         if (price===undefined){
-            price=3;
+            if (guns.includes(PFType)){
+                price=3;
+            }else{
+                price=2;
+            }
         }
         this.price=price;
         if (damageText===undefined)[

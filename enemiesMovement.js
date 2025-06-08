@@ -55,7 +55,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                     }
                     dropEnemyLoot(enemy,mainEnemyRoom,multiplier);
                 }
-                if (enemy.PFType===37||enemy.PFType===11||enemy.PFType===15){//bosses
+                if (enemy.PFType===37||enemy.PFType===11||enemy.PFType===15||enemy.PFType===12){//bosses
                     for (let i=0;i<40;i++){
                         particles.push(new newParticle(enemy.x,enemy.y,7,enemy.defaultColor,0,new newPoint((Math.random()-.5)*15,(Math.random()-.5)*15),1.1));
                     }
@@ -256,7 +256,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                     enemy.gunCooldown=enemy.gunCoolDownMax-0.01;
                     //enemy.timer1++; //this is the number of bullets the boss needs to shoot. Will almost always be 0 or 1
                 }
-                if (enemy.gunCooldown<enemy.gunCoolDownMax-20){ //the boss waits a second before starting it's next dash
+                if (enemy.gunCooldown<2*enemy.gunCoolDownMax/3){ //the boss waits a second before starting it's next dash
                     enemy.x+=Math.sin(enemy.direction)*enemy.speed; //boss starts the first dash too soon
                     enemy.y+=Math.cos(enemy.direction)*enemy.speed;
                 }
@@ -265,8 +265,9 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 enemy.timer1-=deltaTime;
                 if (enemy.timer1<(enemy.gunCoolDownMax/2)&&enemy.timer2===0){
                     enemy.timer2 = 2;
-                }else if (enemy.timer1<0){ //make the boss teleport to an actual random pos
-                    let teleportPos = dupPoint(enemy.enemyRoom.spawnPoints[Math.floor(Math.random()*enemy.enemyRoom.spawnPoints.length)]);
+                }else if (enemy.timer1<0){
+                    //let teleportPos = dupPoint(enemy.enemyRoom.spawnPoints[Math.floor(Math.random()*enemy.enemyRoom.spawnPoints.length)]);
+                    let teleportPos = randomPosInRoom(enemy.enemyRoom,enemy.size);
                     enemy.timer1=enemy.gunCoolDownMax;
                     enemy.x=teleportPos.x;
                     enemy.y=teleportPos.y;
@@ -295,11 +296,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
             }else if (enemy.PFType===36){
                 enemy.targetSpeed = findDis(new newPoint(0,0),enemy.momentum);
                 if (enemy.gunCooldown<-9){
-                    //if (!enemy.deleted){
-                        enemiesToRemove.push(enemy);
-                    //}else{
-                        //console.log('already deleted');
-                    //}
+                    enemiesToRemove.push(enemy);
                 }else if (enemy.gunCooldown<0&&enemy.size!=0/*the bomb will stop exploding once the smoke continues*/){
                     enemy.size+=deltaTime*20;
                 }else{
@@ -493,6 +490,9 @@ function playerMovement(enemy,mainEnemyRoom){
         //enemy.momentum.y = -Math.cos(movementAngle)*enemy.targetSpeed*currentSpeed;
         enemy.x-=Math.sin(movementAngle)*enemy.speed*currentSpeed;
         enemy.y-=Math.cos(movementAngle)*enemy.speed*currentSpeed;
+    }else if (playerNoStop){
+        enemy.x+=Math.sin(enemy.direction)*enemy.speed; //the player can't stop moving
+        enemy.y+=Math.cos(enemy.direction)*enemy.speed;
     }
     if (!isSamePoint(new newPoint(0,0),movementTarget)){
         //sheild.angle=movementAngle+Math.PI;

@@ -103,3 +103,30 @@ function bringNumIntoRange(num,min,max){
     }
     return num;
 }
+//let d = 50;
+function betterAccountForZ(point,z){
+    return new newPoint(((point.x)*d)/z,((point.y)*d)/z);
+}
+function accountForZ(point,z){
+    return new newPoint((((point.x-cam.x)-c.width/2)*d)/z+c.width/2,(((point.y-cam.y)-(c.height-HUDHeight)/2)*d)/z+(c.height-HUDHeight)/2)
+}
+function findMidNumber(num1,num2){
+    return Math.min(num1,num2)+Math.abs((num1-num2)/2)
+}
+function findMidPoint(point1,point2){
+    return new newPoint(Math.min(point1.x,point2.x)+Math.abs((point1.x-point2.x)/2),Math.min(point1.y,point2.y)+Math.abs((point1.y-point2.y)/2));
+}
+function findBulletTailPos(bullet){
+    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
+    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
+    return new newPoint(tailX,tailY);
+}
+function findBulletMiddle(bullet){
+    let tailX = bullet.x-(Math.sin(bullet.direction)*bullet.tailLength);
+    let tailY = bullet.y-(Math.cos(bullet.direction)*bullet.tailLength);
+    return findMidPoint(new newPoint(tailX,tailY),dupPoint(bullet));
+}
+function randomPosInRoom(roomPos,borderSize){
+    let realRoomPos = turnRoomIntoRealPos(roomPos);
+    return new newPoint(realRoomPos.x+doorLength+borderSize+((roomWidth-(borderSize*2))*Math.random()),realRoomPos.y+doorLength+borderSize+((roomHeight-(borderSize*2))*Math.random()));
+}

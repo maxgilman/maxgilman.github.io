@@ -93,7 +93,6 @@ function enemyCollisionEffects(enemiesToRemove){
         let enemyRoom = mainEnemyRoom.enemies;
         let pickUpsToRemove = [];
         for (enemy of mainEnemyRoom.enemyPickUps){//this checks the money collision
-            //let player = player;
             let enemyDis = findDis(player,enemy);
             if (enemyDis<=player.size+20){//this makes the hitbox larger(the 20 is the size of the pickups pickup range)
                 if (rayCast(enemy,player,false,mainEnemyRoom.walls,true)===undefined){
@@ -128,7 +127,7 @@ function enemyCollisionEffects(enemiesToRemove){
                 /*if (enemy1.PFType!=1&&enemy2.PFType!=1){
                     continue;
                 }*/
-                if (enemy1!=enemy2&&enemy1.team!=enemy2.team){
+                if (enemy1!=enemy2){
                     let enemyDis = findDis(enemy1,enemy2);
                     if (rayCast(enemy1,enemy2,false,mainEnemyRoom.walls,true)===undefined){
                         if (enemyDis<enemy1.size+enemy2.size){

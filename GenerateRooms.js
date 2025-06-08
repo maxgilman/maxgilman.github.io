@@ -79,8 +79,8 @@ function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
             }
         }
         numOfDoors = Math.floor(Math.random()*(options.length+1));
-        //lot of other changes would need to be made to make more sprawling room generation, mostly making it so rooms are added to the back of the list using .push, nit the front
-        //Right now it generates the first path, then generates all the side dead ends, which makes it so there aren't long paths the break off that don't lead anywhere
+        //lot of other changes would need to be made to make more sprawling room generation, mostly making it so rooms are added to the back of the list using .push, not the front
+        //Right now it generates the first path, then generates all the side dead ends(side dead ends have been removed), which makes it so there aren't long paths the break off that don't lead anywhere
         if (options.length>0){
             if (targetNumOfRooms>numOfRooms){
                 //numOfDoors = Math.floor(Math.random()*(options.length))+1;
@@ -94,9 +94,9 @@ function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
         }else{
             numOfDoors=0;
         }
-        if (numOfRooms>500){
+        /*if (numOfRooms>500){
             numOfDoors=0;
-        }
+        }*/
         numOfRooms+=numOfDoors;
         for(let i=0;i<numOfDoors;i++){
             let doorPos = 0;
@@ -129,7 +129,7 @@ function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
             }
             roomsToMake[0].parentDirection = doorPos;
             roomsToMake[0].setDoors = [];
-            if (finishedRooms.length<2){
+            if (finishedRooms.length<1&&!bossRush){
                 roomsToMake[0].setDoors.push(0);
             }
             //roomsToMake[roomsToMake.length-1].parentDirection = doorPos;
@@ -146,7 +146,7 @@ function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
         if (deadEnd){
             deadEnds.push(dupPoint(room));
         }
-        if (deadEnd&&numOfRooms<targetNumOfRooms){
+        if (deadEnd&&numOfRooms<targetNumOfRooms){//this gets the maze out of a dead end
             //this still might not work and the maze might end early if it can't back out of a deadend
             roomsToMake.splice(numOfDoors,1)[0];
             offLimitRooms.push(finishedRooms.pop());
@@ -191,6 +191,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRoom.shopRerollNum = 0; //not used currently
     enemyRoom.spawnPoints = [];
     enemyRoom.challengeRoom = 0; //0 means not a challenge room
+    enemyRoom.timer1 = 0; //this can be used however. Used by challenge rooms
     if (roomNum===0){
         enemyRoom.isPowerUpCollected = false;
         enemyRoom.powerUps = [newPowerUpPreset(34,false),newPowerUpPreset(45,false),newPowerUpPreset(34,false)];
@@ -199,11 +200,13 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     }else if (roomNum===targetNumOfRooms){//doing it like this is easier for me to understand
         enemyRoom.isPowerUpCollected = true;
     }
-    if (roomNum>5&&(roomNum%10)!=0){ //once room 5 and not a boss room, rooms can start to be challenge rooms
+    if ((roomNum>5&&(roomNum%10)!=0)||bossRush){ //once room 5 and not a boss room, rooms can start to be challenge rooms
         let lastChallengeRoomNum = 0;
-        for (enemyRoomCheck of enemyRooms){ //this won't find this room, as 
+        let lastChallengeRoomType = -1;
+        for (enemyRoomCheck of enemyRooms){
             if (enemyRoomCheck.challengeRoom>0){
                 lastChallengeRoomNum = enemyRoomCheck.roomNum;
+                lastChallengeRoomType = enemyRoomCheck.challengeRoom;
             }
         }
         let roomsSinceChallengeRoom = enemyRoom.roomNum-lastChallengeRoomNum; //I think this sometimes skips one. Its kinda weird.
@@ -214,10 +217,17 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
                 randomNum-=.75;
                 randomNum*=4; //randomNum is now between -3 and 1
             } //else the number is already above 0, it will always be a challenge room
-            randomNum=Math.floor(randomNum*4); //randomNum is now between 0-3 is challenge room, below 0 if else
-            enemyRoom.challengeRoom = Math.max(0,randomNum);
+            let eligibleRoomTypes = [0,1,2,3,4,5,6]; //challenge room types
+            for (let i=0;i<eligibleRoomTypes.length;i++){
+                if (eligibleRoomTypes[i]===lastChallengeRoomType){
+                    eligibleRoomTypes.splice(i,1);
+                    break;
+                }
+            }
+            randomNum=Math.floor(randomNum*eligibleRoomTypes.length); //randomNum is now between 1-3 is challenge room, at or below 0 if else
+            enemyRoom.challengeRoom = eligibleRoomTypes[Math.max(0,randomNum)];
         }
-        enemyRoom.challengeRoom = 1; //debug option
+        //enemyRoom.challengeRoom = 1; //debug option
     }
     //enemyRooms.push([newEnemyPreset(addToPoint(roomPos,roomWidth/2,roomHeight/2),2)]);
     enemyRooms.push(enemyRoom);

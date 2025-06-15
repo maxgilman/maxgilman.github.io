@@ -72,10 +72,10 @@ function findDis(point1,point2){
 }
 let curves = [];
 let points = [
-    new newPoint(50,20),
-    new newPoint(230,30),
-    new newPoint(150,80),
-    new newPoint(250,100),
+    new newPoint(80,700),
+    new newPoint(82,650),
+    new newPoint(111,625),
+    new newPoint(135,630),
 ];
 let start = points[0];
 let cp1 = points[1];
@@ -108,22 +108,22 @@ function lerpV2(a,b,t){
     return { x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t) };
 }
 function drawCurve(){
-    for (curve of curves){
+    /*for (curve of curves){
         ctx.beginPath();
         ctx.moveTo(curve.start.x,curve.start.y);
         //let lerped = lerpV2(curve.start,curve.end,.2);
         //ctx.lineTo(lerped.x,lerped.y);
         ctx.bezierCurveTo(curve.cp1.x, curve.cp1.y, curve.cp2.x, curve.cp2.y, curve.end.x, curve.end.y);
         ctx.stroke();
-    }
+    }*/
     /*if (!mouseClickUsed){
         //ctx.drawImage(UIImage,0,c.height-imageHeight,imageHeight*5,imageHeight);
-    }
+    }*/
     // Cubic Bézier curve
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
     ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-    ctx.stroke();*/
+    ctx.stroke();
 
     // Start and end points
     ctx.fillStyle = "blue";

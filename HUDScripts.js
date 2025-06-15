@@ -31,27 +31,58 @@ function drawSellButton(leftX){
     ctx.fillStyle = 'white';
     ctx.fillText('$ell',23+leftX,c.height-15);
 }
-function drawHUDMouse(majorLeftX,majorRightX){
-    let majorCenter = ((majorRightX-majorLeftX)/2)+majorLeftX;
-    let start = new newPoint(majorLeftX-2,c.height);
-    let cp1 = new newPoint(majorLeftX+5,c.height-100);
-    let cp2 = new newPoint(majorRightX-5,c.height-100);
-    let end = new newPoint(majorRightX+2,c.height);
-
+function drawHalfMouse(points,buttonPressed,holeXPos){
+    if (buttonPressed){
+        for (point of points){
+            point.y+=2;
+        }
+    }
     ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+    ctx.moveTo(points[0].x, points[0].y);
+    ctx.bezierCurveTo(points[1].x, points[1].y, points[2].x, points[2].y, points[3].x, points[3].y);
+    ctx.lineTo(points[3].x,c.height);
     ctx.lineWidth=4;
     ctx.strokeStyle='white';
     ctx.stroke();
-    ctx.strokeStyle='black';
     ctx.lineWidth=1;
-    ctx.stroke();
-    ctx.fillStyle = 'black';
+    if (buttonPressed){
+        ctx.fillStyle = '#1E1E1E';
+    }else{
+        ctx.fillStyle = 'black';
+    }
     ctx.fill();
 
+    ctx.beginPath(); //hole for power up
+    let yPos = c.height-20;
+    if (buttonPressed){
+        yPos+=2;
+    }
+    ctx.arc(holeXPos,yPos,15,0,Math.PI*2);
+    ctx.fillStyle='white';
+    ctx.fill();
+}
+function drawHUDMouse(majorLeftX,majorRightX){
+    let majorCenter = ((majorRightX-majorLeftX)/2)+majorLeftX;
+
+    let points = [
+        new newPoint(majorLeftX,c.height),
+        new newPoint(majorLeftX+2,c.height-70),
+        new newPoint(majorCenter-20,c.height-75),
+        new newPoint(majorCenter-1,c.height-75),
+    ]
+    let otherPoints = []; //the points for the right click button
+
+    for (point of points){
+        otherPoints.push(new newPoint((-(point.x-majorCenter))+majorCenter+2,point.y));
+    }
+
+    drawHalfMouse(points,buttonsArray[0],majorLeftX+20);
+
+    drawHalfMouse(otherPoints,buttonsArray[2],majorLeftX+60);
+    ctx.strokeStyle = 'black';
+
     ctx.beginPath();
-    ctx.rect(majorCenter-1,c.height-76,2,100); //line that splits the mouse into left and right click
+    //ctx.rect(majorCenter-1,c.height-76,2,100); //line that splits the mouse into left and right click
     ctx.rect(majorCenter-5,c.height-50,10,20); //scroll wheel hole
     ctx.fillStyle = 'white';
     ctx.fill();
@@ -59,15 +90,15 @@ function drawHUDMouse(majorLeftX,majorRightX){
     ctx.beginPath();
     //ctx.rect(majorLeftX-6,c.height-2,12+majorRightX-majorLeftX,2); //bottom sliver
     ctx.rect(majorCenter-3,c.height-47,6,14); //scroll wheel
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#1E1E1E';
     ctx.fill();
 
-    ctx.beginPath();
+    /*ctx.beginPath();
     for (let i=0;i<powerUpSpace;i++){
         ctx.arc(majorLeftX+((i+.5)*40),c.height-20,15,0,Math.PI*2);
     }
     ctx.fillStyle='white';
-    ctx.fill();
+    ctx.fill();*/
 
     /*ctx.beginPath();
     for (let i=0;i<powerUpSpace;i++){
@@ -126,7 +157,7 @@ function drawPermanentSlots(permanentLeftX){
     i++;
     
     ctx.font = '20px Times New Roman';
-    let message = '$'+upgrader.var1;
+    let message = '$'+(5+(upgrader.var2*5));
     let metrics = ctx.measureText(message);
     let width = Math.min(metrics.width,30);
     ctx.fillText(message,permanentLeftX+Math.max(0,(((i-screenPowerUpHeight))*30))-(width/2)+15,c.height+25-permanentTopY,width);
@@ -342,23 +373,28 @@ function drawHUD(){
                         addAutoRect(new newPoint(130,c.height-80),'Right Click Slot','24px Courier New',undefined,false,false);
                         
                         addAutoRect(new newPoint(0,c.height/4),'Drag Ability into Mouse Slots','50px Courier New',undefined,false,true);
-                        drawArrow(new newPoint((c.width/2)+90,(c.height/4)+63),new newPoint(170,c.height-100),50,Math.PI/4);
+                        drawArrow(new newPoint((c.width/2)+130,(c.height/4)+63),new newPoint(250,c.height-100),50,Math.PI/4);
 
                         drawArrow(new newPoint(20,c.height-85),new newPoint(55,c.height-35),30,Math.PI/4);
                         drawArrow(new newPoint(200,c.height-45),new newPoint(140,c.height-25),30,Math.PI/4);
                         if ((frameNum%40)<20){ //this flashing won't work at different frame rates
                             ctx.beginPath();
-                            ctx.arc(majorLeftX+20,c.height-20,13,0,Math.PI*2);
-                            ctx.arc(majorLeftX+60,c.height-20,13,0,Math.PI*2);
+                            let verticalPos = c.height-20;
+                            if (buttonsArray[0]){
+                                verticalPos+=2;
+                            }
+                            ctx.arc(majorLeftX+20,verticalPos,13,0,Math.PI*2);
+                            verticalPos = c.height-20;
+                            if (buttonsArray[2]){
+                                verticalPos+=2;
+                            }
+                            ctx.arc(majorLeftX+60,verticalPos,13,0,Math.PI*2);
                             ctx.fillStyle='blue';
                             ctx.fill();
                         }
                     }else if (player.enemyRoom.roomNum===1){
-                        let textList = [];
-                        addText('Drag Modifiers into These Smaller Slots',new newPoint(5,25),'24px Courier New','black',1000000,textList);
-                        addRect(new newPoint(20,c.height-275),400,30,'white',textList,false);
-            
-                        drawArrow(new newPoint(250,c.height-240),new newPoint(55,c.height-150),30,Math.PI/4);
+                        addAutoRect(new newPoint(20,c.height-270),'Drag Modifiers into These Smaller Slots','24px Courier New',undefined,false,false);
+                        drawArrow(new newPoint(330,c.height-240),new newPoint(55,c.height-150),30,Math.PI/4);
                         if ((frameNum%40)<20){ //this flashing won't work at different frame rates
                             ctx.beginPath();
                             for (let i=0;i<minorPowerUpSpace;i++){
@@ -371,9 +407,6 @@ function drawHUD(){
                     powerUpList = [heldPowerUp]; //held power up
                 }
                 break
-            /*case 6:
-                powerUpList = bulletsInClip;
-                break*/
         }
         for(let i=0;i<powerUpList.length;i++){
             let examplePowerUp = null;
@@ -392,11 +425,7 @@ function drawHUD(){
                     break
                 case 1:
                     actionOnClick = function(i,powerUpList){
-                        if (heldPowerUp!=null&&heldPowerUp instanceof newMinorPowerUp&&money>=upgrader.var1){
-                            examplePowerUp.onClickEffect(player,examplePowerUp);
-                            permanentMinorPowerUps.push(heldPowerUp);
-                            heldPowerUp=null;
-                        }
+                        examplePowerUp.onClickEffect(player,examplePowerUp); //the code about the held power up is handled in here
                         return i;
                     }
                     let allPowerUps = minorPowerUpSpace+permanentMinorPowerUps.length;
@@ -408,11 +437,17 @@ function drawHUD(){
                     //i=drawPowerUp(examplePowerUp,minorPowerUpSpace+permanentMinorPowerUps.length,-.28,actionOnClick,powerUpList,permanentLeftX+15,false,false,true,true);
                     break
                 case 2:
-                    i=drawPowerUp(examplePowerUp,i,0,onClick,powerUpList,majorLeftX,false,false,examplePowerUp.PFType===34,false);
-                    for (let j=0;j<examplePowerUp.minorPowerUps.length;j++){
+                    let verticalOffset = 0;
+                    if (examplePowerUp===powerUpsGrabbed[0]&&buttonsArray[0]){
+                        verticalOffset-=2;
+                    }else if (examplePowerUp===powerUpsGrabbed[1]&&buttonsArray[2]){
+                        verticalOffset-=2;
+                    }
+                    i=drawPowerUp(examplePowerUp,i,verticalOffset/30,onClick,powerUpList,majorLeftX,false,false,examplePowerUp.PFType===34,false);
+                    /*for (let j=0;j<examplePowerUp.minorPowerUps.length;j++){
                         let otherExamplePowerUp = examplePowerUp.minorPowerUps[j];
                         drawPowerUp(otherExamplePowerUp,i,j+1,function(){},powerUpList,majorLeftX);
-                    }
+                    }*/
                     break
                 case 3:
                     if (i<=screenPowerUpHeight){ //make power ups and upgrader wrap around the screen //10 is the max num of power ups

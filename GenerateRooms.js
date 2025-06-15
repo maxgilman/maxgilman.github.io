@@ -233,6 +233,10 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRooms.push(enemyRoom);
     //enemies.push(enemyRooms[enemyRooms.length-1][0]);
     let roomOption = 0;
+    let enemyDamage = [1,2,4][Math.floor((roomNum-1)/10)];
+    if (enemyDamage===undefined){ //should never trigger
+        enemyDamage=1;
+    }
     if (roomNum===-1||(bossRush&&roomNum===0)){
         roomOption = emptyRoom;
         enemyRoom.isPowerUpCollected=true;
@@ -249,17 +253,17 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
             case 0:
                 roomOption=emptyRoom;
                 //enemies.push(newEnemyPreset(enemyPosition,11,undefined,undefined,difficulty));
-                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,11,undefined,undefined,difficulty));
+                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,11,enemyDamage,undefined,difficulty));
                 break
             case 1:
                 roomOption = emptyRoom;
                 let previousEnemy = player;
                 for (let i=0;i<4;i++){
-                    previousEnemy = newEnemyPreset(enemyPosition,37,undefined,undefined,difficulty,previousEnemy);
+                    previousEnemy = newEnemyPreset(enemyPosition,37,enemyDamage,undefined,difficulty,previousEnemy);
                     //enemies.push(previousEnemy);
                     enemyRoom.enemies.push(previousEnemy);
                     //enemies.push(newEnemyPreset(enemyPosition,38,undefined,undefined,difficulty,previousEnemy));
-                    enemyRoom.enemies.push(newEnemyPreset(enemyPosition,38,undefined,undefined,difficulty,previousEnemy));
+                    enemyRoom.enemies.push(newEnemyPreset(enemyPosition,38,enemyDamage,undefined,difficulty,previousEnemy));
                 }
                 break
             case 2:
@@ -270,12 +274,12 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
                 }
                 roomOption.spawnPoints = teleportingBossRoom.spawnPoints;
                 //enemies.push(newEnemyPreset(enemyPosition,12,undefined,undefined,difficulty,player));
-                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,12,undefined,undefined,difficulty,player));
+                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,12,enemyDamage,undefined,difficulty,player));
                 break
             case 10:
                 roomOption = bossRoom;
                 //enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
-                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
+                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,15,enemyDamage,undefined,difficulty));
                 break
         }
     }else{
@@ -339,7 +343,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
                 enemyType = 17;
             }
         }
-        let enemy = newEnemyPreset(addTwoPoints(enemyPos,roomPos),enemyType,undefined,undefined,difficulty);
+        let enemy = newEnemyPreset(addTwoPoints(enemyPos,roomPos),enemyType,enemyDamage,undefined,difficulty);
         if (roomNum===-1){
             enemy.gunCooldown=60;
             if (randomNum>=2){

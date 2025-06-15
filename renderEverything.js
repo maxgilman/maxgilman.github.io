@@ -9,6 +9,7 @@ function renderEverything(skipPlayers,camera){
             enemyRoom[1].color = 'orange'
         }
     }*/
+    //drawEnemyRooms();
     if (!skipPlayers){
         drawEnemies(camera);
     }
@@ -23,7 +24,18 @@ function renderEverything(skipPlayers,camera){
     }
 }
 function drawBackground(){
-    ctx.fillStyle = background; //this is a color, maybe in the future this may be an image
+    //ctx.fillStyle = background; //this is a color, maybe in the future this may be an image
+    switch(Math.floor(Math.max(player.enemyRoom.roomNum-1,0)/10)){
+        case 0:
+            ctx.fillStyle='white';
+        break
+        case 1:
+            ctx.fillStyle='#BBBBBB';
+        break
+        case 2:
+            ctx.fillStyle='#757575';
+        break
+    }
     ctx.fillRect(0,0,c.width,c.height);
 }
 function drawScreenTint(){
@@ -216,7 +228,7 @@ function drawEnemy(enemy){
                 let imageSizeRatio = Math.max(1,Math.round(enemy.size*cam.zoom*2/thisImage.width/*it would be slightly different if image height is used*/));
                 ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y),imageSizeRatio*thisImage.width,imageSizeRatio*thisImage.height);
             }else{//the player is playing the charging animation
-                let imagePos = addToPoint(offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size)),0,-17);
+                let imagePos = addToPoint(offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size)),0,-17*(player.size/player.originalCopy.size));
                 let thisImage = playerImages.chargingList[Math.floor(enemy.timer1)];
                 let imageSizeRatio = Math.max(1,Math.round(enemy.size*cam.zoom*2/thisImage.width/*it would be slightly different if image height is used*/));
                 ctx.drawImage(thisImage,Math.round(imagePos.x),Math.round(imagePos.y),imageSizeRatio*thisImage.width,imageSizeRatio*thisImage.height);
@@ -581,4 +593,13 @@ function drawArrow(tail,point,prongLength,prongAngle){
     ctx.moveTo(point.x,point.y);
     ctx.lineTo(point.x+(prongLength*Math.sin(arrowAngle-prongAngle)),point.y+(prongLength*Math.cos(arrowAngle-prongAngle)))
     ctx.stroke();
+}
+function drawEnemyRooms(){
+    let tileSize = 28;
+    let pos = new newPoint(100,100);
+    pos = offSetByCam(pos);
+    ctx.drawImage(tileImages[0],pos.x,pos.y);
+    ctx.drawImage(tileImages[2],pos.x+tileSize,pos.y);
+    ctx.drawImage(tileImages[6],pos.x,pos.y+tileSize);
+    ctx.drawImage(tileImages[8],pos.x+tileSize,pos.y+tileSize);
 }

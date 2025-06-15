@@ -147,64 +147,63 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 }
             }else if (enemy.PFType===8){
                 //guard
-                if (enemy.targetSpeed===0){
-                    enemy.x=enemy.target.x;
-                    enemy.y=enemy.target.y;
+                if (enemy.timer1===0){
                     if (player.y<enemy.y){
                         enemy.targetSpeed=5;
                         let baseTarget = new newPoint(Math.max(Math.min(player.x,roomWidth-60),60),player.y-10);
                         if (player.PFType!=0){
                             enemy.target = addToPoint(baseTarget,-30,0);
-                            player.PFType=0;
-                            player.target = addToPoint(player,0,100);
-                            modeTimer = 60;
-                            if (devMode){
-                                modeTimer=5;
-                            }
                         }else{
                             enemy.target = addToPoint(baseTarget,30,0);
                         }
+                        player.PFType=0;
+                        player.target = addToPoint(player,0,100);
+                        enemy.timer1+=deltaTime;
                     }
                 }else{
-                    if (enemy.speed>findDis(enemy,enemy.target)){
+                    if (enemy.speed>findDis(enemy,enemy.target)&&enemy.timer2===0){
                         enemy.x=enemy.target.x;
                         enemy.y=enemy.target.y;
-
-                        let screenEnemyPos = offSetByCam(enemy);
-                        let text = 'Halt';
-                        if (rectsToDraw.length===1){
-                            text = "Don't do Any Funny Business";
-                            modeTimer-=deltaTime;
-                            if (modeTimer<0){
-                                mainEnemyRoom.isPowerUpCollected=true;
-                                switchMode(8);
-                                player.PFType=1;
+                        enemy.timer1+=deltaTime;
+                        if (!(enemy.timer1>60||(devMode&&enemy.timer1>5))){
+                            if (player.PFType===0){
+                                let screenEnemyPos = offSetByCam(enemy);
+                                let text = 'Halt';
+                                if (rectsToDraw.length===1){
+                                    text = "Don't do Any Funny Business";
+                                }
+                                let textToDraw = [];
+                                ctx.font = '32px Courier New'
+                                let metrics = ctx.measureText(text);
+                                let rectHeight = 35;
+                                addText(text,new newPoint(5,rectHeight-7),ctx.font,'black',metrics.width,textToDraw);
+                                addRect(addToPoint(screenEnemyPos,-40,-60),metrics.width+10,rectHeight,'white',textToDraw,false);
+                                if (rectsToDraw.length===2){
+                                    let rect1 = rectsToDraw[0];
+                                    let rect2 = rectsToDraw[1];
+                                    /*let distance = rect2.x-rect1.x;
+                                    rect1.x-=(distance/2);
+                                    rect2.x+=(distance/2);*/
+                                    rect1.x-=20;
+                                    rect2.x+=20;
+                                }
                             }
-                        }
-                        if (modeTimer<0){
-                            enemy.PFType=0;
-                            enemy.target=player;//the enemy looks like its running away from you
-                            enemy.targetSpeed=-1; //maybe even make them scream or something
-                        }
-                        let textToDraw = [];
-                        ctx.font = '32px Courier New'
-                        let metrics = ctx.measureText(text);
-                        let rectHeight = 35;
-                        addText(text,new newPoint(5,rectHeight-7),ctx.font,'black',metrics.width,textToDraw);
-                        addRect(addToPoint(screenEnemyPos,-40,-60),metrics.width+10,rectHeight,'white',textToDraw,false);
-                        if (rectsToDraw.length===2){
-                            let rect1 = rectsToDraw[0];
-                            let rect2 = rectsToDraw[1];
-                            /*let distance = rect2.x-rect1.x;
-                            rect1.x-=(distance/2);
-                            rect2.x+=(distance/2);*/
-                            rect1.x-=20;
-                            rect2.x+=20;
+                        }else if (player.PFType===0){
+                            mainEnemyRoom.isPowerUpCollected=true;
+                            switchMode(8);
+                            player.PFType=1;
+                        }else{
+                            enemy.timer2=1;
+                            enemy.target = player;
+                            enemy.targetSpeed = -1; //maybe add a scream
                         }
                     }else{
                         enemyAngle = findAngle(enemy,enemy.target);
                         enemy.x-=Math.sin(enemyAngle)*enemy.speed;
                         enemy.y-=Math.cos(enemyAngle)*enemy.speed;
+                        if (textToDraw.length===0&&enemy.timer2!=0&&heldPowerUp===null){
+                            addAutoRect(new newPoint(c.width/2,3*c.height/4),'Hold to Shoot Continuously','32px Courier New',undefined,false,true);
+                        }
                     }
                 }
             }else if (enemy.PFType===9){
@@ -719,8 +718,9 @@ function gunEnemyMovement(target){
             }*/else if (enemy.PFType===12){
                 //teleporting boss
                 if (enemy.timer2===2){ //2 means the enemy is good to shoot
-                    let bullet = new newBullet(0,0,enemy.bulletSpeed,0,'blue',40,5,0,60,1,new newPoint(),enemy,1,'',21,3);
-                    shootBullet(bullet,findAngle(enemy.target,enemy)+Math.random()-.5,enemy,bullet.bulletSpreadNum,bullet.shotSpread,0,enemy,enemy.size,true);
+                    let bullet = new newBullet(0,0,enemy.bulletSpeed,0,'blue',40,5,0,60,1,new newPoint(),enemy,enemy.damage,'',21,3);
+                    bullet.color = ['blue','#00FF00','green'/*Placeholder color. Should never be a thing*/,'#B900FF'][Math.round(enemy.damage-1)];
+                    shootBullet(bullet,findAngle(enemy.target,enemy),enemy,bullet.bulletSpreadNum,bullet.shotSpread,0,enemy,enemy.size,true);
                     enemy.timer2 = 1; //1 means the enemy took the shot
                 }
             }else if(enemy.PFType===10||enemy.PFType===4||enemy.PFType===5||enemy.PFType===3||enemy.PFType===2||enemy.PFType===17||enemy.PFType===15||enemy.PFType===38){
@@ -729,10 +729,11 @@ function gunEnemyMovement(target){
                     if (closestEnemy!=undefined){
                         aimGun(enemy,closestEnemy,'blue',undefined,mainEnemyRoom,true);
                     }*/
+                    let bulletColor = ['blue','#00FF00','green'/*Placeholder color. Should never be a thing*/,'#B900FF'][Math.round(enemy.damage-1)];
                     if (enemy.target.team===0){
-                        aimGun(enemy,enemy.target,'blue',undefined,mainEnemyRoom,true);
+                        aimGun(enemy,enemy.target,bulletColor,undefined,mainEnemyRoom,true);
                     }else{
-                        aimGun(enemy,player,'blue',undefined,mainEnemyRoom,true);
+                        aimGun(enemy,player,bulletColor,undefined,mainEnemyRoom,true);
                     }
                 }else{
                     let closestEnemy = findClosestEnemy(enemy,enemyRoom,enemy,false,true,mainEnemyRoom.walls);

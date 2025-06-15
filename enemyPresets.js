@@ -20,10 +20,11 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         case 0:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower),20,'pink',0,target,60,1+(enemyPower*3),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
-                    touchedEnemy.health--;
+                    touchedEnemy.health-=thisEnemy.damage;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
                 }
             });
+            enemy.damage=power;
         break
         case 1:
             enemy =new newEnemy(pos.x,pos.y,12,20,'blue',1,target,30,5,'',undefined,1,1.5,1,15);
@@ -31,18 +32,22 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 2:
             enemy = new newEnemy(pos.x,pos.y,0,30,'black',2,target,75-(enemyPower),1.4+(enemyPower/2),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
+            enemy.damage=power;
         break
         case 3:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'grey',3,target,30-(enemyPower*2.5),3+(enemyPower/5),'',undefined,undefined,undefined,1,undefined,undefined,undefined,undefined,50);
+            enemy.damage=power;
         break
         case 4:
             enemy = new newEnemy(pos.x,pos.y,3,20,'green',4,target,45-(enemyPower*3),(2*Math.pow(2,enemyPower/3)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20+enemyPower);
+            enemy.damage=power;
         break
         case 5:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/3),20,'lime',5,target,70-(enemyPower*3),1+(2*Math.pow(2,enemyPower/4)),'');
+            enemy.damage=power;
         break
         case 6:
-            enemy = new newEnemy(pos.x,pos.y,6,20,'blue',PFType,target,50,5,'');//demo enemy that gets shot at the beginning
+            enemy = new newEnemy(pos.x,pos.y,6,20,'blue',PFType,target,50,5,'');//demo enemy that gets shot at the beginning(unused)
             enemy.team=4;
             enemy.direction=Math.PI;
             enemy.gunCooldown=enemy.gunCoolDownMax;
@@ -79,22 +84,25 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 10:
             enemy = new newEnemy(pos.x,pos.y,2+(enemyPower),20,'magenta',10,target,60-(enemyPower*2),4);
+            enemy.damage=power;
         break
         case 11:
             //Dashing boss
             enemy = new newEnemy(pos.x,pos.y,30+(enemyPower),40,'#4C5C7D',11,target,40-(2*enemyPower/3),1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
-                    touchedEnemy.health--;
+                    touchedEnemy.health-=thisEnemy.damage;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
                 }
             });
             enemy.gunCooldown = enemy.gunCoolDownMax; //the enemy has a full length first dash
             enemy.direction = (Math.PI/4)+((Math.PI/2)*Math.floor(Math.random()*4)); //the bosses first dash is diagonol, away from the player but you still learn what it does
+            enemy.damage=power;
         break
         case 12:
             //teleporting boss
             enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,70-(enemyPower),1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
             enemy.bulletSpeed=20;
+            enemy.damage=power;
         break
         case 13://portal to the boss rush
             enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',PFType,target,0,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
@@ -119,6 +127,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 15: //basic boss
             enemy = new newEnemy(pos.x,pos.y,3,40,'black',15,target,45-(enemyPower*4.3),1+(10*Math.pow(2,enemyPower/1.5)),'',undefined,3);
+            enemy.damage=power;
         break
         case 16: //money
             enemy = new newEnemy(pos.x,pos.y,0,10,'green',16,target,Infinity,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
@@ -130,14 +139,16 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 17:
             enemy = new newEnemy(pos.x,pos.y,2+(enemyPower/2),20,'turquoise',17,target,45-(enemyPower*3),1+(3*Math.pow(2,enemyPower/3)),'');
+            enemy.damage=power;
         break
         case 18:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower*1.5),20,'#800020',0,target,60,1+(enemyPower),'',function(touchedEnemy,thisEnemy,enemiesToRemove,alreadyRan){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy===thisEnemy.target)){
-                    touchedEnemy.health--;
+                    touchedEnemy.health-=thisEnemy.damage;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
                 }
             });
+            enemy.damage=power;
         break
         case 35: //this is the gravity puller thing
             enemy = new newEnemy(pos.x,pos.y,0,13,'black',PFType,target,15,Infinity,'',function(){},undefined,undefined,undefined,undefined,undefined,undefined,enemyPower);
@@ -179,9 +190,10 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 }
             },3);
             bossChainEnemies.push(enemy);
+            enemy.damage=power;
         break
         case 38: //this is the enemy that snaps to the boss chain(the rider)
-            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'black',PFType,target,45-(enemyPower*3),(5*Math.pow(2,enemyPower/1.5)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20+enemyPower);
+            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'black',PFType,target,45-(enemyPower*3),(5*Math.pow(2,enemyPower/1.5)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,power,20+enemyPower);
         break
     }
     if (PFType!=7&&PFType!=16){//this isnt the best way to do it, it just stops the bad thing

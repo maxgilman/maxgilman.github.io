@@ -200,7 +200,6 @@ more room templates
 mirror rooms to be lazy
 implement upgrade rarity
 make stronger, rarer versions of minor upgrades
-locking in a +5 health shouldn't make you lose 5 health
 add knockback to water gun
 add a gain $2 button instead of getting an upgrade(or heal)
 fix art
@@ -226,6 +225,7 @@ fix art
     bosses
     enemies should be holding weapons
     souls image is too complex? can't see it while it's moving, too blurry
+    backgrounds
 make elemental combos with items
 make moving stuff in the menus not shoot the gun
 gun moves back into you like it's got kick

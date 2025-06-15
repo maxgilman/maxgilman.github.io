@@ -89,7 +89,9 @@ class newMinorPowerUp{
         this.var1 = null; //this is just a var that a power up can use to store whatever is needed
         this.var2 = null;
         this.var3 = null;
+        this.var4 = null;
         this.price=1;
+        this.rarity=5; //this is a whole number that, porportional to the rarity of every other power up, decides how common it is. Lower is less common
     }
 }
 class newEnemy {

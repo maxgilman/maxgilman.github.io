@@ -13,7 +13,7 @@ function newPowerUpPreset(PFType,isEffect){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
                 dashDirection=thisEnemy.direction+Math.PI;
-                dashFramesLeft=thisPowerUp.range;
+                dashFramesLeft=6//thisPowerUp.range;
                 thisEnemy.health+=thisPowerUp.healthToHeal;
                 if (thisPowerUp.healthToHeal>0){
                     thisEnemy.timer1 = 5.999;
@@ -69,14 +69,14 @@ function newPowerUpPreset(PFType,isEffect){
                 enemy.enemyRoom = thisEnemy.enemyRoom;
                 //enemies.push(enemy);
                 addToEnemyRooms(enemy);
-            },40,1,100,Infinity);
-            powerUp.var1 = 15; //the explosion time for the bombs
+            },30,1,100,Infinity);
+            powerUp.var1 = 13; //the explosion time for the bombs
             powerUp.var2 = 200; //the explosion size of the bombs
             powerUp.image.src = 'Gun_Images/Grenade_Launcher.png';
         break
         case 3:
             powerUp = new newMajorPowerUp(PFType,'Heal 1HP in a Button Press','#4ABBA8',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp,gunAngle){
-                thisPowerUp.coolDown=thisPowerUp.coolDownMax;
+                thisPowerUp.coolDown=thisPowerUp.coolDownMax; //make none of this work if the player is still healing
                 screenShake+=3;
                 thisEnemy.health+=1;
                 thisEnemy.timer1 = 5.999; //timer to track what frame of the charging animation to play. Not 6 as there is no 7th frame to play(zero indexed)
@@ -166,15 +166,17 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.var1 = 0; //how long the pushing effect has left to last for bullets
         break
         case 6:
-            powerUp = new newMajorPowerUp(PFType,'Shotgun','#BABFC0',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp,gunAngle){
+            powerUp = new newMajorPowerUp(PFType,'Shotgun','#BABFC0',function (thisEnemy,thisPowerUp){
+                thisPowerUp.coolDown-=deltaTime;
+            },function(thisEnemy,thisPowerUp,gunAngle){
                 thisPowerUp.coolDown=thisPowerUp.coolDownMax;
                 screenShake+=3;
-                let bullet = new newBullet(0,0,30,0,'red',40,5,0,thisPowerUp.range,thisPowerUp.bulletKillPower,new newPoint(0,0),thisEnemy,thisPowerUp.damage,'',3,thisPowerUp.shotSpread);
+                let bullet = new newBullet(0,0,30,0,'red',40,5,0,thisPowerUp.range,thisPowerUp.bulletKillPower,new newPoint(0,0),thisEnemy,thisPowerUp.damage/3,'',3,thisPowerUp.shotSpread);
                 for (extraEffect of thisPowerUp.extraBulletEffects){
                     bullet.effects.push(extraEffect);
                 }
                 shootBullet(bullet,gunAngle,thisEnemy,bullet.bulletSpreadNum,bullet.shotSpread,0,thisEnemy,thisEnemy.size);
-            },20,1,10,1,undefined,' for each of the Three Bullets');
+            },20,3,10,1,undefined,' for the Three Bullets Combined');
             powerUp.image.src = 'Gun_Images/Shotgun.png';
         break
         case 7:
@@ -222,16 +224,16 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 11:
-            powerUp = new newMinorPowerUp(PFType,'Your Grenades Deal 1.5X Damage','#FF6E6E',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
+            powerUp = new newMinorPowerUp(PFType,'Your Grenades Deal +4 Damage','#FF6E6E',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
                 if (majorPowerUp.PFType===2){
-                    majorPowerUp.damage*=1.5;
+                    majorPowerUp.damage+=4;
                 }
             })
         break
         case 12:
-            powerUp = new newMinorPowerUp(PFType,'2X Damage for Ability Bound to Right Click','#FFAC01',function (majorPowerUp,thisPowerUp){
-                if (majorPowerUp===powerUpsGrabbed[1]){
-                    majorPowerUp.damage*=2;
+            powerUp = new newMinorPowerUp(PFType,'+5 Damage for Ability Bound to Right Click','#FFAC01',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp===powerUpsGrabbed[1]&&majorPowerUp.damage>0){
+                    majorPowerUp.damage+=5;
                 }
             })
         break
@@ -277,23 +279,26 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 17:
-            powerUp = new newMinorPowerUp(PFType,'After Gaining Health, 3X Damage for 5 Seconds','#f0c013',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'After Gaining Health, +5 Damage for 5 Seconds','#f0c013',function (majorPowerUp,thisPowerUp){
                 if(player.health>thisPowerUp.var1){
-                    thisPowerUp.var2=150;
+                    thisPowerUp.coolDown=150;
                 }
                 thisPowerUp.var1=player.health;
-                if(thisPowerUp.var2>0){
+                if(powerUp.coolDown>0){
                     if (majorPowerUp===powerUpsGrabbed[0]){
-                        thisPowerUp.var2-=deltaTime;
+                        thisPowerUp.coolDown-=deltaTime;
                     }
-                    majorPowerUp.damage*=3;
-                    thisPowerUp.secondLabel = 'Active for '+Math.round((Math.max(0,thisPowerUp.var2)/30))+' More Seconds';
+                    if (majorPowerUp.damage>0){
+                        majorPowerUp.damage+=10;
+                    }
+                    thisPowerUp.secondLabel = 'Active for '+Math.round((Math.max(0,thisPowerUp.coolDown)/30))+' More Seconds';
                 }else{
                     thisPowerUp.secondLabel = 'Not Active';
                 }
             })
             powerUp.var1 = player.health; //var1 is the starting health
-            powerUp.var2 = 0; //var2 is the frames left with double damage
+            powerUp.coolDownMax = 150; //I use the cooldown variable to get the code to draw the grey countdown circle
+            powerUp.coolDown = 0;
         break
         case 18:
             powerUp = new newMinorPowerUp(PFType,'Tighten Bullet Spread','#b260db',function (majorPowerUp,thisPowerUp){
@@ -317,17 +322,19 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 23:
-            powerUp = new newMinorPowerUp(PFType,'-2 Max Health, 2X Damage','#277bab',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'-2 Max Health, +4 Damage','#277bab',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
                     player.maxHealth-=2;
                 }
-                majorPowerUp.damage*=2;
+                if (majorPowerUp.damage>0){
+                    majorPowerUp.damage+=8;
+                }
             })
         break
         case 24:
-            powerUp = new newMinorPowerUp(PFType,'If at or below 3HP, 2X Damage','#ffcc00',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'If at or below 3HP, 1.5X Damage','#ffcc00',function (majorPowerUp,thisPowerUp){
                 if (player.health<=3){
-                    majorPowerUp.damage*=2;
+                    majorPowerUp.damage*=1.5;
                 }
             })
         break
@@ -385,12 +392,22 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.var3 = 0; //var3 is the extra health*/
         break
         case 28:
-            powerUp = new newMajorPowerUp(PFType,'Click Here With A Modifier And Use $5 to Put it in a Permanent Slot','White',function(){},function(thisEnemy,thisPowerUp){
-                money-=thisPowerUp.var1;
-                thisPowerUp.var1+=5;
-                thisPowerUp.label = 'Click Here With A Modifier And Use $'+thisPowerUp.var1+' to Put it in a Permanent Slot';
+            powerUp = new newMajorPowerUp(PFType,'Gain another Modifier Slot for $5','White',function(thisEnemy,thisPowerUp){
+                minorPowerUpSpace+=thisPowerUp.var2;
+            },function(thisEnemy,thisPowerUp){
+                let price = 5+(thisPowerUp.var2*5); //price starts at 5
+                if (money>=price){
+                    if (heldPowerUp!=null&&heldPowerUp instanceof newMinorPowerUp){
+                        minorPowerUpsGrabbed.push(heldPowerUp);
+                        heldPowerUp=null;
+                    }
+                    money-=price;
+                    thisPowerUp.label = 'Gain another Modifier Slot for $'+price;
+                    thisPowerUp.var2++;
+                    minorPowerUpSpace++;
+                }
             });
-            powerUp.var1 = 5;
+            powerUp.var2 = 0; //extra power up space
         break
         case 29:
             powerUp = new newMinorPowerUp(PFType,'After Clearing a Room, Get $0.2, up to $50, for every $1 you have','#99ff66',function (majorPowerUp,thisPowerUp){
@@ -477,9 +494,11 @@ function newPowerUpPreset(PFType,isEffect){
             },0,.01,30);//the range here doesn't actually control anything
         break
         case 33:
-            powerUp = new newMinorPowerUp(PFType,'Gain a 10% Damage Boost for Every HP You Have','#993300',function (majorPowerUp,thisPowerUp){
-                thisPowerUp.secondLabel = 'Current Multiplier: '+(1+(player.health/10))+'X';
-                majorPowerUp.damage*=1+(player.health*.1);
+            powerUp = new newMinorPowerUp(PFType,'Gain a +1 Damage Boost for Every HP You Have','#993300',function (majorPowerUp,thisPowerUp){
+                thisPowerUp.secondLabel = 'Current Boost: +'+(player.health);
+                if (majorPowerUp.damage>0){
+                    majorPowerUp.damage+=player.health;
+                }
             });
         break
         case 34:
@@ -709,16 +728,16 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.image.src = 'Gun_Images/Grenade_Launcher.png';
         break
         case 50:
-            powerUp = new newMinorPowerUp(PFType,'Every Other Room Deal 4X Damage','#AB5C3B',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Every Other Room Deal 2X Damage','#AB5C3B',function (majorPowerUp,thisPowerUp){
                 if (player.enemyRoom.roomNum!=thisPowerUp.var2.roomNum){
                     thisPowerUp.var2=player.enemyRoom;
                     thisPowerUp.var1=!thisPowerUp.var1;
                 }
                 if (thisPowerUp.var1){
-                    majorPowerUp.damage*=4;
-                    thisPowerUp.secondLabel = '4X Damage is Active This Room';
+                    majorPowerUp.damage*=2;
+                    thisPowerUp.secondLabel = '2X Damage is Active This Room';
                 }else{
-                    thisPowerUp.secondLabel = '4X Damage is Not Active This Room';
+                    thisPowerUp.secondLabel = '2X Damage is Not Active This Room';
                 }
             })
             powerUp.var1 = true; //whether the power up is active in this particular room
@@ -795,7 +814,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 56:
-            powerUp = new newMinorPowerUp(PFType,'Every 1 second, your next Bullet will drop 1/2 its damage in money on enemy hit','#AF37A0',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Every 1 second, your next Bullet will drop 1/4 its damage in money on enemy hit','#AF37A0',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
                     thisPowerUp.coolDown-=deltaTime;
                 }
@@ -809,7 +828,7 @@ function newPowerUpPreset(PFType,isEffect){
                             }
                         })
                         majorPowerUp.extraBulletEffects.push(function(enemyHit,thisBullet){
-                            for (let i=0;i<(thisBullet.damage/2);i++){
+                            for (let i=0;i<(thisBullet.damage/4);i++){
                                 let moneyPos = new newPoint();
                                 do{
                                     moneyPos = addToPoint(dupPoint(enemyHit),(Math.random()*50)-25,(Math.random()*50)-25);
@@ -856,6 +875,42 @@ function newPowerUpPreset(PFType,isEffect){
             },30,2,100000000,Infinity);
             powerUp.image.src = 'Gun_Images/Sniper.png';
         break
+        case 58:
+            powerUp = new newMinorPowerUp(PFType,'+2 Damage','#FFA2A2',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp.damage>0){
+                    majorPowerUp.damage+=2;
+                }
+            })
+        break
+        case 59:
+            powerUp = new newMinorPowerUp(PFType,'Gain 1 Max HP for Every Room Exited Where 10 or More Damage is taken','#D0DA00',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp===powerUpsGrabbed[0]){
+                    player.maxHealth+=thisPowerUp.var3;
+                    thisPowerUp.secondLabel = 'Current Extra Max Health: '+thisPowerUp.var3+'  Taken '+thisPowerUp.var4+' damage this Room';
+                }
+                if (player.health<thisPowerUp.var1){
+                    thisPowerUp.var4+=thisPowerUp.var1-player.health;
+                    thisPowerUp.var1 = player.health;
+                }else if (player.health>thisPowerUp.var1){
+                    thisPowerUp.var1=player.health;
+                }
+                if (thisPowerUp.var2.roomNum<player.enemyRoom.roomNum){
+                    thisPowerUp.var2=player.enemyRoom;
+                    if (thisPowerUp.var4>=10){
+                        thisPowerUp.var3++;
+                    }
+                    thisPowerUp.var4 = 0;
+                }
+                if (majorPowerUp===powerUpsGrabbed[0]){
+                    maxHealthDrop+=thisPowerUp.var3;
+                }
+            })
+            powerUp.var1 = player.health; //var1 is the starting health
+            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
+            powerUp.var3 = 0; //var3 is the extra max health
+            powerUp.var4 = 0; //how much damage has been taken this room
+        break
+        //if you take 10(maybe less)or more damage in a room, gain 1 max hp
         //power up ideas:
         //Illigal hacking: First, weapon gets damage boost, but The more you've used a specific instance of a weapon,the less damage it deals
         //do more damage but take more damage
@@ -873,15 +928,15 @@ function newPowerUpPreset(PFType,isEffect){
     if (powerUp instanceof newMajorPowerUp&&isEffect){
         let specialEffect = Math.random()*50;
         if (specialEffect<1&&isGun){
-            powerUp.secondLabel='This Gun Has 4X Damage!!';
+            powerUp.secondLabel='This Gun Has +25 Base Damage!!';
             powerUp.price+=5;
-            powerUp.damage*=4;
+            powerUp.damage+=25;
         }else if (specialEffect<6&&isGun){
-            powerUp.secondLabel='This Gun Has 2X Damage!';
+            powerUp.secondLabel='This Gun Has +5 Base Damage!';
             powerUp.price+=3;
-            powerUp.damage*=2;
+            powerUp.damage+=5;
         }else if (specialEffect<10){
-            powerUp.secondLabel='This Ability Has 1/2 Cooldown!';
+            powerUp.secondLabel='This Ability Has 1/2 Base Cooldown!';
             powerUp.price+=3;
             powerUp.coolDownMax*=.5;
         }

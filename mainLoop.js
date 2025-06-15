@@ -140,6 +140,16 @@ enemyImages.nonMovingOffset[4] = new newPoint(-4,0)
 enemyImages.nonMovingOffset[5] = new newPoint(-9,0)
 enemyImages.nonMovingOffset[6] = new newPoint(-12,0)
 enemyImages.nonMovingOffset[7] = new newPoint(-7,0)
+let tileImages = [
+    new Image(),new Image(),new Image(), //organized into 3 by 3 grid of box of tiles
+    new Image(),new Image(),new Image(),
+    new Image(),new Image(),new Image(),
+]
+tileImages[0].src = 'Tile_Images/Top_Left_Border.png';
+tileImages[2].src = 'Tile_Images/Top_Right_Border.png';
+tileImages[4].src = 'Tile_Images/Not_Border.png'; //middle
+tileImages[6].src = 'Tile_Images/Bottom_Left_Border.png';
+tileImages[8].src = 'Tile_Images/Bottom_Right_Border.png';
 
 let bulletImage=new Image();
 bulletImage.src='Bullet_test.png';
@@ -1226,7 +1236,7 @@ function findEligiblePowerUps(){
         minor:[],
         major:[]
     }
-    let offLimitsPowerUps = [4,8,9,13,19,28,29,32,34,36,57];
+    let offLimitsPowerUps = [4,8,9,13,19,28,29,32,34,36,46,57];
     for (let i=0;i<100;i++){
         let returnedPowerUp = newPowerUpPreset(i,false);
         if (returnedPowerUp===null||offLimitsPowerUps.includes(i)){
@@ -1234,7 +1244,7 @@ function findEligiblePowerUps(){
         }else if (returnedPowerUp instanceof newMajorPowerUp){
             powerUps.major.push(i);
         }else if (returnedPowerUp instanceof newMinorPowerUp){
-            powerUps.minor.push(i);
+            powerUps.minor.push({PFType:i,rarity:returnedPowerUp.rarity});
         }
     }
     return powerUps;
@@ -1281,6 +1291,9 @@ function resetMajorStats(majorPowerUp){
     majorPowerUp.extraBulletEffects=[]; //this shouldn't cause any issues, but if the original copy is not an empty list, it might behave wrong
     majorPowerUp.extraOnClickEffects=[];
     let checkPowerUps = minorPowerUpsGrabbed.concat(permanentMinorPowerUps);
+    if (heldPowerUp instanceof newMinorPowerUp){
+        checkPowerUps = checkPowerUps.concat(heldPowerUp);
+    }
     for (minorPowerUp of checkPowerUps){
         minorPowerUp.modifier(majorPowerUp,minorPowerUp);
     }
@@ -1310,12 +1323,14 @@ function updatePlayerStats(){
         aimAssist=.4;
     }
     if (devMode){
-        minorPowerUpSpace=Math.max(minorPowerUpsGrabbed.length,5);
+        //minorPowerUpSpace=Math.max(minorPowerUpsGrabbed.length,5);
         powerUpSpace=powerUpsGrabbed.length;
     }else{
-        minorPowerUpSpace=5;
+        //minorPowerUpSpace=5;
         powerUpSpace=2;
     }
+    minorPowerUpSpace=5;
+    upgrader.upgradeEffect(player,upgrader);
     for (majorPowerUp of powerUpsGrabbed){
         resetMajorStats(majorPowerUp);
     }
@@ -1391,27 +1406,34 @@ function powerUpSelect(){//add a skip button that gives $2
     let enemyRoom = enemyRooms[enemyRoomIndex];
     let powerUps=enemyRoom.powerUps;
     if (powerUps.length===0){
-        if ((eligibleMinorPowerUps.length<(minorPowerUpSpace+permanentMinorPowerUps.length+3))&&!getDuplicateMinorPowerUps){
-            while (powerUps.length<3){
-                let powerUpType = 21;
-                powerUps.push(newPowerUpPreset(powerUpType,true));
+        let currentEligible = [...eligibleMinorPowerUps];
+        for (let i=0;i<currentEligible.length;i++){
+            if (!getDuplicateMinorPowerUps){
+                if (undefined!=minorPowerUpsGrabbed.find((examplePowerUp)=>examplePowerUp.PFType===currentEligible[i].PFType)){
+                    currentEligible.splice(i,1);
+                    i--;
+                    continue;
+                }
+                if (undefined!=permanentMinorPowerUps.find((examplePowerUp)=>examplePowerUp.PFType===currentEligible[i].PFType)){
+                    currentEligible.splice(i,1);
+                    i--;
+                    continue;
+                }
             }
         }
         while (powerUps.length<3){
-            let powerUpType = eligibleMinorPowerUps[Math.floor(Math.random()*eligibleMinorPowerUps.length)];
-            //this is a easy, bad way to do this, better would be to do like room generation power ups
-            if (undefined!=powerUps.find((examplePowerUp)=>examplePowerUp.PFType===powerUpType)){
-                continue;
-            }
-            if (!getDuplicateMinorPowerUps){
-                if (undefined!=minorPowerUpsGrabbed.find((examplePowerUp)=>examplePowerUp.PFType===powerUpType)){
-                    continue;
+            let powerUpType = 21; //this is the get multiple of the same modifiers power up
+            if (currentEligible.length>0){
+                let randomEligible = [];
+                for (powerUp of currentEligible){
+                    for (let i=0;i<powerUp.rarity;i++){
+                        randomEligible.push(powerUp);
+                    }
                 }
-                if (undefined!=permanentMinorPowerUps.find((examplePowerUp)=>examplePowerUp.PFType===powerUpType)){
-                    continue;
-                }
+                powerUpType = randomEligible[Math.floor(Math.random()*randomEligible.length)].PFType;
             }
             powerUps.push(newPowerUpPreset(powerUpType,true));
+            currentEligible.splice(currentEligible.findIndex((check)=>check.PFType===powerUpType),1);
         }
         /*for (let i=0;i<1;i++){
             powerUps.push(newPowerUpPreset(eligibleMajorPowerUps[Math.floor(Math.random()*eligibleMajorPowerUps.length)],true));
@@ -1457,8 +1479,9 @@ function giveAllPowerUps(){
         powerUpsGrabbed.push(newPowerUpPreset(powerUp));
     }
     for (powerUp of eligibleMinorPowerUps){
-        minorPowerUpsGrabbed.push(newPowerUpPreset(powerUp));
+        minorPowerUpsGrabbed.push(newPowerUpPreset(powerUp.PFType));
     }
+    upgrader.var2 = Math.max(eligibleMinorPowerUps.length,upgrader.var2);//makes space for all the power ups
     money=9999;
     showHUD.majorPowerUps=true;
     showHUD.minorPowerUps=true;
@@ -1514,7 +1537,7 @@ function startGame(weaponChoice){
                 powerUpsGrabbed.push(newPowerUpPreset(powerUp));
             }
             for (powerUp of eligibleMinorPowerUps){
-                minorPowerUpsGrabbed.push(newPowerUpPreset(powerUp));
+                minorPowerUpsGrabbed.push(newPowerUpPreset(powerUp.PFType));
             }
             money=1000;
         break
@@ -1835,7 +1858,6 @@ function repeat(){
         switchMode(6);
     }
 }
-let modeTimer = 0;
 function switchMode(modeTarget){
     if (modeTarget===8){
         showHUD.majorPowerUps=true;

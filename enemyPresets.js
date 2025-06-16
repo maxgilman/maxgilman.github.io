@@ -116,6 +116,9 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                     enemyRooms[0].enemies.push(player);
                     timerGo = true;
                     enemiesToRemove.push(thisEnemy);
+                    for (powerUp of minorPowerUpsGrabbed){
+                        powerUp.lastEnemyRoom = enemyRooms[0]; //this should be correct
+                    }
                 }
             });
             enemy.team=2;
@@ -185,7 +188,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         case 37: //Link in the boss chain
             enemy = new newEnemy(pos.x,pos.y,5+(enemyPower/2),40,'pink',37,target,Infinity,1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
-                    touchedEnemy.health--;
+                    touchedEnemy.health-=thisEnemy.damage;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
                 }
             },3);

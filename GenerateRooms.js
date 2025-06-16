@@ -200,7 +200,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     }else if (roomNum===targetNumOfRooms){//doing it like this is easier for me to understand
         enemyRoom.isPowerUpCollected = true;
     }
-    if ((roomNum>5&&(roomNum%10)!=0)||bossRush){ //once room 5 and not a boss room, rooms can start to be challenge rooms
+    if ((roomNum>5&&(roomNum%10)>1)||bossRush){ //once room 5 and not a boss room or the room after, rooms can start to be challenge rooms
         let lastChallengeRoomNum = 0;
         let lastChallengeRoomType = -1;
         for (enemyRoomCheck of enemyRooms){
@@ -234,6 +234,9 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     //enemies.push(enemyRooms[enemyRooms.length-1][0]);
     let roomOption = 0;
     let enemyDamage = [1,2,4][Math.floor((roomNum-1)/10)];
+    if (bossRush){
+        enemyDamage = [1,2,4,8,16,32][Math.floor((roomNum-1)/5)];
+    }
     if (enemyDamage===undefined){ //should never trigger
         enemyDamage=1;
     }
@@ -356,6 +359,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (roomNum===-1){ //starting room
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,150),14,0,'Move with WASD'));
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,200),14,0,'Press 1 to be a Sweat'));
+        enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,250),14,0,'Stealth (Big time)'));
     }
     if (roomNum===targetNumOfRooms-2&&!bossRush){ //final room
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2+roomPos.x,200+roomPos.y),14,0,'You am become death'));

@@ -237,7 +237,7 @@ function newPowerUpPreset(PFType,isEffect){
                 }
             })
         break
-        case 13:
+        /*case 13:
             powerUp = new newMinorPowerUp(PFType,'Every room cleared without taking damage, 1/2 cooldown on shotgun','#FF6EEC',function (majorPowerUp,thisPowerUp){
                 if (player.health<thisPowerUp.var1){
                     thisPowerUp.var3=1
@@ -256,7 +256,7 @@ function newPowerUpPreset(PFType,isEffect){
             powerUp.var1 = player.health; //var1 is the starting health
             powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
             powerUp.var3 = 1; //var3 is the multiplier
-        break
+        break*/
         case 14:
             powerUp = new newMinorPowerUp(PFType,"1/2 Cooldown on Everything that isn't a Gun",'#104239',function (majorPowerUp,thisPowerUp){
                 if (!guns.includes(majorPowerUp.PFType)){
@@ -265,7 +265,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 15:
-            powerUp = new newMinorPowerUp(PFType,'Using the Dash Ability Heals 1HP','#4cd44e',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Using the Dash Ability Heals 1 More HP','#4cd44e',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp.PFType===0){
                     majorPowerUp.healthToHeal+=1;
                 }
@@ -353,21 +353,6 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 27:
-            /*powerUp = new newMinorPowerUp(PFType,'Every 2 Rooms Cleared, Enemies can Drop 1 More Health, up to 4','#cc0099',function (majorPowerUp,thisPowerUp){
-                if ((player.enemyRoom.roomNum-thisPowerUp.var2.roomNum)>=2){
-                    thisPowerUp.var2=player.enemyRoom;
-                    thisPowerUp.var3++;
-                    if (thisPowerUp.var3>4){
-                        thisPowerUp.var3=4;
-                    }
-                }
-                if (majorPowerUp===powerUpsGrabbed[0]){
-                    maxHealthDrop+=thisPowerUp.var3;
-                }
-                thisPowerUp.secondLabel = 'Current Extra Health: '+thisPowerUp.var3;
-            })
-            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
-            powerUp.var3 = 0; //var3 is the extra health*/
             powerUp = new newMinorPowerUp(PFType,'Every Room Cleared Without Losing Health, Enemies can Drop 1 More Health','#cc0099',function (majorPowerUp,thisPowerUp){
                 if (player.health<thisPowerUp.var1){
                     thisPowerUp.var1=Infinity;//this makes it so now the player is locked out of getting the thing this room
@@ -375,12 +360,12 @@ function newPowerUpPreset(PFType,isEffect){
                     thisPowerUp.var1=player.health;
                 }
                 let firstEnemy = player.enemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1);
-                if (thisPowerUp.var2.roomNum<player.enemyRoom.roomNum&&firstEnemy===undefined){
+                if (thisPowerUp.lastEnemyRoom.roomNum<player.enemyRoom.roomNum&&firstEnemy===undefined){
                     if (player.health===thisPowerUp.var1){
                         thisPowerUp.var3++;
                     }
                     thisPowerUp.var1=player.health;
-                    thisPowerUp.var2=player.enemyRoom;
+                    thisPowerUp.lastEnemyRoom=player.enemyRoom;
                 }
                 if (majorPowerUp===powerUpsGrabbed[0]){
                     maxHealthDrop+=thisPowerUp.var3;
@@ -388,7 +373,6 @@ function newPowerUpPreset(PFType,isEffect){
                 thisPowerUp.secondLabel = 'Current Extra Health: '+thisPowerUp.var3;
             })
             powerUp.var1 = player.health; //var1 is the starting health
-            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
             powerUp.var3 = 0; //var3 is the extra health*/
         break
         case 28:
@@ -412,12 +396,11 @@ function newPowerUpPreset(PFType,isEffect){
         case 29:
             powerUp = new newMinorPowerUp(PFType,'After Clearing a Room, Get $0.2, up to $50, for every $1 you have','#99ff66',function (majorPowerUp,thisPowerUp){
                 let firstEnemy = player.enemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1);
-                if ((player.enemyRoom.roomNum-thisPowerUp.var2.roomNum)>=1&&firstEnemy===undefined){
-                    thisPowerUp.var2=player.enemyRoom;
+                if ((player.enemyRoom.roomNum-thisPowerUp.lastEnemyRoom.roomNum)>=1&&firstEnemy===undefined){
+                    thisPowerUp.lastEnemyRoom=player.enemyRoom;
                     money+=Math.min(money*.2,50);
                 }
             })
-            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
         break
         case 30:
             powerUp = new newMinorPowerUp(PFType,'Enemies can Drop 1 More Money','#33cc33',function (majorPowerUp,thisPowerUp){
@@ -584,7 +567,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 41:
-            powerUp = new newMinorPowerUp(PFType,'All Bullets can Peirce Infinite Enemies','#b970e0',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'All Bullets can Pierce Infinite Enemies','#b970e0',function (majorPowerUp,thisPowerUp){
                 majorPowerUp.bulletKillPower=Infinity;
             })
         break
@@ -729,8 +712,8 @@ function newPowerUpPreset(PFType,isEffect){
         break
         case 50:
             powerUp = new newMinorPowerUp(PFType,'Every Other Room Deal 2X Damage','#AB5C3B',function (majorPowerUp,thisPowerUp){
-                if (player.enemyRoom.roomNum!=thisPowerUp.var2.roomNum){
-                    thisPowerUp.var2=player.enemyRoom;
+                if (player.enemyRoom.roomNum!=thisPowerUp.lastEnemyRoom.roomNum){
+                    thisPowerUp.lastEnemyRoom=player.enemyRoom;
                     thisPowerUp.var1=!thisPowerUp.var1;
                 }
                 if (thisPowerUp.var1){
@@ -741,7 +724,6 @@ function newPowerUpPreset(PFType,isEffect){
                 }
             })
             powerUp.var1 = true; //whether the power up is active in this particular room
-            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
         break
         case 51:
             powerUp = new newMajorPowerUp(PFType,'Ice Staff','#00CFE4',function (thisEnemy,thisPowerUp){thisPowerUp.coolDown-=deltaTime},function(thisEnemy,thisPowerUp,gunAngle){
@@ -795,14 +777,13 @@ function newPowerUpPreset(PFType,isEffect){
         break
         case 54:
             powerUp = new newMinorPowerUp(PFType,'Get $5 if Entering a Room on 3HP or less','#7bf23f',function (majorPowerUp,thisPowerUp){
-                if ((player.enemyRoom.roomNum-thisPowerUp.var2.roomNum)>=1){
-                    thisPowerUp.var2=player.enemyRoom;
+                if ((player.enemyRoom.roomNum-thisPowerUp.lastEnemyRoom.roomNum)>=1){
+                    thisPowerUp.lastEnemyRoom=player.enemyRoom;
                     if (player.health<=3){
                         money+=5;
                     }
                 }
             })
-            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
         break
         case 55:
             powerUp = new newMinorPowerUp(PFType,'Souls have twice as much health','#912DB5',function (majorPowerUp,thisPowerUp){ //make this apply to all explosives
@@ -883,7 +864,7 @@ function newPowerUpPreset(PFType,isEffect){
             })
         break
         case 59:
-            powerUp = new newMinorPowerUp(PFType,'Gain 1 Max HP for Every Room Exited Where 10 or More Damage is taken','#D0DA00',function (majorPowerUp,thisPowerUp){
+            powerUp = new newMinorPowerUp(PFType,'Gain 1 Max HP for Every Room Cleared Where 10 or More Damage is taken','#D0DA00',function (majorPowerUp,thisPowerUp){
                 if (majorPowerUp===powerUpsGrabbed[0]){
                     player.maxHealth+=thisPowerUp.var3;
                     thisPowerUp.secondLabel = 'Current Extra Max Health: '+thisPowerUp.var3+'  Taken '+thisPowerUp.var4+' damage this Room';
@@ -894,23 +875,43 @@ function newPowerUpPreset(PFType,isEffect){
                 }else if (player.health>thisPowerUp.var1){
                     thisPowerUp.var1=player.health;
                 }
-                if (thisPowerUp.var2.roomNum<player.enemyRoom.roomNum){
-                    thisPowerUp.var2=player.enemyRoom;
+                let firstEnemy = player.enemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1);
+                if (thisPowerUp.lastEnemyRoom.roomNum<player.enemyRoom.roomNum&&firstEnemy===undefined){
+                    thisPowerUp.lastEnemyRoom=player.enemyRoom;
                     if (thisPowerUp.var4>=10){
                         thisPowerUp.var3++;
                     }
                     thisPowerUp.var4 = 0;
                 }
-                if (majorPowerUp===powerUpsGrabbed[0]){
-                    maxHealthDrop+=thisPowerUp.var3;
-                }
             })
             powerUp.var1 = player.health; //var1 is the starting health
-            powerUp.var2 = player.enemyRoom; //var2 is whatever room the player is in
             powerUp.var3 = 0; //var3 is the extra max health
             powerUp.var4 = 0; //how much damage has been taken this room
         break
-        //if you take 10(maybe less)or more damage in a room, gain 1 max hp
+        case 60:
+            powerUp = new newMinorPowerUp(PFType,'Bullets deal Triple Damage to Frozen Enemies','#bd8202',function (majorPowerUp,thisPowerUp){
+                if (majorPowerUp.PFType!=51){ //ice staff bullets don't deal extra damage
+                    majorPowerUp.extraBulletEffects.push(function(enemyHit,thisBullet){
+                        if (undefined!=enemyHit.statusEffects.find((effect)=>effect.type===2)){ //2 is the frozen effect
+                            thisBullet.effects[1](enemyHit,thisBullet); //calls the second effect twice, should be the damageing effect
+                            thisBullet.effects[1](enemyHit,thisBullet);
+                        }
+                    })
+                }
+            })
+        break
+        case 61:
+            powerUp = new newMinorPowerUp(PFType,'Gain +.1 Damage for Every Money you Have, but you lose 1/4 of Your Money Every Room Entered','#993300',function (majorPowerUp,thisPowerUp){
+                thisPowerUp.secondLabel = 'Current Boost: +'+(money/10);
+                if (majorPowerUp.damage>0){
+                    majorPowerUp.damage+=money/10;
+                }
+                if ((player.enemyRoom.roomNum-thisPowerUp.lastEnemyRoom.roomNum)>=1){
+                    thisPowerUp.lastEnemyRoom=player.enemyRoom;
+                    money*=.75;
+                }
+            });
+        break
         //power up ideas:
         //Illigal hacking: First, weapon gets damage boost, but The more you've used a specific instance of a weapon,the less damage it deals
         //do more damage but take more damage
@@ -945,13 +946,19 @@ function newPowerUpPreset(PFType,isEffect){
         let var1 = powerUp.var1;
         let var2 = powerUp.var2;
         let var3 = powerUp.var3;
+        let var4 = powerUp.var4;
+        let lastEnemyRoom = powerUp.lastEnemyRoom;
         powerUp.var1 = null;
         powerUp.var2 = null;
         powerUp.var3 = null;
+        powerUp.var4 = null;
+        powerUp.lastEnemyRoom = null;
         powerUp.originalCopy=JSON.parse(JSON.stringify(powerUp));
         powerUp.var1 = var1;
         powerUp.var2 = var2;
         powerUp.var3 = var3;
+        powerUp.var4 = var4;
+        powerUp.lastEnemyRoom = lastEnemyRoom;
         powerUp.originalCopy.bulletKillPower=powerUp.bulletKillPower;
     }
     return powerUp;

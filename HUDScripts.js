@@ -257,13 +257,7 @@ function drawHUD(){
     }
     if (showHUD.health){
         drawHealthBar(c.width-640,c.height-45,'green',player);
-    }
-    for (let i=0;i<playerEnemyRoom.enemies.length;i++){
-        if ([11,12,15,37,38].includes(playerEnemyRoom.enemies[i].PFType)){ //all the bosses pftypes are here
-            drawHealthBar(c.width-640,5,'red',playerEnemyRoom.enemies[i]); //boss health bar
-            break;
-        }
-    }
+    } //boss health bar is drawn after the power ups
     let permanentLeftX = 10;
     if (showHUD.minorPowerUps){
         drawPermanentSlots(permanentLeftX);
@@ -468,6 +462,12 @@ function drawHUD(){
                     i=drawPowerUp(examplePowerUp,0,0,onClick,powerUpList,0);//drawpowerup already knows this is the held power up and does the hard work for me. It pays to be lazy
                     break
             }
+        }
+    }
+    for (let i=0;i<playerEnemyRoom.enemies.length;i++){ //boss health bar is drawn over the power ups
+        if ([11,12,15,37,38].includes(playerEnemyRoom.enemies[i].PFType)){ //all the bosses pftypes are here
+            drawHealthBar(c.width-640,5,'red',playerEnemyRoom.enemies[i]); //boss health bar
+            break;
         }
     }
     drawRects();

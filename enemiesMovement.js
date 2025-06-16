@@ -719,7 +719,7 @@ function gunEnemyMovement(target){
                 //teleporting boss
                 if (enemy.timer2===2){ //2 means the enemy is good to shoot
                     let bullet = new newBullet(0,0,enemy.bulletSpeed,0,'blue',40,5,0,60,1,new newPoint(),enemy,enemy.damage,'',21,3);
-                    bullet.color = ['blue','#00FF00','green'/*Placeholder color. Should never be a thing*/,'#B900FF'][Math.round(enemy.damage-1)];
+                    bullet.color = findBulletColor(enemy.damage);
                     shootBullet(bullet,findAngle(enemy.target,enemy),enemy,bullet.bulletSpreadNum,bullet.shotSpread,0,enemy,enemy.size,true);
                     enemy.timer2 = 1; //1 means the enemy took the shot
                 }
@@ -729,7 +729,7 @@ function gunEnemyMovement(target){
                     if (closestEnemy!=undefined){
                         aimGun(enemy,closestEnemy,'blue',undefined,mainEnemyRoom,true);
                     }*/
-                    let bulletColor = ['blue','#00FF00','green'/*Placeholder color. Should never be a thing*/,'#B900FF'][Math.round(enemy.damage-1)];
+                    let bulletColor = findBulletColor(enemy.damage);
                     if (enemy.target.team===0){
                         aimGun(enemy,enemy.target,bulletColor,undefined,mainEnemyRoom,true);
                     }else{
@@ -744,4 +744,7 @@ function gunEnemyMovement(target){
             }
         }
     }
+}
+function findBulletColor(damage){
+    return ['blue','#00FF00','#E000FF','#C500E1','#9D00B3','#750086'][Math.round(Math.log2(damage))];
 }

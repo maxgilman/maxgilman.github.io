@@ -90,6 +90,7 @@ class newMinorPowerUp{
         this.var2 = null;
         this.var3 = null;
         this.var4 = null;
+        this.lastEnemyRoom = playerEnemyRoom; //this is just a localized place for modifiers to track the room you're in. The code that updates this is still in the modifiers
         this.price=1;
         this.rarity=5; //this is a whole number that, porportional to the rarity of every other power up, decides how common it is. Lower is less common
     }

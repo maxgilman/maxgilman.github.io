@@ -4,12 +4,7 @@ function renderEverything(skipPlayers,camera){
     //the camera mechanic is unfinished and probally doesn't work cause variables share names
     drawDebug(camera);
     drawWalls(camera,false);
-    /*for (enemyRoom of enemyRooms){
-        if (enemyRoom.length>1){
-            enemyRoom[1].color = 'orange'
-        }
-    }*/
-    //drawEnemyRooms();
+    drawEnemyRooms();
     if (!skipPlayers){
         drawEnemies(camera);
     }

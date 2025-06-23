@@ -42,47 +42,38 @@ function enemyCollision(enemiesToRemove){
                 if (enemy1!=enemy2){
                     let enemyDis = findDis(enemy1,enemy2);
                     if (enemyDis<enemy1.size+enemy2.size){
-                        /*if (enemy1.PFType===9||enemy2.PFType===9){ //souls
-                            //the souls distance away from players is 50
-                            let magicNumber = Math.acos(((50*50) + (50*50) - (20*20))/(2*50*50))
-                                
-                            let angleDis = enemy1.timer1-enemy2.timer1;
-                            if (angleDis===0){ //if they're on top of each other, just chose a random direction
-                                angleDis=Math.random()-.5;
-                            }
-                            let angleSign = angleDis/Math.abs(angleDis); //there might be a more computer efficent way to do this
-                            if (angleSign===Infinity){
-                                angleSign=1;
-                            }
-                            if (angleSign===-Infinity){
-                                angleSign=-1;
-                            }
-                            enemy1.timer1-=angleDis/2;
-                            enemy1.timer1-=angleSign*magicNumber;
-                            enemy2.timer1+=angleDis/2;
-                            enemy2.timer1+=angleSign*magicNumber;
-                        }else{*/
-                            let enemyAngle = findAngle(enemy1,enemy2);
-                            enemyDis-=enemy1.size+enemy2.size;
-                            //size ratio would make bigger enemies move less and vice versa, but it's kinda buggy
-                            let sizeRatio = 1;
-                            //let sizeRatio = enemy1.size/enemy2.size;
-                            //this makes it so each enemy only moves back half the distance
-                            enemyDis/=2;
-                            enemy1.x-=Math.sin(enemyAngle)*enemyDis/sizeRatio;
-                            enemy1.y-=Math.cos(enemyAngle)*enemyDis/sizeRatio;
-                            enemy2.x+=Math.sin(enemyAngle)*enemyDis*sizeRatio;
-                            enemy2.y+=Math.cos(enemyAngle)*enemyDis*sizeRatio;
-                        //}
                         if (enemy1.PFType===9&&enemy2.PFType===9){ //souls
-                            enemy1.timer1 = findAngle(enemy1,enemy1.target)
-                            enemy2.timer1 = findAngle(enemy2,enemy2.target)
+                            if (isSamePoint(enemy1,enemy1.originalCopy)&&isSamePoint(enemy2,enemy2.originalCopy)){ //checks that they haven't been moved(by the walls) before
+                                equalizeDis(enemy1,enemy2);
+                                enemy1.timer1 = findAngle(enemy1,enemy1.target);
+                                enemy2.timer1 = findAngle(enemy2,enemy2.target);
+                                enemy1.originalCopy.x=enemy1.x;
+                                enemy1.originalCopy.y=enemy1.y;
+                                enemy2.originalCopy.x=enemy2.x;
+                                enemy2.originalCopy.y=enemy2.y;
+                            }
+                        }else{
+                            equalizeDis(enemy1,enemy2);
                         }
                     }
                 }
             }
         }
     }
+}
+function equalizeDis(enemy1,enemy2){
+    let enemyDis = findDis(enemy1,enemy2);
+    let enemyAngle = findAngle(enemy1,enemy2);
+    enemyDis-=enemy1.size+enemy2.size;
+    //size ratio would make bigger enemies move less and vice versa, but it's kinda buggy
+    let sizeRatio = 1;
+    //let sizeRatio = enemy1.size/enemy2.size;
+    //this makes it so each enemy only moves back half the distance
+    enemyDis/=2;
+    enemy1.x-=Math.sin(enemyAngle)*enemyDis/sizeRatio;
+    enemy1.y-=Math.cos(enemyAngle)*enemyDis/sizeRatio;
+    enemy2.x+=Math.sin(enemyAngle)*enemyDis*sizeRatio;
+    enemy2.y+=Math.cos(enemyAngle)*enemyDis*sizeRatio;
 }
 function enemyCollisionEffects(enemiesToRemove){
     //enemies2 is the enemies in this room or should be processed

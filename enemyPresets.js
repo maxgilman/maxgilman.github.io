@@ -88,7 +88,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
         break
         case 11:
             //Dashing boss
-            enemy = new newEnemy(pos.x,pos.y,30+(enemyPower),40,'#4C5C7D',11,target,40-(2*enemyPower/3),1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+            enemy = new newEnemy(pos.x,pos.y,30+(enemyPower),40,'#4C5C7D',11,target,40-(2*enemyPower/3),roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health-=thisEnemy.damage;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
@@ -97,10 +97,12 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.gunCooldown = enemy.gunCoolDownMax; //the enemy has a full length first dash
             enemy.direction = (Math.PI/4)+((Math.PI/2)*Math.floor(Math.random()*4)); //the bosses first dash is diagonol, away from the player but you still learn what it does
             enemy.damage=power;
+            enemy.timer1 = 3; //this makes the first dash summon an enemy
+            //enemy.timer2 = 2; //this would control how many dashs it takes to summon an enemy
         break
         case 12:
             //teleporting boss
-            enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,70-(enemyPower),1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
+            enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,70-(enemyPower),roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
             enemy.bulletSpeed=20;
             enemy.damage=power;
         break
@@ -186,7 +188,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.gunCooldown=enemy.gunCoolDownMax;
         break
         case 37: //Link in the boss chain
-            enemy = new newEnemy(pos.x,pos.y,5+(enemyPower/2),40,'pink',37,target,Infinity,1+(10*Math.pow(2,enemyPower/1.5)),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
+            enemy = new newEnemy(pos.x,pos.y,5+(enemyPower/2),40,'pink',37,target,Infinity,roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health-=thisEnemy.damage;
                     touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
@@ -196,7 +198,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.damage=power;
         break
         case 38: //this is the enemy that snaps to the boss chain(the rider)
-            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'black',PFType,target,45-(enemyPower*3),(5*Math.pow(2,enemyPower/1.5)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,power,20+enemyPower);
+            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'black',PFType,target,Math.max(45-(enemyPower*3),3),roundTo(5*Math.pow(2,enemyPower/1.5),35),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,power,20+enemyPower);
         break
     }
     if (PFType!=7&&PFType!=16){//this isnt the best way to do it, it just stops the bad thing

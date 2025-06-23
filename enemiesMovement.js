@@ -177,7 +177,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                                 let metrics = ctx.measureText(text);
                                 let rectHeight = 35;
                                 addText(text,new newPoint(5,rectHeight-7),ctx.font,'black',metrics.width,textToDraw);
-                                addRect(addToPoint(screenEnemyPos,-40,-60),metrics.width+10,rectHeight,'white',textToDraw,false);
+                                rectsToDraw.push(new newRect(addToPoint(screenEnemyPos,-40,-60),metrics.width+10,rectHeight,'white',textToDraw,false));
                                 if (rectsToDraw.length===2){
                                     let rect1 = rectsToDraw[0];
                                     let rect2 = rectsToDraw[1];
@@ -202,7 +202,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                         enemy.x-=Math.sin(enemyAngle)*enemy.speed;
                         enemy.y-=Math.cos(enemyAngle)*enemy.speed;
                         if (textToDraw.length===0&&enemy.timer2!=0&&heldPowerUp===null){
-                            addAutoRect(new newPoint(c.width/2,3*c.height/4),'Hold to Shoot Continuously','32px Courier New',undefined,false,true);
+                            addAutoRect(new newPoint(c.width/2,3*c.height/4),['Hold to Shoot Continuously'],'32px Courier New',undefined,false,true);
                         }
                     }
                 }
@@ -210,7 +210,6 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 if (enemy.timer2<0){
                     //souls rotate around their target(the player)
                     let distance = enemy.target.size+enemy.size+20;
-                    //enemy.timer1 =  findAngle(enemy,enemy.target.lastPosition);
                     enemy.timer1+=enemy.speed*deltaTime; //timer1 is the angle
                     if (enemy.timer1>Math.PI*2){
                         enemy.timer1-=Math.PI*2;
@@ -218,6 +217,8 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                     enemy.x=enemy.target.x+(Math.sin(enemy.timer1)*distance);
                     enemy.y=enemy.target.y+(Math.cos(enemy.timer1)*distance);
                     enemy.lastPosition = dupPoint(enemy.target);
+                    enemy.originalCopy.x=enemy.x; //sets these values so we know where the souls were before the wall collision ran
+                    enemy.originalCopy.y=enemy.y;
                 }else{
                     enemy.timer2-=deltaTime;
                 }
@@ -247,15 +248,19 @@ function enemyMovement(enemiesToRemove,skipPlayer){
             }else if (enemy.PFType===11){
                 //dashing boss
                 if(enemy.gunCooldown<0){ //maybe make this use momentum instead
+                    enemy.timer1++;
                     let playerAngle = findAngle(enemy.target,enemy.target.lastPosition);
-                    let playerDistance = findDis(enemy.target.lastPosition,enemy.target)
+                    let playerDistance = findDis(enemy.target.lastPosition,enemy.target);
                     let expectedPlayerPos = addToPoint(dupPoint(enemy.target),Math.sin(playerAngle)*playerDistance*(20/deltaTime),Math.cos(playerAngle)*playerDistance*(20/deltaTime))
                     //addCircle(expectedPlayerPos,'blue',20);
                     enemy.direction = findAngle(expectedPlayerPos,enemy);
                     enemy.gunCooldown=enemy.gunCoolDownMax-0.01;
-                    //enemy.timer1++; //this is the number of bullets the boss needs to shoot. Will almost always be 0 or 1
+                    if (enemy.timer1>3){
+                        enemy.timer1=0;
+                        playerEnemyRoom.enemies.push(newEnemyPreset(dupPoint(enemy),findRandomEnemy(mainEnemyRoom.roomNum,mainEnemyRoom.difficulty),findEnemyDamage(mainEnemyRoom.roomNum,beatGame),'',mainEnemyRoom.difficulty,player));
+                    }
                 }
-                if (enemy.gunCooldown<2*enemy.gunCoolDownMax/3){ //the boss waits a second before starting it's next dash
+                if ((enemy.gunCooldown<2*enemy.gunCoolDownMax/3)&&isSamePoint(enemy.momentum,new newPoint(0,0))){ //the boss waits a second before starting it's next dash. It also can't move if it is still under momentum
                     enemy.x+=Math.sin(enemy.direction)*enemy.speed; //boss starts the first dash too soon
                     enemy.y+=Math.cos(enemy.direction)*enemy.speed;
                 }
@@ -330,7 +335,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
             let angle = findAngle(new newPoint(0,0),enemy.momentum)+Math.PI;
             let dis = findDis(new newPoint(0,0),enemy.momentum);
             dis/=1+(deltaTime/enemy.friction);
-            if (dis<0){
+            if (dis<.1){
                 dis=0;
             }
             enemy.momentum.x=Math.sin(angle)*dis;
@@ -670,6 +675,9 @@ function gunEnemyMovement(target){
                     let examplePowerUp=powerUpsGrabbed[j];
                     if (runCode){
                         examplePowerUp.onClickEffect(enemy,examplePowerUp,gunAngle);
+                        /*if (examplePowerUp.sound.src!=''){
+                            playSound(examplePowerUp.sound);
+                        }*/
                         for (clickEffect of examplePowerUp.extraOnClickEffects){
                             clickEffect(enemy,examplePowerUp,gunAngle);
                         }
@@ -708,14 +716,7 @@ function gunEnemyMovement(target){
                     }
                     aimGun(enemy,mouseShifted,'red',undefined,mainEnemyRoom,true);
                 }*/
-            }/*else if (enemy.PFType===11){
-                //Dashing Boss
-                if (enemy.timer1>0){ //this number means the boss should shoot
-                    let bullet = new newBullet(0,0,40,0,'blue',40,5,0,60,1,new newPoint(),enemy,1,'',1,1);
-                    shootBullet(bullet,enemy.direction,enemy,bullet.bulletSpreadNum,bullet.shotSpread,0,enemy,enemy.size,true);
-                    enemy.timer1--;
-                }
-            }*/else if (enemy.PFType===12){
+            }else if (enemy.PFType===12){
                 //teleporting boss
                 if (enemy.timer2===2){ //2 means the enemy is good to shoot
                     let bullet = new newBullet(0,0,enemy.bulletSpeed,0,'blue',40,5,0,60,1,new newPoint(),enemy,enemy.damage,'',21,3);
@@ -746,5 +747,5 @@ function gunEnemyMovement(target){
     }
 }
 function findBulletColor(damage){
-    return ['blue','#00FF00','#E000FF','#C500E1','#9D00B3','#750086'][Math.round(Math.log2(damage))];
+    return ['blue','#00FF00','#E000FF','#C500E1','#9D00B3','#750086','#860078','#86004F'][Math.round(Math.log2(damage))];
 }

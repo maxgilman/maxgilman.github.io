@@ -241,14 +241,12 @@ getting a major power up from the first power up select may be sending a mixed m
 shop only appears affter bosses?
 change the mouse icon to look good and not be a target since you're not shooting at it
 add an controller option to shoot at the mouse
-souls can catch on wall and stop the player from moving
 make black hole gun deal damage
 make more things you can do with the souls
     use one to heal
     send them out to attack? Clicking the button in a direction
 stop bullets from hitting two enemies at once
 fix bullets hitting you and wall on first/same frame, invincibility
-souls still clump on walls
 weird that shop just appears? Make it fly in from offscreen?
 if on right side of screen, the second guards text goes offscreen
 maybe bombs heal you their damage needs to be half their damage

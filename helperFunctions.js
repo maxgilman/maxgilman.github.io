@@ -130,3 +130,9 @@ function randomPosInRoom(roomPos,borderSize){
     let realRoomPos = turnRoomIntoRealPos(roomPos);
     return new newPoint(realRoomPos.x+doorLength+borderSize+((roomWidth-(borderSize*2))*Math.random()),realRoomPos.y+doorLength+borderSize+((roomHeight-(borderSize*2))*Math.random()));
 }
+function isRoundNum(num){
+    return Math.round(num)===num;
+}
+function minorPriceScaling(numGrabbed){ //this takes in the num of modifiers collected, then gives out a num. Its localized in a function to make adjusting easy
+    return Math.pow(2,Math.pow(2,numGrabbed));
+}

@@ -4,7 +4,7 @@ function renderEverything(skipPlayers,camera){
     //the camera mechanic is unfinished and probally doesn't work cause variables share names
     drawDebug(camera);
     drawWalls(camera,false);
-    drawEnemyRooms();
+    //drawEnemyRooms();
     if (!skipPlayers){
         drawEnemies(camera);
     }
@@ -183,7 +183,7 @@ function drawWalls(cam,draw3d){
         }
     }
 }
-function drawTintOnEnemy(enemy,drawHealthTint,offset){
+function drawTintOnEnemy(enemy,drawHealthTint,offset,maxHealth){
     let screenEnemyPos = offSetByCam(enemy);
     ctx.beginPath();
     ctx.arc(screenEnemyPos.x+offset.x,screenEnemyPos.y+offset.y,enemy.size*cam.zoom,0,Math.PI*2);
@@ -191,8 +191,8 @@ function drawTintOnEnemy(enemy,drawHealthTint,offset){
     if (drawHealthTint){
         if (enemy.health>=5&&enemy.invinceable>=0){
             ctx.globalAlpha = .2;
-        }else{
-            ctx.globalAlpha = -((Math.min(enemy.health,5)/5/*enemy.maxHealth*/)-1);
+        }else {
+            ctx.globalAlpha = -((Math.min(enemy.health,5)/maxHealth)-1);
         }
     }else if (enemy.invinceable>=0){
         ctx.globalAlpha = .4;
@@ -236,7 +236,7 @@ function drawEnemy(enemy){
         ctx.drawImage(playerImages.imagesList[movementDirection],0,0);
         ctx.restore();*/
 
-        drawTintOnEnemy(enemy,true,new newPoint(0,0));
+        drawTintOnEnemy(enemy,true,new newPoint(0,0),5);
         ctx.fillStyle = 'black';
 
         let gunPos = offSetByCam(addToPoint(enemy,Math.sin(gunAngle)*enemy.size/2,Math.cos(gunAngle)*enemy.size/2));
@@ -324,11 +324,12 @@ function drawEnemy(enemy){
         if (enemy.timer2<0){
             let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
             ctx.drawImage(soulImage,imagePos.x,imagePos.y);
+            drawTintOnEnemy(enemy,true,new newPoint(0,0),enemy.maxHealth);
         }
     }else if (enemy.PFType===16){ //money
         let image = creditCardImage;
         let imagePos = offSetByCam(addToPoint(enemy,-image.width/2,-image.height/2));
-        ctx.drawImage(image,imagePos.x,imagePos.y,image.width,image.height);
+        ctx.drawImage(image,Math.round(imagePos.x),Math.round(imagePos.y),image.width,image.height);
     }else if (enemy.PFType===13){
         if (undefined===enemy.enemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1)){
             let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
@@ -345,7 +346,7 @@ function drawEnemy(enemy){
         let imageScale = 2;
         let imagePos = offSetByCam(addToPoint(enemy,-enemy.size,-enemy.size));
         ctx.drawImage(image,imagePos.x+(offset.x*imageScale),imagePos.y+(offset.y*imageScale),image.width*imageScale,image.height*imageScale);
-        drawTintOnEnemy(enemy,false,new newPoint(-4,0));
+        drawTintOnEnemy(enemy,false,new newPoint(-4,0),5);
     }else{
         ctx.beginPath();
         ctx.arc(screenEnemyPos.x,screenEnemyPos.y,enemy.size*cam.zoom,0,Math.PI*2);
@@ -560,17 +561,49 @@ function drawCircle(x,y,color,doNotFollowCam,size){
     ctx.stroke();
     ctx.restore();
 }
-function drawRects(){ //should add support for having boxes that have circles on the corners, to round the corners
+function drawRects(){ //should add support for having boxes that have arcs on the corners, to round the corners
     for (rect of rectsToDraw){
+        drawRect(rect,false,false);
+    }
+}
+function drawRect(rect,isButton,buttonClicked){
+    let textOffset = new newPoint(0,0);
+    let drawExtra = false;
+    if (isButton){
+        ctx.beginPath();
+        ctx.rect(rect.x,rect.y,rect.width,rect.height);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
+        ctx.beginPath();
+        if (buttonClicked){
+            ctx.rect(rect.x,rect.y,rect.width,rect.height);
+        }else{
+            textOffset = new newPoint(-3,-3);
+            ctx.rect(rect.x-3,rect.y-3,rect.width,rect.height);
+        }
+        ctx.stroke();
+        ctx.fillStyle=rect.color;
+        ctx.fill();
+    }else{
         ctx.beginPath();
         ctx.rect(rect.x,rect.y,rect.width,rect.height);
         ctx.stroke();
         ctx.fillStyle=rect.color;
         ctx.fill();
-        for (text of rect.textToDraw){
-            ctx.font = text.font;
-            ctx.fillStyle = text.color;
-            ctx.fillText(text.message,text.x+rect.x,text.y+rect.y,text.maxWidth);
+    }
+    if (rect.textToDraw[0].message.toLowerCase().includes(' gun')){
+        drawExtra = true;
+    }
+    if (rect.textToDraw[0].message.includes('All')){
+        drawExtra = false;
+    }
+    for (text of rect.textToDraw){
+        ctx.font = text.font;
+        ctx.fillStyle = text.color;
+        ctx.fillText(text.message,text.x+rect.x+textOffset.x,text.y+rect.y+textOffset.y,text.maxWidth);
+        if (drawExtra){ //makes sure the message is not this one. Stops recursion
+            addAutoRect(addToPoint(rect,rect.width+5,0),['All Guns:'].concat(gunsLabels),text.font,undefined,false,false);
         }
     }
 }
@@ -597,4 +630,9 @@ function drawEnemyRooms(){
     ctx.drawImage(tileImages[2],pos.x+tileSize,pos.y);
     ctx.drawImage(tileImages[6],pos.x,pos.y+tileSize);
     ctx.drawImage(tileImages[8],pos.x+tileSize,pos.y+tileSize);
+
+    for (let i=0;i<3;i++){
+        ctx.drawImage(pipeImage,200+(i*tileSize),100);
+    }
+    ctx.drawImage
 }

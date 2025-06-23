@@ -186,9 +186,10 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRoom.roomNum=roomNum;
     enemyRoom.useExtraWalls=0;
     enemyRoom.isPowerUpCollected = false;
+    enemyRoom.numMinorsCollected=0;
     enemyRoom.powerUps = [];
     enemyRoom.shopPowerUps = [];
-    enemyRoom.shopRerollNum = 0; //not used currently
+    enemyRoom.rerollNum = 0;
     enemyRoom.spawnPoints = [];
     enemyRoom.challengeRoom = 0; //0 means not a challenge room
     enemyRoom.timer1 = 0; //this can be used however. Used by challenge rooms
@@ -233,13 +234,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRooms.push(enemyRoom);
     //enemies.push(enemyRooms[enemyRooms.length-1][0]);
     let roomOption = 0;
-    let enemyDamage = [1,2,4][Math.floor((roomNum-1)/10)];
-    if (bossRush){
-        enemyDamage = [1,2,4,8,16,32][Math.floor((roomNum-1)/5)];
-    }
-    if (enemyDamage===undefined){ //should never trigger
-        enemyDamage=1;
-    }
+    let enemyDamage = findEnemyDamage(roomNum,bossRush);
     if (roomNum===-1||(bossRush&&roomNum===0)){
         roomOption = emptyRoom;
         enemyRoom.isPowerUpCollected=true;
@@ -250,26 +245,26 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         roomOption = guardRoom;
     }else if ((roomNum%10)===0||bossRush){
         const enemyPosition = addToPoint(roomPos,roomWidth/2,roomHeight/2);
-        let bossType = [0,2,1]/*this is the boss order*/[bossesSpawned.length%3];
+        let bossType = [2,0,1]/*this is the boss order*/[bossesSpawned.length%3];
         bossesSpawned.push(bossType);
         switch (bossType){
-            case 0:
+            case 0: //dashing boss
                 roomOption=emptyRoom;
                 //enemies.push(newEnemyPreset(enemyPosition,11,undefined,undefined,difficulty));
-                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,11,enemyDamage,undefined,difficulty));
+                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,11,enemyDamage,'',difficulty));
                 break
-            case 1:
+            case 1: //snake boss
                 roomOption = emptyRoom;
                 let previousEnemy = player;
                 for (let i=0;i<4;i++){
-                    previousEnemy = newEnemyPreset(enemyPosition,37,enemyDamage,undefined,difficulty,previousEnemy);
+                    previousEnemy = newEnemyPreset(enemyPosition,37,enemyDamage,'',difficulty,previousEnemy);
                     //enemies.push(previousEnemy);
                     enemyRoom.enemies.push(previousEnemy);
                     //enemies.push(newEnemyPreset(enemyPosition,38,undefined,undefined,difficulty,previousEnemy));
-                    enemyRoom.enemies.push(newEnemyPreset(enemyPosition,38,enemyDamage,undefined,difficulty,previousEnemy));
+                    enemyRoom.enemies.push(newEnemyPreset(enemyPosition,38,enemyDamage,'',difficulty,previousEnemy));
                 }
                 break
-            case 2:
+            case 2: //teleporting boss
                 //roomOption=teleportingBossRoom;
                 roomOption = {
                     walls:[],
@@ -277,12 +272,12 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
                 }
                 roomOption.spawnPoints = teleportingBossRoom.spawnPoints;
                 //enemies.push(newEnemyPreset(enemyPosition,12,undefined,undefined,difficulty,player));
-                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,12,enemyDamage,undefined,difficulty,player));
+                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,12,enemyDamage,'',difficulty,player));
                 break
-            case 10:
+            case 10: //basic boss
                 roomOption = bossRoom;
                 //enemies.push(newEnemyPreset(enemyPosition,15,undefined,undefined,difficulty));
-                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,15,enemyDamage,undefined,difficulty));
+                enemyRoom.enemies.push(newEnemyPreset(enemyPosition,15,enemyDamage,'',difficulty));
                 break
         }
     }else{
@@ -305,47 +300,12 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     }
     for (let i = 0;i<numOfEnemies;i++){
         let randomNum = Math.floor(Math.random()*roomOption.spawnPoints.length);
-        let enemyRandomNum = Math.random();
         if (roomNum<=0){
             randomNum = i; //every spawn point gets an enemy if this is the experiment room
         }
         let enemyPos = roomOption.spawnPoints[randomNum];
         //this adds the newest enemy to both lists
-        let enemyType = 4;
-        let scaledRandomNum = ((-Math.pow(3,-((enemyRandomNum*difficulty))))+1);
-        if(roomNum===0){
-            enemyType=8;
-        }else if (roomNum<2){
-            enemyType=2;
-        }else if (roomNum<5){
-            if (scaledRandomNum<.3){
-                enemyType=2
-            }else{
-                enemyType=4;
-            }
-        }else if(roomNum<6){
-            if (scaledRandomNum<.7){
-                enemyType = 4;
-            }else {
-                enemyType = 10;
-            }
-        }else{
-            if (scaledRandomNum<.6){
-                enemyType = 4;
-            }else if (scaledRandomNum<.85){
-                enemyType = 10;
-            }else if (scaledRandomNum<.90){
-                enemyType = 3;
-            }else if (scaledRandomNum<.95){
-                enemyType = 0;
-            }else if (scaledRandomNum<.98){
-                enemyType = 5;
-            }else if (scaledRandomNum<.99){
-                enemyType=18;
-            }else{
-                enemyType = 17;
-            }
-        }
+        let enemyType = findRandomEnemy(roomNum,difficulty);
         let enemy = newEnemyPreset(addTwoPoints(enemyPos,roomPos),enemyType,enemyDamage,undefined,difficulty);
         if (roomNum===-1){
             enemy.gunCooldown=60;
@@ -432,4 +392,53 @@ function shiftWallsBy(wallsList,x,y){
         wall.second.y+=y;
     }
     return wallsList
+}
+function findRandomEnemy(roomNum,difficulty){
+    let enemyType = 4;
+    let enemyRandomNum = Math.random();
+    let scaledRandomNum = ((-Math.pow(3,-((enemyRandomNum*difficulty))))+1);
+    if(roomNum===0){
+        enemyType=8;
+    }else if (roomNum<2){
+        enemyType=2;
+    }else if (roomNum<5){
+        if (scaledRandomNum<.3){
+            enemyType=2
+        }else{
+            enemyType=4;
+        }
+    }else if(roomNum<6){
+        if (scaledRandomNum<.7){
+            enemyType = 4;
+        }else {
+            enemyType = 10;
+        }
+    }else{
+        if (scaledRandomNum<.6){
+            enemyType = 4;
+        }else if (scaledRandomNum<.85){
+            enemyType = 10;
+        }else if (scaledRandomNum<.90){
+            enemyType = 3;
+        }else if (scaledRandomNum<.95){
+            enemyType = 0;
+        }else if (scaledRandomNum<.98){
+            enemyType = 5;
+        }else if (scaledRandomNum<.99){
+            enemyType=18;
+        }else{
+            enemyType = 17;
+        }
+    }
+    return enemyType;
+}
+function findEnemyDamage(roomNum,isBossRush){
+    let enemyDamage = [1,2,4][Math.floor((roomNum-1)/10)];
+    if (isBossRush){
+        enemyDamage = [4,8,16,32,64,128][Math.floor((roomNum-1)/5)];
+    }
+    if (enemyDamage===undefined){ //should never trigger
+        enemyDamage=1;
+    }
+    return enemyDamage
 }

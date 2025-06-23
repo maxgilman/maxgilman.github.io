@@ -46,8 +46,7 @@ class newParticle{
 class newMajorPowerUp{
     constructor(PFType,label,color,upgradeEffect,onClickEffect,coolDownMax,damage,range,bulletKillPower,price,damageText){
         this.PFType=PFType;
-        this.label=label;
-        this.secondLabel = '';
+        this.labels=[label];
         this.upgradeEffect=upgradeEffect;//this triggers every frame
         this.onClickEffect=onClickEffect;//this only triggers when the assigned button is pressed
         this.originalCopy = null;
@@ -74,7 +73,8 @@ class newMajorPowerUp{
         ]
         this.damageText=damageText;
         this.coolDowntext=''; //this can be individually set
-        this.extraBulletEffects = [];
+        this.extraBulletEffects = []; //these get added to the end of the effects list
+        this.earlyBulletEffects = []; //these get added to the beggining of the effects list
         this.extraOnClickEffects = [];
         this.image = new Image();
     }
@@ -82,8 +82,7 @@ class newMajorPowerUp{
 class newMinorPowerUp{
     constructor(PFType,label,color,modifier){
         this.PFType=PFType;
-        this.label=label;
-        this.secondLabel = '';
+        this.labels=[label];
         this.color=color;
         this.modifier=modifier;
         this.var1 = null; //this is just a var that a power up can use to store whatever is needed
@@ -212,9 +211,6 @@ class newEnemy {
         this.enemyRoomEnemyLink = undefined; //enemies can set this to always link their enemyRoom to whatever room another enemy is in (most likely linked to the player)
     }
 }
-let guns = [2,6,7,45,48,49];
-let bulletPowerUps = [6,7,37,45,49,51];
-let waterBullets = [];
 class newBullet {
     constructor(x,y,speed,direction,color,tailLength,visualWidth,type,maximumTime,enemyKillPower,lastPosition,owner,damage,label,bulletSpreadNum,shotSpread){
         this.x=x;
@@ -307,5 +303,32 @@ class newWall {
     constructor(x1,y1,x2,y2){
         this.first = new newPoint(x1,y1);
         this.second = new newPoint(x2,y2);
+    }
+}
+class newButton {
+    constructor(x,y,width,height,text,font,onClick,onHover){
+        this.x=x,
+        this.y=y,
+        this.width=width,
+        this.height=height,
+        this.onClick=onClick,//function
+        this.onHover=onHover,//function, runs when mouse is over button
+        this.everyFrame=function(thisButton){},
+        this.pressed=false,
+        this.pressedLastFrame=undefined,//undefined means its the first frame being run
+        this.text=text, //string
+        this.font=font,
+        this.color='white'
+    }
+}
+class newRect {
+    constructor (point,width,height,color,textToDraw,isMoveable){
+        this.x=point.x,
+        this.y=point.y,
+        this.color=color,
+        this.width=width,
+        this.height=height,
+        this.textToDraw=textToDraw,
+        this.isMoveable=isMoveable
     }
 }

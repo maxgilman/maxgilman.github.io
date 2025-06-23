@@ -216,6 +216,7 @@ function drawMoney(){
     ctx.strokeText('Money:'+money,c.width-275,c.height-5);
     ctx.fillText('Money:'+money,c.width-275,c.height-5);
 }
+let flashingNum = 0;
 function drawHUD(){
     ctx.fillStyle='black';
     //ctx.fillRect(0,c.height-HUDHeight,c.width,HUDHeight); //this would draw a bos that covers up things if HUDHeight !=0
@@ -362,16 +363,17 @@ function drawHUD(){
                     continue;
                 }else{
                     if (player.enemyRoom.roomNum===0){
-                        addAutoRect(new newPoint(5,c.height-115),'Left Click Slot','24px Courier New',undefined,false,false);
+                        addAutoRect(new newPoint(5,c.height-115),['Left Click Slot'],'24px Courier New',undefined,false,false);
             
-                        addAutoRect(new newPoint(130,c.height-80),'Right Click Slot','24px Courier New',undefined,false,false);
+                        addAutoRect(new newPoint(130,c.height-80),['Right Click Slot'],'24px Courier New',undefined,false,false);
                         
-                        addAutoRect(new newPoint(0,c.height/4),'Drag Ability into Mouse Slots','50px Courier New',undefined,false,true);
+                        addAutoRect(new newPoint(0,c.height/4),['Drag Ability into Mouse Slots'],'50px Courier New',undefined,false,true);
                         drawArrow(new newPoint((c.width/2)+130,(c.height/4)+63),new newPoint(250,c.height-100),50,Math.PI/4);
 
                         drawArrow(new newPoint(20,c.height-85),new newPoint(55,c.height-35),30,Math.PI/4);
                         drawArrow(new newPoint(200,c.height-45),new newPoint(140,c.height-25),30,Math.PI/4);
-                        if ((frameNum%40)<20){ //this flashing won't work at different frame rates
+                        flashingNum+=deltaTime;
+                        if (flashingNum<10){
                             ctx.beginPath();
                             let verticalPos = c.height-20;
                             if (buttonsArray[0]){
@@ -385,17 +387,22 @@ function drawHUD(){
                             ctx.arc(majorLeftX+60,verticalPos,13,0,Math.PI*2);
                             ctx.fillStyle='blue';
                             ctx.fill();
+                        }else if(flashingNum>20){
+                            flashingNum=0;
                         }
                     }else if (player.enemyRoom.roomNum===1){
-                        addAutoRect(new newPoint(20,c.height-270),'Drag Modifiers into These Smaller Slots','24px Courier New',undefined,false,false);
+                        addAutoRect(new newPoint(20,c.height-270),['Drag Modifiers into These Smaller Slots'],'24px Courier New',undefined,false,false);
                         drawArrow(new newPoint(330,c.height-240),new newPoint(55,c.height-150),30,Math.PI/4);
-                        if ((frameNum%40)<20){ //this flashing won't work at different frame rates
+                        flashingNum+=deltaTime;
+                        if (flashingNum<10){
                             ctx.beginPath();
                             for (let i=0;i<minorPowerUpSpace;i++){
                                 ctx.arc(permanentLeftX+15,c.height-35-(30*i),11,0,Math.PI*2);
                             }
                             ctx.fillStyle='blue';
                             ctx.fill();
+                        }else if(flashingNum>20){
+                            flashingNum = 0;
                         }
                     }
                     powerUpList = [heldPowerUp]; //held power up
@@ -565,7 +572,6 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
         }else{
             ctx.font = '24px Courier New';
         }
-        let label = examplePowerUp.label;
         let skipDrawDamage = (examplePowerUp instanceof newMinorPowerUp)||(examplePowerUp.PFType===8)||(examplePowerUp.PFType===28)||(examplePowerUp.PFType===34);//I think this is needed but it might not be, a bullet doesn't have a cooldown atribute
         let skipDrawCooldown = skipDrawDamage;
         if (roundTo2(examplePowerUp.damage,100)===0){
@@ -577,48 +583,34 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
         if (powerUpSelect){
             relativePos.y+=12;
         }
-        for(let i=0;i<4;i++){
+        for(let i=0;i<2+examplePowerUp.labels.length;i++){
             let text = '';
-            switch(i){
-                case 0:
-                    text = label;
-                    if ((text==='Click Here To Sell Item for $1')&&undefined!=rectsToDraw.find((checkRect)=>checkRect.textToDraw[0].message===text)){
-                        if (powerUpSelect){
-                            relativePos.y+=30;
-                        }else{
-                            relativePos.y+=20;
-                        }
-                        continue;
+            if (i<examplePowerUp.labels.length){
+                text = examplePowerUp.labels[i];
+                if ((text==='Click Here To Sell Item for $1')&&undefined!=rectsToDraw.find((checkRect)=>checkRect.textToDraw[0].message===text)){
+                    if (powerUpSelect){
+                        relativePos.y+=30;
+                    }else{
+                        relativePos.y+=20;
                     }
-                    break
-                case 1:
-                    text = examplePowerUp.secondLabel;
-                    if (examplePowerUp.secondLabel===''){
-                        if (powerUpSelect){
-                            relativePos.y-=30;
-                        }else{
-                            relativePos.y-=20;
-                        }
-                    }
-                    break
-                case 2:
-                    if (skipDrawDamage){
-                        continue;
-                    }
-                    text = 'Deals '+roundTo2(examplePowerUp.damage,100)+' Damage';
-                    text+=examplePowerUp.damageText;
-                    break
-                case 3:
-                    if (skipDrawCooldown){
-                        continue;
-                    }
-                    //text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax,100);
-                    let secondsText = 'Seconds';
-                    if (roundTo2(examplePowerUp.coolDownMax/30,100)===1){
-                        secondsText='Second';
-                    }
-                    text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax/30,100)+' '+secondsText+examplePowerUp.coolDowntext;
-                    break
+                    continue;
+                }
+            }else if(i<examplePowerUp.labels.length+1){
+                if (skipDrawDamage){
+                    continue;
+                }
+                text = 'Deals '+roundTo2(examplePowerUp.damage,100)+' Damage';
+                text+=examplePowerUp.damageText;
+            }else if(i<examplePowerUp.labels.length+2){
+                if (skipDrawCooldown){
+                    continue;
+                }
+                //text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax,100);
+                let secondsText = 'Seconds';
+                if (roundTo2(examplePowerUp.coolDownMax/30,100)===1){
+                    secondsText='Second';
+                }
+                text = 'Cooldown: '+roundTo2(examplePowerUp.coolDownMax/30,100)+' '+secondsText+examplePowerUp.coolDowntext;
             }
             let metrics = ctx.measureText(text);
             maxTextWidth = Math.min(Math.max(maxTextWidth,metrics.width),c.width-15);
@@ -660,12 +652,10 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                         rectHeight-=20;
                     }
                 }
-                if (examplePowerUp.secondLabel!=''){
-                    if (powerUpSelect){
-                        rectHeight+=30;
-                    }else{
-                        rectHeight+=20;
-                    }
+                if (powerUpSelect){
+                    rectHeight+=(examplePowerUp.labels.length-1)*30
+                }else{
+                    rectHeight+=(examplePowerUp.labels.length-1)*20
                 }
                 for (rect of rectsToDraw){
                     if (rect.isMoveable){
@@ -673,7 +663,7 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                     }
                 }
                 let powerUpPos = new newPoint(Math.max(5,Math.min(mouse.x-(maxTextWidth/2),c.width-(maxTextWidth+5)))-5,Math.max(Math.min(mouse.y-10,c.height),rectHeight)-rectHeight)
-                addRect(powerUpPos,maxTextWidth+10,rectHeight,'white',textToDraw,true);
+                rectsToDraw.push(new newRect(powerUpPos,maxTextWidth+10,rectHeight,'white',textToDraw,true));
             }
         }
     }

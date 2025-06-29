@@ -136,3 +136,14 @@ function isRoundNum(num){
 function minorPriceScaling(numGrabbed){ //this takes in the num of modifiers collected, then gives out a num. Its localized in a function to make adjusting easy
     return Math.pow(2,Math.pow(2,numGrabbed));
 }
+function findAngleDis(angle1,angle2){
+    let dis =Math.abs(angle1-angle2)
+    if (dis>Math.PI){
+        dis = Math.abs(dis-(Math.PI*2))
+    }
+    return dis;
+}
+function refreshNoMoneySign(){
+    audioManager.play('dryClick',{volume:.5});
+    permanentRects.find((checkEntireRect)=>checkEntireRect.type===0).timeLeft=60;
+}

@@ -88,6 +88,11 @@ let dashSpeed = null;
 let circlesToDraw = [];
 let textToDraw = [];
 let rectsToDraw = [];
+let permanentRects = [{
+    timeLeft:0,
+    type:0, //type 0 means the no money sign
+    rect: autoRect(new newPoint(c.width/2,c.height/2),['NOT ENOUGH MONEY'],'48px impact',undefined,false,true)
+}]; //these rects will be added to the rects to draw list every frame
 let bullets = [];
 let bossChainEnemies = []; //this will have every boss in the same list, so it won't work if rooms are skipped
 let guns = [2,6,7,45,48,49];
@@ -166,14 +171,10 @@ pipeCorner.src = 'Tile_Images/Top_Left_Pipe_Corner.png';
 let bulletImage=new Image();
 bulletImage.src='Bullet_test.png';
 playerImages.imagesList=[playerImages.front,playerImages.right,playerImages.back,playerImages.left];
-let targetImage = new Image();
-targetImage.src='Target.png';
 let powerUpIconImage = new Image();
 powerUpIconImage.src = 'powerUpIcon.png';
 let bombImage = new Image();
 bombImage.src = 'Bomb.png';
-let lockImage = new Image();
-lockImage.src = 'Lock.png';
 let shopImage = new Image();
 shopImage.src = 'Shop.png';
 let soulImage = new Image();
@@ -224,6 +225,8 @@ let rerollButton = new newButton((c.width/2)-300,(c.height/2)+140,170,29,'Reroll
         playerEnemyRoom.rerollNum++;
         thisButton.text = 'Reroll for $'+(price+4); //2 is added as the button was just clicked
         playerEnemyRoom.powerUps = []; //resets the power ups. Will be regenerated in the power up select code
+    }else{
+        refreshNoMoneySign();
     }
 },function(thisButton){
     thisButton.color = '#F7F7F7';
@@ -883,7 +886,6 @@ function enemyStatusEffects(enemy){
     }
 }
 function dropEnemyLoot(enemy,mainEnemyRoom,lootMultiplier){
-    //let numMoney = Math.floor(Math.random()*mainEnemyRoom.difficulty);
     let numMoney = Math.floor(Math.random()*(maxMoneyDrop+2)*lootMultiplier);
     for (let i=0;i<numMoney;i++){
         let moneyPos = new newPoint();
@@ -960,6 +962,7 @@ function aimGun(enemy,target,bulletColor,overPowered,enemyRoom,skipRayCast){
     }
     enemy.gunAngle = findAngle(target,enemy);
     if(enemy.gunCooldown<0){
+        audioManager.play('realGun1',{volume:.1});
         //screenShake+=enemy.bulletLength*(2 +(enemy.bulletSpreadNum/5))/60;
         screenShake+=2+(enemy.bulletSpreadNum/5);
         let intersection = undefined;
@@ -1071,6 +1074,7 @@ function bulletEnemyCollision(){
                                 for (effect of bullet.effects){
                                     effect(enemy,bullet);
                                 }
+                                audioManager.play('tap'+Math.ceil(Math.random()*2),{volume:.8}); //the explosion may need to wait a bit to give this time to play if it the final bullet to kill the enemy
                                 continue;
                             }
                         }
@@ -1102,28 +1106,6 @@ function addCircle(point,color,size){
         color:color,
         size:size,
     })
-}
-function addAutoRect(point,texts,font,maxWidth,isMoveable,autoCenter){
-    if (maxWidth===undefined){
-        maxWidth=c.width;
-    }
-    let finalWidth = 1;
-    let finalHeight = 1;
-    let textToDraw = [];
-    ctx.font = font;
-    for (text of texts){
-        let metrics = ctx.measureText(text);
-        let height = metrics.fontBoundingBoxAscent+metrics.fontBoundingBoxDescent;
-        addText(text,new newPoint(5,metrics.fontBoundingBoxAscent+finalHeight),font,'black',maxWidth,textToDraw);
-        if (metrics.width>finalWidth){
-            finalWidth = metrics.width;
-        }
-        finalHeight+=height;
-    }
-    if (autoCenter){
-        point.x=(c.width/2)-((finalWidth+10)/2)
-    }
-    rectsToDraw.push(new newRect(point,finalWidth+10,finalHeight,'white',textToDraw,isMoveable));
 }
 function addText(message,point,font,color,maxWidth,textList){ //the point is just an offset from the rect's point
     if (message===''){
@@ -1385,6 +1367,7 @@ function giveAllPowerUps(){
 function startGame(weaponChoice){
     if (wallsImport===''){
         generateRooms(targetNumOfRooms,10);
+        playerEnemyRoom = enemyRooms[0];
     }
     wallBoxes = generateWallBoxes(2,walls,wallBoxes);//after the room generates, the lag is so much if holding 'w' you can "teleport" into the first room
     for (enemyRoom of enemyRooms){
@@ -1554,14 +1537,15 @@ function challengeRooms(){
     if (playerEnemyRoom!=player.enemyRoom){
         playerEnemyRoom = player.enemyRoom;
         timeSpentInRoom = 0;
+        audioManager.play('ding',{volume:.5});
     }
     challengeRoom = playerEnemyRoom.challengeRoom
     if (timeSpentInRoom<60){
         if (((playerEnemyRoom.roomNum%10)===1||(beatGame&&(playerEnemyRoom.roomNum%5)===1))&&playerEnemyRoom.roomNum!=1){
-            addAutoRect(new newPoint(c.width/2,(c.height/2)-50),['ENEMY DAMAGE UP'],'48px Courier New',undefined,false,true);
+            rectsToDraw.push(autoRect(new newPoint(c.width/2,(c.height/2)-50),['ENEMY DAMAGE UP'],'48px Courier New',undefined,false,true));
         }
         if (challengeRoom!=0){
-            addAutoRect(new newPoint(c.width/2,(c.height/2)+20),['GLITCHED ROOM'],'48px Courier New',undefined,false,true);
+            rectsToDraw.push(autoRect(new newPoint(c.width/2,(c.height/2)+20),['GLITCHED ROOM'],'48px Courier New',undefined,false,true));
         }
     }
     flippedControls=false;
@@ -1645,6 +1629,14 @@ function challengeRooms(){
         }
     }
 }
+function updatePermanenetRects(){
+    for (entireRect of permanentRects){
+        entireRect.timeLeft-=deltaTime;
+        if (entireRect.timeLeft>0){
+            rectsToDraw.push(entireRect.rect);
+        }
+    }
+}
 let frameNum = 0;
 let enemiesToRemove = [];
 let bulletsToRemove = [];
@@ -1681,6 +1673,10 @@ function repeat(){
     if (keys['9']&&devMode){
         giveAllPowerUps();
     }
+    if (keys['0']&&devMode){
+        powerUpsGrabbed = [new newPowerUpPreset(34,false),new newPowerUpPreset(34,false)];
+        minorPowerUpsGrabbed = [];
+    }
     updatePlayerStats();
     challengeRooms();
     findPlayerGunAngle();
@@ -1693,6 +1689,7 @@ function repeat(){
         //enemy.enemyRoom=mainEnemyRoom;
     }*/
     enemyMovement(enemiesToRemove);
+    enemySounds();
     updateShopPos();
     if (!(keysToggle['n']&&devMode)){
         fullEnemyWallColl();
@@ -1758,10 +1755,16 @@ function repeat(){
         for (let i=0;i<40;i++){
             particles.push(new newParticle(player.x,player.y,7,player.defaultColor,0,new newPoint((Math.random()-.5)*20,(Math.random()-.5)*20),1.05));
         }
-        timerGo = false;
-        //enemiesToRemove.push(player);
-        player.size=0;
-        switchMode(6);
+        audioManager.play('explosion',{volume:.7});
+        if (!devMode){ //stops you from dieing in dev mode
+            timerGo = false;
+            //enemiesToRemove.push(player);
+            player.size=0;
+            switchMode(6);
+            if (bgMusicRef!=null){ //i think this means the tab is muted
+                bgMusicRef.source.stop();
+            }
+        }
     }
 }
 function switchMode(modeTarget){
@@ -1836,6 +1839,25 @@ function updateControllerMouse(){
         }
     }
 }
+function editorCamControl(){
+    let camSpeed=10;
+    if (keys[' ']){
+        camSpeed*=10;
+    }
+    if(keys['w']){
+        camTarget.y-=camSpeed;
+    }
+    if(keys['s']){
+        camTarget.y+=camSpeed;
+    }
+    if(keys['a']){
+        camTarget.x-=camSpeed;
+    }
+    if(keys['d']){
+        camTarget.x+=camSpeed;
+    }
+    camControl(false,camTarget);
+}
 function repeat2(){
     if (timerGo){
         timer+=deltaTime;
@@ -1864,6 +1886,10 @@ function repeat2(){
         switchMode(3);
     }
     if (mode===0||mode===4){
+        checkPowerUps();
+        if (shop.inShop){
+            checkShopItemSelect();
+        }
         repeat();
         renderEverything(keys['g']&&devMode,cam);
         drawHUD();
@@ -1883,24 +1909,7 @@ function repeat2(){
             drawHUD();
         }
     }else if (mode===2){
-        let camSpeed=10;
-        if (keys[' ']){
-            camSpeed*=10;
-        }
-        if(keys['w']){
-            camTarget.y-=camSpeed;
-        }
-        if(keys['s']){
-            camTarget.y+=camSpeed;
-        }
-        if(keys['a']){
-            camTarget.x-=camSpeed;
-        }
-        if(keys['d']){
-            camTarget.x+=camSpeed;
-        }
-        camControl(false,camTarget);
-        //mouseShifted = new newPoint(((mouse.x+10)/cam.zoom)+(cam.x),((mouse.y/cam.zoom)+cam.y));
+        editorCamControl();
         mouseShifted.x=((mouse.x+10)/cam.zoom)+(cam.x);
         mouseShifted.y=((mouse.y/cam.zoom)+cam.y);
         editor();
@@ -1908,24 +1917,7 @@ function repeat2(){
         updateWallsList(walls);
         updateTilesList(savedwallBoxes,tilesExport);
     }else if (mode===3){
-        let camSpeed=10;
-        if (keys[' ']){
-            camSpeed*=10;
-        }
-        if(keys['w']){
-            camTarget.y-=camSpeed;
-        }
-        if(keys['s']){
-            camTarget.y+=camSpeed;
-        }
-        if(keys['a']){
-            camTarget.x-=camSpeed;
-        }
-        if(keys['d']){
-            camTarget.x+=camSpeed;
-        }
-        camControl(false,camTarget);
-        //mouseShifted = new newPoint(((mouse.x+10)/cam.zoom)+(cam.x),((mouse.y/cam.zoom)+cam.y));
+        editorCamControl();
         mouseShifted.x=((mouse.x+10)/cam.zoom)+(cam.x);
         mouseShifted.y=((mouse.y/cam.zoom)+cam.y);
         if (keysUsed['b']){
@@ -1989,22 +1981,20 @@ function repeat2(){
             startGame(9);
         }
     }else if(mode===8){
-        /*if (controller!=undefined){
-            if (controller.buttons[7].pressed||controller.buttons[6].pressed){
-                mousePressed = true;
-                mouseClickUsed = true;
-            }
-        }*/
         camControl(true,player,false,true,false,0);
         moveParticles();
         if (keys['9']&&devMode){
             giveAllPowerUps();
         }
         updatePlayerStats();
+        if (player.health>player.maxHealth){
+            player.health=player.maxHealth;
+        }
         renderEverything(false,cam);
         if (particles.length===0){
             powerUpSelect();
         }
+        checkPowerUps();
         drawHUD();
         if (controller!=undefined&&mouse.show){
             drawMouse();
@@ -2048,5 +2038,33 @@ let startTime = Date.now();
 //let oldWalls = JSON.parse(JSON.stringify(walls))
 const targetFPS = 30;
 const targetRenderFPS = 60;
-startGame(0);//this is to skip the rest and start you with no weapon
-setInterval(repeat3,1000/targetRenderFPS);
+
+const audioManager = new AudioManager();
+function finalStart(){
+    startGame(0);//this is to skip the rest and start you with no weapon
+    setInterval(repeat3,1000/targetRenderFPS);
+}
+
+audioManager.loadAll({ //makes sure the audio is loaded before continuing
+    nailGun: 'Nail_Gun.m4a', //atribution 3.0(gilly11)
+    realGun1: 'Gun_Shot.m4a', //creative commons 0
+    song: 'Background_Song.m4a', //creative commons 0
+    crunch1: 'Crunch1.m4a', //creative commons 0
+    crunch2: 'Crunch2.m4a', //creative commons 0
+    bloop: 'bloop.m4a', //atribution 3.0(fawful grox)
+    woodHit1: 'Audio_Wood_Hits/Wood_Hit1.m4a', //atribution 3.0(mivori)
+    woodHit2: 'Audio_Wood_Hits/Wood_Hit2.m4a', //atribution 3.0(mivori)
+    woodHit3: 'Audio_Wood_Hits/Wood_Hit3.m4a', //atribution 3.0(mivori)
+    woodHit4: 'Audio_Wood_Hits/Wood_Hit4.m4a', //atribution 3.0(mivori)
+    woodHit5: 'Audio_Wood_Hits/Wood_Hit5.m4a', //atribution 3.0(mivori)
+    softExplosion: 'Soft_Explosion.m4a', //attribution 4.0 (funhouse)
+    //tap1: 'Audio_Taps/tap1.m4a', //creative commons 0
+    //tap2: 'Audio_Taps/tap2.m4a', //creative commons 0
+    tap1: 'Audio_Taps/Better_Tap1.m4a', //Attribution Noncommercial 4.0(NahlotGrohiik)
+    tap2: 'Audio_Taps/Better_Tap2.m4a', //Attribution Noncommercial 4.0(NahlotGrohiik)
+    explosion: 'Explosion.m4a', //creative commons 0
+    coinClinking1: 'Coin_Clinking.m4a', //Attribution Noncommercial 4.0(2100385_Joshua_Blignaut)
+    coinClinking2: 'Coin_Clinking2.m4a', //Attribution Noncommercial 4.0(2100385_Joshua_Blignaut)
+    ding: 'Ding.m4a', //creative commons 0 (although it is remix of freesound 91926 which is atribution 4.0(tim.kahn))
+    dryClick: 'Dry_Click.m4a', //creative commons 0
+}).then(()=>finalStart());

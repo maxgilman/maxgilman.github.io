@@ -1,4 +1,5 @@
 function renderEverything(skipPlayers,camera){
+    updatePermanenetRects();
     waterBullets = [];
     drawBackground();
     //the camera mechanic is unfinished and probally doesn't work cause variables share names
@@ -466,31 +467,29 @@ function drawParticles(){
 }
 function drawBorder(){
     let screenRoomPos = new newPoint(0,0);
-    let borderColor = ['#FF0000','#FF0000','#C00000','#7F0000','#400000'][Math.floor(player.health)];
-    if (borderColor===undefined){//player.health was greater than 4
-        borderColor = 'black';
+    let healthRatio = Math.max(Math.min(Math.round(255*((-player.health/Math.max(player.maxHealth/2,5))+1)),255),0);
+    let borderColor = healthRatio.toString(16); //converts the numbet to hex
+    if (borderColor.length===1){
+        borderColor= '0'+borderColor;
     }
+    borderColor = '#'+borderColor+'0000';
+
     ctx.fillStyle = ctx.createLinearGradient(0, screenRoomPos.y, 0, screenRoomPos.y+doorLength);//top
     ctx.fillStyle.addColorStop(0, borderColor);
-    ctx.fillStyle.addColorStop(1, "rgb(0 0 0 / 0%)");
+    ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x, screenRoomPos.y, roomWidth+(doorLength*2), doorLength);
     ctx.fillStyle = ctx.createLinearGradient(0, screenRoomPos.y+roomHeight+(doorLength*2), 0, screenRoomPos.y+roomHeight+doorLength);//bottom
     ctx.fillStyle.addColorStop(0, borderColor);
-    ctx.fillStyle.addColorStop(1, "rgb(0 0 0 / 0%)");
+    ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x, screenRoomPos.y+roomHeight+doorLength, roomWidth+(doorLength*2), doorLength);
     ctx.fillStyle = ctx.createLinearGradient(screenRoomPos.x, 0, screenRoomPos.x+doorLength, 0);//left
     ctx.fillStyle.addColorStop(0, borderColor);
-    ctx.fillStyle.addColorStop(1, "rgb(0 0 0 / 0%)");
+    ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x, screenRoomPos.y, doorLength, roomHeight+(doorLength*2));
     ctx.fillStyle = ctx.createLinearGradient(screenRoomPos.x+roomWidth+(doorLength*2), 0, screenRoomPos.x+roomWidth+doorLength, 0);//right
     ctx.fillStyle.addColorStop(0, borderColor);
-    ctx.fillStyle.addColorStop(1, "rgb(0 0 0 / 0%)");
+    ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x+roomWidth+doorLength, screenRoomPos.y, doorLength, roomHeight+(doorLength*2));
-    /*for (enemyRoom of enemyRooms){
-        let roomPos = turnRoomIntoRealPos(enemyRoom);
-        let screenRoomPos = offSetByCam(roomPos);
-       
-    }*/
 }
 function drawShopItemSelect(){
     ctx.save();
@@ -510,36 +509,12 @@ function drawShopItemSelect(){
     text = 'Then Drag it into a Mouse Button Slot';
     stats = ctx.measureText(text);
     ctx.fillText(text,(c.width/2)-(stats.width/2),2*c.height/3);
-    let enemyRoomIndex =findEnemyRoomIndex(player);
-    let enemyRoom = enemyRooms[enemyRoomIndex];
-    let powerUps=enemyRoom.shopPowerUps;
-    if (powerUps.length===0){
-        while (powerUps.length<3){
-            let powerUpType = eligibleMajorPowerUps[Math.floor(Math.random()*eligibleMajorPowerUps.length)];
-            //this is a easy, bad way to do this, better would be to do like room generation power ups
-            if (undefined!=powerUps.find((examplePowerUp)=>examplePowerUp.PFType===powerUpType)){
-                continue;
-            }
-            powerUps.push(newPowerUpPreset(powerUpType,true));
-        }
-    }
+    let powerUps = playerEnemyRoom.shopPowerUps;
     for(let i=0;i<powerUps.length;i++){
         let iconPos=new newPoint((3*c.width/4)-(200*i)-200,c.height/2);
         let examplePowerUp = powerUps[i];
-        let onClick = function(i,powerUpList){
-            if (money>=powerUpList[i].price&&heldPowerUp===null){
-                heldPowerUp=powerUpList.splice(i,1,newPowerUpPreset(34,false))[0];
-                money-=heldPowerUp.price;
-            }
-        }
         if (examplePowerUp.PFType!=34){
-            if (player.enemyRoom.roomNum>0){
-                showHUD.minorPowerUps=true;
-            }
-            if (player.enemyRoom.roomNum>1){
-                showHUD.sellButton=true;
-            }
-            drawPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,false,true);
+            drawPowerUp(examplePowerUp,i,12,iconPos.x,true);
         }
     }
 }
@@ -561,7 +536,7 @@ function drawCircle(x,y,color,doNotFollowCam,size){
     ctx.stroke();
     ctx.restore();
 }
-function drawRects(){ //should add support for having boxes that have arcs on the corners, to round the corners
+function drawRects(){ //should add support for having boxes that rounded corners. Use roundRect
     for (rect of rectsToDraw){
         drawRect(rect,false,false);
     }
@@ -603,12 +578,11 @@ function drawRect(rect,isButton,buttonClicked){
         ctx.fillStyle = text.color;
         ctx.fillText(text.message,text.x+rect.x+textOffset.x,text.y+rect.y+textOffset.y,text.maxWidth);
         if (drawExtra){ //makes sure the message is not this one. Stops recursion
-            addAutoRect(addToPoint(rect,rect.width+5,0),['All Guns:'].concat(gunsLabels),text.font,undefined,false,false);
+            rectsToDraw.push(autoRect(addToPoint(rect,rect.width+5,0),['All Guns:'].concat(gunsLabels),text.font,undefined,false,false));
         }
     }
 }
 function drawMouse(){
-    //ctx.drawImage(targetImage,mouse.x,mouse.y-10);
     ctx.drawCircle(mouse.x,mouse.y,'grey',true,10);
     //add a plus to make it look like a screw
 }

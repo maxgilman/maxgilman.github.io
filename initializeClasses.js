@@ -62,9 +62,9 @@ class newMajorPowerUp{
         this.bulletKillPower=bulletKillPower;
         if (price===undefined){
             if (guns.includes(PFType)){
-                price=3;
+                price=5;
             }else{
-                price=2;
+                price=3;
             }
         }
         this.price=price;
@@ -77,6 +77,8 @@ class newMajorPowerUp{
         this.earlyBulletEffects = []; //these get added to the beggining of the effects list
         this.extraOnClickEffects = [];
         this.image = new Image();
+        this.soundEffect = 'nailGun';
+        this.soundVolume = .5;
     }
 }
 class newMinorPowerUp{
@@ -208,6 +210,7 @@ class newEnemy {
         this.statusEffects = []; //this is the effects EX: Shocked or on fire that is on the player format: {type:x,timeLeft:y}
         this.timer1 = 0; //this can time whatever the enemy needs to time
         this.timer2 = 0;
+        this.soundTimer = 0; //can be used however
         this.enemyRoomEnemyLink = undefined; //enemies can set this to always link their enemyRoom to whatever room another enemy is in (most likely linked to the player)
     }
 }
@@ -297,6 +300,7 @@ class newBullet {
             }
         }
         this.deleted = false;
+        this.timer1 = 0;
     }
 }
 class newWall {

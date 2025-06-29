@@ -319,7 +319,6 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     if (roomNum===-1){ //starting room
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,150),14,0,'Move with WASD'));
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,200),14,0,'Press 1 to be a Sweat'));
-        enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2,250),14,0,'Stealth (Big time)'));
     }
     if (roomNum===targetNumOfRooms-2&&!bossRush){ //final room
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2+roomPos.x,200+roomPos.y),14,0,'You am become death'));

@@ -1,3 +1,36 @@
+function findRoomChange(enemy){
+    let roomChange=new newPoint(0,0);
+    let z = enemy.x%(roomWidth+(2*doorLength));
+    //let u = (roomWidth+(2*doorLength))/(doorLength*2);
+    if (z>roomWidth/2){
+        z-=roomWidth+(2*doorLength);
+    }else if (z<-((2*doorLength)+(roomWidth/2))){
+        z-=roomWidth+(2*doorLength);
+    }
+    if (z<0&&z>=-doorLength){
+        roomChange.x--;
+        enemy.inDoorWay=true;
+    }else if(z<-doorLength&&z>-doorLength*2){
+        roomChange.x++;
+        enemy.inDoorWay=true;
+    }
+    
+    z = enemy.y%(roomHeight+(2*doorLength));
+    u = (roomHeight+(2*doorLength))/(doorLength*2);
+    if (z>roomHeight/2){
+        z-=roomHeight+(2*doorLength);
+    }else if (z<-((2*doorLength)+(roomHeight/2))){
+        z-=roomHeight+(2*doorLength);
+    }
+    if (z<0&&z>=-doorLength){
+        roomChange.y--;
+        enemy.inDoorWay=true;
+    }else if(z<-doorLength&&z>-doorLength*2){
+        roomChange.y++;
+        enemy.inDoorWay=true;
+    }
+    return roomChange
+}
 function enemyMovement(enemiesToRemove,skipPlayer){
     let start = floorPoint(player,boxSize);
     dashCooldown-=deltaTime;
@@ -7,36 +40,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
 
     player.inDoorWay=false;
     //this makes it so if the player is in a doorway, both rooms are loaded
-    let roomChange=new newPoint(0,0);
-    let z = player.x%(roomWidth+(2*doorLength));
-    //let u = (roomWidth+(2*doorLength))/(doorLength*2);
-    if (z>roomWidth/2){
-        z-=roomWidth+(2*doorLength);
-    }else if (z<-((2*doorLength)+(roomWidth/2))){
-        z-=roomWidth+(2*doorLength);
-    }
-    if (z<0&&z>=-doorLength){
-        roomChange.x--;
-        player.inDoorWay=true;
-    }else if(z<-doorLength&&z>-doorLength*2){
-        roomChange.x++;
-        player.inDoorWay=true;
-    }
-    
-    z = player.y%(roomHeight+(2*doorLength));
-    u = (roomHeight+(2*doorLength))/(doorLength*2);
-    if (z>roomHeight/2){
-        z-=roomHeight+(2*doorLength);
-    }else if (z<-((2*doorLength)+(roomHeight/2))){
-        z-=roomHeight+(2*doorLength);
-    }
-    if (z<0&&z>=-doorLength){
-        roomChange.y--;
-        player.inDoorWay=true;
-    }else if(z<-doorLength&&z>-doorLength*2){
-        roomChange.y++;
-        player.inDoorWay=true;
-    }
+    let roomChange = findRoomChange(player);
     for (mainEnemyRoom of enemyRooms){
         if(!sameRoomPos(mainEnemyRoom,player.room)&&!sameRoomPos(mainEnemyRoom,addTwoPoints(player.room,roomChange))){
             continue;
@@ -57,12 +61,14 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 }
                 if (enemy.PFType===37||enemy.PFType===11||enemy.PFType===15||enemy.PFType===12){//bosses
                     for (let i=0;i<40;i++){
-                        particles.push(new newParticle(enemy.x,enemy.y,7,enemy.defaultColor,0,new newPoint((Math.random()-.5)*15,(Math.random()-.5)*15),1.1));
+                        particles.push(new newParticle(enemy.x,enemy.y,7,enemy.defaultColor,0,addTwoPoints(randomVector(8),enemy.momentum),1.1));
                     }
+                    audioManager.play('explosion',{volume:.5});
                 }else{
                     for (let i=0;i<20;i++){
-                        particles.push(new newParticle(enemy.x,enemy.y,5,enemy.defaultColor,0,new newPoint((Math.random()-.5)*20,(Math.random()-.5)*20),1.3));
+                        particles.push(new newParticle(enemy.x,enemy.y,5,enemy.defaultColor,0,addTwoPoints(randomVector(10),enemy.momentum),1.3));
                     }
+                    audioManager.play('softExplosion',{volume:.3});
                 }
                 //if (undefined===enemiesToRemove.find((enemyCheck)=>enemyCheck===enemy)){
                     enemiesToRemove.push(enemy);
@@ -128,7 +134,9 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                     enemy.y-=Math.cos(enemyAngle)*enemy.speed;
                 }
             }else if (enemy.PFType===1&&!skipPlayer){
-                playerMovement(enemy,mainEnemyRoom);
+                if (frameNum>2){
+                    playerMovement(enemy,mainEnemyRoom);
+                }
             }else if (enemy.PFType===2){
                 enemy.x=enemy.originalCopy.x; //this locks the enemy in place
                 enemy.y=enemy.originalCopy.y;
@@ -149,7 +157,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                 //guard
                 if (enemy.timer1===0){
                     if (player.y<enemy.y){
-                        enemy.targetSpeed=5;
+                        enemy.targetSpeed=2;
                         let baseTarget = new newPoint(Math.max(Math.min(player.x,roomWidth-60),60),player.y-10);
                         if (player.PFType!=0){
                             enemy.target = addToPoint(baseTarget,-30,0);
@@ -202,7 +210,7 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                         enemy.x-=Math.sin(enemyAngle)*enemy.speed;
                         enemy.y-=Math.cos(enemyAngle)*enemy.speed;
                         if (textToDraw.length===0&&enemy.timer2!=0&&heldPowerUp===null){
-                            addAutoRect(new newPoint(c.width/2,3*c.height/4),['Hold to Shoot Continuously'],'32px Courier New',undefined,false,true);
+                            rectsToDraw.push(autoRect(new newPoint(c.width/2,3*c.height/4),['Hold to Shoot Continuously'],'32px Courier New',undefined,false,true));
                         }
                     }
                 }
@@ -255,8 +263,8 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                     //addCircle(expectedPlayerPos,'blue',20);
                     enemy.direction = findAngle(expectedPlayerPos,enemy);
                     enemy.gunCooldown=enemy.gunCoolDownMax-0.01;
-                    if (enemy.timer1>3){
-                        enemy.timer1=0;
+                    if (enemy.timer1>enemy.timer2){
+                        enemy.timer1=0; //the number of dashes since last summoned enemy
                         playerEnemyRoom.enemies.push(newEnemyPreset(dupPoint(enemy),findRandomEnemy(mainEnemyRoom.roomNum,mainEnemyRoom.difficulty),findEnemyDamage(mainEnemyRoom.roomNum,beatGame),'',mainEnemyRoom.difficulty,player));
                     }
                 }
@@ -419,6 +427,7 @@ function pathfindingMovement(enemy,mainEnemyRoom){
         //}
     }
 }
+let bgMusicRef = null; //this will be a reference to the background music
 function playerMovement(enemy,mainEnemyRoom){
     enemy.timer1-=deltaTime/2;//go down a frame in the charging animation
     let enemyRoom = mainEnemyRoom.enemies;
@@ -442,29 +451,18 @@ function playerMovement(enemy,mainEnemyRoom){
         enemy.y-=Math.cos(dashDirection)*dashSpeed;*/
         enemy.color='red';
     }else{
+        let isFirstMovement = false;
         if(keys['w']){
             movementTarget.y--;
-            if (isSamePoint(player,player.originalCopy)){
-                timerGo=true;
-            }
         }
         if(keys['s']){
             movementTarget.y++;
-            if (isSamePoint(player,player.originalCopy)){
-                timerGo=true;
-            }
         }
         if(keys['a']){
             movementTarget.x--;
-            if (isSamePoint(player,player.originalCopy)){
-                timerGo=true;
-            }
         }
         if(keys['d']){
             movementTarget.x++;
-            if (isSamePoint(player,player.originalCopy)){
-                timerGo=true;
-            }
         }
         if (controller!=undefined){
             let axes = controller.axes;
@@ -477,6 +475,10 @@ function playerMovement(enemy,mainEnemyRoom){
         }
         if (flippedControls){
             movementTarget = multiplyPoint(movementTarget,-1);
+        }
+        if (isSamePoint(player,player.originalCopy)&&!isSamePoint(new newPoint(0,0),movementTarget)){ //this means it's the first movement
+            timerGo = true;
+            bgMusicRef = audioManager.play('song',{loop:true, volume:.1}); //slow it down and speed it up during the fast and slow challenge rooms
         }
     }
     let movementAngle = findAngle(new newPoint(0,0),movementTarget);
@@ -675,9 +677,7 @@ function gunEnemyMovement(target){
                     let examplePowerUp=powerUpsGrabbed[j];
                     if (runCode){
                         examplePowerUp.onClickEffect(enemy,examplePowerUp,gunAngle);
-                        /*if (examplePowerUp.sound.src!=''){
-                            playSound(examplePowerUp.sound);
-                        }*/
+                        audioManager.play(examplePowerUp.soundEffect,{volume:examplePowerUp.soundVolume});
                         for (clickEffect of examplePowerUp.extraOnClickEffects){
                             clickEffect(enemy,examplePowerUp,gunAngle);
                         }
@@ -748,4 +748,26 @@ function gunEnemyMovement(target){
 }
 function findBulletColor(damage){
     return ['blue','#00FF00','#E000FF','#C500E1','#9D00B3','#750086','#860078','#86004F'][Math.round(Math.log2(damage))];
+}
+function enemySounds(){
+    let roomChange = findRoomChange(player);
+    for (enemyRoom of enemyRooms){
+        if(!sameRoomPos(enemyRoom,player.room)&&!sameRoomPos(enemyRoom,addTwoPoints(player.room,roomChange))){
+            continue;
+        }
+        for (enemy of enemyRoom.enemies){
+            switch(enemy.PFType){
+                case 8: //guard
+                    if (enemy.soundTimer===0){
+                        enemy.soundTimer=Math.random()*10;
+                    }
+                    enemy.soundTimer+=findDis(enemy,enemy.lastPosition); //speed already has deltatime accounted for in it
+                    if (enemy.soundTimer>20){
+                        enemy.soundTimer-=20;
+                        audioManager.play('woodHit'+(Math.ceil(Math.random()*5)),{volume:.3});
+                    }
+                    break
+            }
+        }
+    }
 }

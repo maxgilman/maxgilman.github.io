@@ -226,20 +226,37 @@ fix art
     enemies should be holding weapons
     souls image is too complex? can't see it while it's moving, too blurry
     backgrounds
+Sound Ideas:
+    Each bullet has a sound that plays on enemy hit. There is a default in the class but it can be changed
+    Each bullet has a sound that plays on wall hit. There is a default in the class but it can be changed
+    different sound when you get hit so the player registers it
+    Each ability needs a different firing sound
+        dash
+        grapple hook
+        grenade launcher
+        heal 1HP
+        push everything away(finish animation first)
+        shotgun
+        sniper
+        lightning staff
+        full heal
+        summon souls
+        black hole launcher
+        pulverizor
+        ice staff
+    player walking
+    sound when the doors close(check bookmarked sounds in freesound)
+    bomb exploding(make sure its not obnoxious on the bomb enemy room)
+    zap sound every time the elec effect is triggered on an enemy
 make elemental combos with items
-make moving stuff in the menus not shoot the gun
 gun moves back into you like it's got kick
 make a message pop up if you try to buy something without enough money(maybe make the rects have a time they stay up for)
 make the menus actually work with controllers, not just copying the mouse
 make a controller last frame to consolidate the different variables
 bullets have particle when hitting a wall or enemy
-things to improve the mouse
-    make the power ups screws
-    make the power ups usb sticks
-    replace the mouse with two arms that repersanet the robots arms
 getting a major power up from the first power up select may be sending a mixed message compared to you always getting a minor in every single later one. Maybe have it drop onto you and you pick it up and equip it
 shop only appears affter bosses?
-change the mouse icon to look good and not be a target since you're not shooting at it
+change the mouse icon to look good
 add an controller option to shoot at the mouse
 make black hole gun deal damage
 make more things you can do with the souls
@@ -256,8 +273,19 @@ make each gun have an offset to make the bullet come out of the gun barrel? Migh
 maybe add a catlog where you can chose any weapon, and if you use a debuff the next room, you get the weapon
     or maybe after beating a boss you just get any weapon you want
 add a way to replay a room at 4X difficulty to get another modifier
-Gun of crippling debt: really strong. Shouts money.(takes money to shoot). You don't need to have the money to shoot it, but you can go into immense amounts of debt
+Gun of crippling debt: really strong. Shoots money.(takes money to shoot). You don't need to have the money to shoot it, but you can go into immense amounts of debt
 organize the files. Put more things in folders
+optimazation ideas:
+    made pathfinding a pregenerated web of nodes
+    have seperate canvases for HUD and background? Just something so everything isn't drawn every frame
+    stop playing sound effects if too many are called? This may not work
+    fix enemy collision calling the same function to do the same math twice
+    make debug options to see how much of the frame is spent doing what, then go from there
+    use request animation frame instead of on interval?
+    replace ctx.save and restore with setTransform
+    draw less images? this may not be feasible
+    make things draw on the pixel so they don't need to be blurred/anti-aliased
+    remove transparent things?
 
 add arrow or something like a glow showing where to go. Or something showing where to NOT go(maybe walls)
 

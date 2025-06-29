@@ -21,7 +21,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower),20,'pink',0,target,60,1+(enemyPower*3),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health-=thisEnemy.damage;
-                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                    touchedEnemy.invinceable=Math.max(touchedEnemy.maximumInvinceable,10);
                 }
             });
             enemy.damage=power;
@@ -31,19 +31,19 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.timer1=-1;
         break
         case 2:
-            enemy = new newEnemy(pos.x,pos.y,0,30,'black',2,target,75-(enemyPower),1.4+(enemyPower/2),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
+            enemy = new newEnemy(pos.x,pos.y,0,30,'black',2,target,Math.max(3,75-(enemyPower)),1.4+(enemyPower/2),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20);
             enemy.damage=power;
         break
         case 3:
-            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'grey',3,target,30-(enemyPower*2.5),3+(enemyPower/5),'',undefined,undefined,undefined,1,undefined,undefined,undefined,undefined,50);
+            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/2),20,'grey',3,target,Math.max(3,30-(enemyPower*2.5)),3+(enemyPower/5),'',undefined,undefined,undefined,1,undefined,undefined,undefined,undefined,50);
             enemy.damage=power;
         break
         case 4:
-            enemy = new newEnemy(pos.x,pos.y,3,20,'green',4,target,45-(enemyPower*3),(2*Math.pow(2,enemyPower/3)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20+enemyPower);
+            enemy = new newEnemy(pos.x,pos.y,3,20,'green',4,target,Math.max(3,45-(enemyPower*3)),(2*Math.pow(2,enemyPower/3)),'',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,20+enemyPower);
             enemy.damage=power;
         break
         case 5:
-            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/3),20,'lime',5,target,70-(enemyPower*3),1+(2*Math.pow(2,enemyPower/4)),'');
+            enemy = new newEnemy(pos.x,pos.y,3+(enemyPower/3),20,'lime',5,target,Math.max(3,70-(enemyPower*3)),1+(2*Math.pow(2,enemyPower/4)),'');
             enemy.damage=power;
         break
         case 6:
@@ -63,6 +63,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                         touchedEnemy.health+=1;
                     }
                     enemiesToRemove.push(thisEnemy);
+                    audioManager.play('bloop',{volume:1});
                 }
             })
         break
@@ -75,7 +76,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy = new newEnemy(pos.x,pos.y,.5,10,'#900FBE',PFType,target,Infinity,1,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if (touchedEnemy.team!=thisEnemy&&touchedEnemy.team===1){
                     touchedEnemy.health-=thisEnemy.damage;
-                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                    touchedEnemy.invinceable=Math.max(touchedEnemy.maximumInvinceable,10);
                     enemiesToRemove.push(thisEnemy);
                 }
             },undefined,undefined,undefined,undefined,undefined,undefined,enemyPower);
@@ -83,7 +84,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy.timer1=Math.random()*Math.PI*2; //the angle the souls are around you. Set again by the power up
         break
         case 10:
-            enemy = new newEnemy(pos.x,pos.y,2+(enemyPower),20,'magenta',10,target,60-(enemyPower*2),4);
+            enemy = new newEnemy(pos.x,pos.y,2+(enemyPower),20,'magenta',10,target,Math.max(3,60-(enemyPower*2)),4);
             enemy.damage=power;
         break
         case 11:
@@ -91,24 +92,27 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy = new newEnemy(pos.x,pos.y,30+(enemyPower),40,'#4C5C7D',11,target,40-(2*enemyPower/3),roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health-=thisEnemy.damage;
-                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                    touchedEnemy.invinceable=Math.max(touchedEnemy.maximumInvinceable,10);
                 }
             });
             enemy.gunCooldown = enemy.gunCoolDownMax; //the enemy has a full length first dash
             enemy.direction = (Math.PI/4)+((Math.PI/2)*Math.floor(Math.random()*4)); //the bosses first dash is diagonol, away from the player but you still learn what it does
             enemy.damage=power;
-            enemy.timer1 = 3; //this makes the first dash summon an enemy
-            //enemy.timer2 = 2; //this would control how many dashs it takes to summon an enemy
+            enemy.timer1 = 4; //this makes the first dash summon an enemy
+            enemy.timer2 = Math.min(3,5-(enemyPower/5)); //the number of dashes needed to summon an enemy. Can't be more than 3
         break
         case 12:
             //teleporting boss
-            enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,70-(enemyPower),roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
+            enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',12,target,70-(enemyPower*1.8),roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){});
             enemy.bulletSpeed=20;
             enemy.damage=power;
         break
         case 13://portal to the boss rush
             enemy = new newEnemy(pos.x,pos.y,0,40,'#00FFBA',PFType,target,0,Infinity,'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if (touchedEnemy===player&&thisEnemy.timer1<0&&undefined===touchedEnemy.enemyRoom.enemies.find((enemyCheck)=>enemyCheck.team===1)){
+                    if (bgMusicRef!=null){ //i think this means the tab is muted
+                        bgMusicRef.source.stop();
+                    }
                     enemyRooms = [];
                     player.x = roomWidth/2;
                     player.y = roomHeight-200;
@@ -124,7 +128,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 }
             });
             enemy.team=2;
-            enemy.timer1=120;
+            enemy.timer1=30;
         break
         case 14:
             //placeholder for text
@@ -139,18 +143,19 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                 if (touchedEnemy.PFType===1){
                     money++;
                     enemiesToRemove.push(thisEnemy);
+                    audioManager.play('bloop',{volume:1});
                 }
             });
         break
         case 17:
-            enemy = new newEnemy(pos.x,pos.y,2+(enemyPower/2),20,'turquoise',17,target,45-(enemyPower*3),1+(3*Math.pow(2,enemyPower/3)),'');
+            enemy = new newEnemy(pos.x,pos.y,2+(enemyPower/2),20,'turquoise',17,target,Math.max(3,45-(enemyPower*3)),1+(3*Math.pow(2,enemyPower/3)),'');
             enemy.damage=power;
         break
         case 18:
             enemy = new newEnemy(pos.x,pos.y,3+(enemyPower*1.5),20,'#800020',0,target,60,1+(enemyPower),'',function(touchedEnemy,thisEnemy,enemiesToRemove,alreadyRan){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy===thisEnemy.target)){
                     touchedEnemy.health-=thisEnemy.damage;
-                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                    touchedEnemy.invinceable=Math.max(touchedEnemy.maximumInvinceable,);
                 }
             });
             enemy.damage=power;
@@ -173,7 +178,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
                             touchedEnemy.health+=thisEnemy.damage;
                         }else if (touchedEnemy.team!=thisEnemy.team){
                             touchedEnemy.health-=thisEnemy.damage;
-                            touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                            touchedEnemy.invinceable=Math.max(touchedEnemy.maximumInvinceable,10);
                         }
                         let angle = findAngle(thisEnemy,touchedEnemy);
                         touchedEnemy.momentum.x-=Math.sin(angle)*13;
@@ -191,7 +196,7 @@ function newEnemyPreset(pos,PFType,power,message,enemyPower,target){
             enemy = new newEnemy(pos.x,pos.y,5+(enemyPower/2),40,'pink',37,target,Infinity,roundTo(1+(10*Math.pow(2,enemyPower/1.5)),35),'',function(touchedEnemy,thisEnemy,enemiesToRemove){
                 if ((touchedEnemy.invinceable<1)&&(touchedEnemy.team!=thisEnemy.team)&&touchedEnemy.team!=2){
                     touchedEnemy.health-=thisEnemy.damage;
-                    touchedEnemy.invinceable=touchedEnemy.maximumInvinceable+10;
+                    touchedEnemy.invinceable=Math.max(10,touchedEnemy.maximumInvinceable);
                 }
             },3);
             bossChainEnemies.push(enemy);

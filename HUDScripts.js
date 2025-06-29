@@ -128,10 +128,9 @@ function drawPermanentSlots(permanentLeftX){
         keysUsed[' ']=false;
     }*/
     let maximumTop = c.height-5;
-    let totalSlotNum = permanentMinorPowerUps.length+minorPowerUpSpace;
-    let horizontalSlots = Math.max(totalSlotNum-screenPowerUpHeight,-1);
+    let horizontalSlots = Math.max(minorPowerUpSpace-screenPowerUpHeight,-1);
     let permanentBottomY = maximumTop-10-((screenPowerUpHeight)*30); //Slots may be better to draw everything in a slot to avoid this fiddling
-    let permanentTopY = Math.min(permanentBottomY+((totalSlotNum+1)*30),maximumTop/*permanentBottomY+((screenPowerUpHeight)*30)*/);
+    let permanentTopY = Math.min(permanentBottomY+((minorPowerUpSpace+1)*30),maximumTop/*permanentBottomY+((screenPowerUpHeight)*30)*/);
     let permanentMidX = permanentLeftX+15;
     ctx.beginPath();
     ctx.arc(permanentMidX,(c.height+10)-permanentBottomY,20,0,Math.PI*2);
@@ -146,7 +145,7 @@ function drawPermanentSlots(permanentLeftX){
     ctx.fill();
     ctx.fillStyle='white';
     let i=0;
-    while (i<totalSlotNum){
+    while (i<minorPowerUpSpace){
         ctx.beginPath();
         ctx.arc(permanentMidX+Math.max(0,(((i-screenPowerUpHeight))*30)),c.height-(20)-((Math.min(i,screenPowerUpHeight)+.5)*30),13,0,Math.PI*2);
         ctx.fill();
@@ -161,16 +160,6 @@ function drawPermanentSlots(permanentLeftX){
     let metrics = ctx.measureText(message);
     let width = Math.min(metrics.width,30);
     ctx.fillText(message,permanentLeftX+Math.max(0,(((i-screenPowerUpHeight))*30))-(width/2)+15,c.height+25-permanentTopY,width);
-
-    /*ctx.beginPath();
-    ctx.arc(permanentLeftX+((permanentMinorPowerUps.length)*30)+15,c.height-20,8,0,Math.PI*2);
-    ctx.fillStyle = 'black';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(permanentLeftX+((permanentMinorPowerUps.length)*30)+15,c.height-22,4,0,Math.PI*2);
-    ctx.rect(permanentLeftX+((permanentMinorPowerUps.length)*30)+13,c.height-22,4,7);
-    ctx.fillStyle = 'white';
-    ctx.fill();*/
 }
 function drawHealthBar(leftX,topY,color,enemy){
     /*player.health=roundTo2(player.health,10);
@@ -217,6 +206,10 @@ function drawMoney(){
     ctx.fillText('Money:'+money,c.width-275,c.height-5);
 }
 let flashingNum = 0;
+let permanentLeftX = 10;
+let majorLeftX = 55;
+let majorRightX = (majorLeftX+80); 
+let sellButtonLeftX = majorRightX+10;
 function drawHUD(){
     ctx.fillStyle='black';
     //ctx.fillRect(0,c.height-HUDHeight,c.width,HUDHeight); //this would draw a bos that covers up things if HUDHeight !=0
@@ -235,10 +228,6 @@ function drawHUD(){
     }
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
-    /*){ //this is when I'm bebuging and I have all the power ups, I can still see my health and money
-        ctx.fillText('Money:'+money,c.width-250,40);
-        ctx.fillText('Health:'+player.health+'/'+player.maxHealth,c.width-600,40);
-    }*/
     if (player.health===7&&player.maxHealth===11){
         //ctx.fillText('SLUUURRRPEE',c.width-(TEXT_SIZE*9),TEXT_SIZE*2);
     }
@@ -259,13 +248,9 @@ function drawHUD(){
     if (showHUD.health){
         drawHealthBar(c.width-640,c.height-45,'green',player);
     } //boss health bar is drawn after the power ups
-    let permanentLeftX = 10;
     if (showHUD.minorPowerUps){
         drawPermanentSlots(permanentLeftX);
     }
-
-    let majorLeftX = 55;
-    let majorRightX = (majorLeftX+powerUpSpace*40);
 
     if (showHUD.majorPowerUps){
         drawHUDMouse(majorLeftX,majorRightX);
@@ -277,58 +262,9 @@ function drawHUD(){
         drawMinorSlots(minorLeftX,minorRightX);
     }*/
 
-    let sellButtonLeftX = majorRightX+10;
     if (showHUD.sellButton){
         drawSellButton(sellButtonLeftX);
     }
-
-    if (mode===1&&devMode){
-        return
-    }
-    let onClick = function (i,powerUpList){
-        if (heldPowerUp===null&&powerUpList[i].PFType!=34){
-            if (devMode&&buttonsArray[2]){
-                heldPowerUp = newPowerUpPreset(powerUpList[i].PFType,true);
-            }else{
-                heldPowerUp=powerUpList.splice(i,1)[0]; //took
-                if (heldPowerUp instanceof newMajorPowerUp){
-                    powerUpList.splice(i,0,newPowerUpPreset(34,false));
-                }
-            }
-        }else if (((heldPowerUp instanceof newMajorPowerUp) ^ (powerUpList[i] instanceof newMajorPowerUp))){
-            //the list is the wrong one
-        }else if (heldPowerUp instanceof newMajorPowerUp){
-            if (powerUpList[0]===heldPowerUp||powerUpsGrabbed.length===0){
-                if (powerUpsGrabbed.length<powerUpSpace){
-                    powerUpsGrabbed.push(heldPowerUp); //put back
-                    heldPowerUp=null;
-                }
-            }else{
-                if (powerUpList[i].PFType===34){ //34 is the placeholder, you should never be holding it
-                    powerUpsGrabbed.splice(i,1,heldPowerUp)[0];
-                    powerUpsGrabbed.push(newPowerUpPreset(34,false));
-                    heldPowerUp=null;
-                    showHUD.health=true;
-                }else{
-                    heldPowerUp=powerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
-                }
-            }
-        }else if (heldPowerUp instanceof newMinorPowerUp){
-            if (powerUpList[0]===heldPowerUp||minorPowerUpsGrabbed.length===0){
-                if (minorPowerUpsGrabbed.length<minorPowerUpSpace){
-                    minorPowerUpsGrabbed.push(heldPowerUp); //put back
-                    heldPowerUp=null;
-                }
-            }else{
-                heldPowerUp=minorPowerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
-            }
-        }else{
-            //heldPowerUp=null;//the heldPowerUp is not the correct value and so is reset
-        }
-        return i;
-    }
-    powerUpsGrabbed.splice(powerUpSpace,Infinity);//this deletes the power ups if there are more than 5, the amount of space in your inventory
-    minorPowerUpsGrabbed.splice(minorPowerUpSpace,Infinity);
     for (let k=0;k<6;k++){
         let powerUpList = [];
         switch (k){
@@ -350,24 +286,18 @@ function drawHUD(){
             case 3:
                 powerUpList=minorPowerUpsGrabbed//minor power ups
                 break
-            case 4:
-                if (!showHUD.minorPowerUps){
-                    continue;
-                }
-                powerUpList = permanentMinorPowerUps;//permanent minor power ups
-                break
             case 5:
                 if (heldPowerUp===undefined){
                     heldPowerUp=null;//this shouldn't be nessecary but this is easier than coding it right
                 }else if (heldPowerUp===null){
                     continue;
                 }else{
-                    if (player.enemyRoom.roomNum===0){
-                        addAutoRect(new newPoint(5,c.height-115),['Left Click Slot'],'24px Courier New',undefined,false,false);
+                    if (player.enemyRoom.roomNum===0&&!beatGame){
+                        rectsToDraw.push(autoRect(new newPoint(5,c.height-115),['Left Click Slot'],'24px Courier New',undefined,false,false));
             
-                        addAutoRect(new newPoint(130,c.height-80),['Right Click Slot'],'24px Courier New',undefined,false,false);
+                        rectsToDraw.push(autoRect(new newPoint(130,c.height-80),['Right Click Slot'],'24px Courier New',undefined,false,false));
                         
-                        addAutoRect(new newPoint(0,c.height/4),['Drag Ability into Mouse Slots'],'50px Courier New',undefined,false,true);
+                        rectsToDraw.push(autoRect(new newPoint(0,c.height/4),['Drag Ability into Mouse Slots'],'50px Courier New',undefined,false,true));
                         drawArrow(new newPoint((c.width/2)+130,(c.height/4)+63),new newPoint(250,c.height-100),50,Math.PI/4);
 
                         drawArrow(new newPoint(20,c.height-85),new newPoint(55,c.height-35),30,Math.PI/4);
@@ -390,8 +320,8 @@ function drawHUD(){
                         }else if(flashingNum>20){
                             flashingNum=0;
                         }
-                    }else if (player.enemyRoom.roomNum===1){
-                        addAutoRect(new newPoint(20,c.height-270),['Drag Modifiers into These Smaller Slots'],'24px Courier New',undefined,false,false);
+                    }else if (player.enemyRoom.roomNum===1&&!beatGame){
+                        rectsToDraw.push(autoRect(new newPoint(20,c.height-270),['Drag Modifiers into These Smaller Slots'],'24px Courier New',undefined,false,false));
                         drawArrow(new newPoint(330,c.height-240),new newPoint(55,c.height-150),30,Math.PI/4);
                         flashingNum+=deltaTime;
                         if (flashingNum<10){
@@ -412,30 +342,16 @@ function drawHUD(){
         for(let i=0;i<powerUpList.length;i++){
             let examplePowerUp = null;
             examplePowerUp=powerUpList[i];
-            let actionOnClick = null;
             switch (k){
                 case 0:
-                    actionOnClick = function (i,powerUpList){
-                        if (heldPowerUp!=null){
-                            money++;
-                            heldPowerUp=null;
-                        }
-                        return i;
-                    }
-                    drawPowerUp(examplePowerUp,i/2,.16,actionOnClick,powerUpList,sellButtonLeftX-5,false,false,true);//5 is subtracted to line the circles up with the entire button
+                    drawPowerUp(examplePowerUp,i/2,.16,sellButtonLeftX-5,false,true);//5 is subtracted to line the circles up with the entire button
                     break
                 case 1:
-                    actionOnClick = function(i,powerUpList){
-                        examplePowerUp.onClickEffect(player,examplePowerUp); //the code about the held power up is handled in here
-                        return i;
-                    }
-                    let allPowerUps = minorPowerUpSpace+permanentMinorPowerUps.length;
-                    if (allPowerUps<=screenPowerUpHeight){ //make power ups and upgrader wrap around the screen //10 is the max num of power ups
-                        drawPowerUp(examplePowerUp,allPowerUps,-.05,actionOnClick,powerUpList,permanentLeftX+15,false,false,true,true,powerUpIconImage);
+                    if (minorPowerUpSpace<=screenPowerUpHeight){
+                        drawPowerUp(examplePowerUp,minorPowerUpSpace,-.05,permanentLeftX+15,false,true,true,powerUpIconImage);
                     }else{
-                        drawPowerUp(examplePowerUp,30*(allPowerUps)/40,screenPowerUpHeight+.5,actionOnClick,powerUpList,(permanentLeftX-5)-((screenPowerUpHeight)*30),false,false,true,false,powerUpIconImage);
+                        drawPowerUp(examplePowerUp,30*(minorPowerUpSpace)/40,screenPowerUpHeight+.5,(permanentLeftX-5)-((screenPowerUpHeight)*30),false,true,false,powerUpIconImage);
                     }
-                    //i=drawPowerUp(examplePowerUp,minorPowerUpSpace+permanentMinorPowerUps.length,-.28,actionOnClick,powerUpList,permanentLeftX+15,false,false,true,true);
                     break
                 case 2:
                     let verticalOffset = 0;
@@ -444,29 +360,21 @@ function drawHUD(){
                     }else if (examplePowerUp===powerUpsGrabbed[1]&&buttonsArray[2]){
                         verticalOffset-=2;
                     }
-                    i=drawPowerUp(examplePowerUp,i,verticalOffset/30,onClick,powerUpList,majorLeftX,false,false,examplePowerUp.PFType===34,false);
+                    drawPowerUp(examplePowerUp,i,verticalOffset/30,majorLeftX,false,examplePowerUp.PFType===34,false);
                     /*for (let j=0;j<examplePowerUp.minorPowerUps.length;j++){
                         let otherExamplePowerUp = examplePowerUp.minorPowerUps[j];
                         drawPowerUp(otherExamplePowerUp,i,j+1,function(){},powerUpList,majorLeftX);
                     }*/
                     break
                 case 3:
-                    if (i<=screenPowerUpHeight){ //make power ups and upgrader wrap around the screen //10 is the max num of power ups
-                        i=drawPowerUp(examplePowerUp,i,0,onClick,powerUpList,permanentLeftX+15,false,false,false,true);
+                    if (i<=screenPowerUpHeight){
+                        drawPowerUp(examplePowerUp,i,0,permanentLeftX+15,false,false,true);
                     }else{
-                        i=drawPowerUp(examplePowerUp,i,screenPowerUpHeight+.5,onClick,powerUpList,permanentLeftX+15-((screenPowerUpHeight+.5)*30),false,false,false,false);
-                    }
-                    break
-                case 4:
-                    let thisNum = i+minorPowerUpSpace;
-                    if (thisNum<=screenPowerUpHeight){ //make power ups and upgrader wrap around the screen //10 is the max num of power ups
-                        drawPowerUp(examplePowerUp,thisNum,0,function(i,powerUpList){return i},powerUpList,permanentLeftX+15,false,false,false,true,lockImage);
-                    }else{
-                        drawPowerUp(examplePowerUp,thisNum,screenPowerUpHeight+.5,function(i,powerUpList){return i},powerUpList,permanentLeftX+15-((screenPowerUpHeight+.5)*30),false,false,false,false,lockImage);
+                        drawPowerUp(examplePowerUp,i,screenPowerUpHeight+.5,permanentLeftX+15-((screenPowerUpHeight+.5)*30),false,false,false);
                     }
                     break
                 case 5:
-                    i=drawPowerUp(examplePowerUp,0,0,onClick,powerUpList,0);//drawpowerup already knows this is the held power up and does the hard work for me. It pays to be lazy
+                    drawPowerUp(examplePowerUp,0,0,0);//drawpowerup already knows this is the held power up and does the hard work for me. It pays to be lazy
                     break
             }
         }
@@ -480,7 +388,7 @@ function drawHUD(){
     drawRects();
     drawText();
 }
-function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList,leftX,isBullet,powerUpSelect,skipDrawingPowerUp,stackVertical,powerUpImage){
+function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,leftX,powerUpSelect,skipDrawingPowerUp,stackVertical,powerUpImage){
     ctx.beginPath();
     //ctx.moveTo(c.width-30,c.height-30);
     let iconPos = null;
@@ -622,15 +530,8 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                 relativePos.y+=20;
             }
         }
-        if (mouseClickUsed){
-            mouseClickUsed=false;
-            //buttonsArray=[]; //this unclicks all the buttons so you can no longer shoot
-            if (numOnScreen===Math.round(numOnScreen)){
-                numOnScreen = onClick(numOnScreen,powerUpList);
-            }else{
-                onClick(numOnScreen,powerUpList);
-            }
-        }else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
+        //if (mouseClickUsed){  
+        //}else{//this makes it so when you pick up the power up, it doesn't draw the label, as when heldPowerUp draws, without this it would draw the label twice
             if (textToDraw.length>0){
                 let rectHeight = 0;
                 if (powerUpSelect){
@@ -665,7 +566,218 @@ function drawPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList
                 let powerUpPos = new newPoint(Math.max(5,Math.min(mouse.x-(maxTextWidth/2),c.width-(maxTextWidth+5)))-5,Math.max(Math.min(mouse.y-10,c.height),rectHeight)-rectHeight)
                 rectsToDraw.push(new newRect(powerUpPos,maxTextWidth+10,rectHeight,'white',textToDraw,true));
             }
+        //}
+    }
+}
+function checkPowerUps(){
+    majorRightX = (majorLeftX+powerUpSpace*40); 
+    sellButtonLeftX = majorRightX+10;
+    let onClick = function (i,powerUpList){
+        if (heldPowerUp===null&&powerUpList[i].PFType!=34){
+            if (devMode&&buttonsArray[2]){
+                heldPowerUp = newPowerUpPreset(powerUpList[i].PFType,true);
+            }else{
+                heldPowerUp=powerUpList.splice(i,1)[0]; //took
+                audioManager.play('crunch2',{volume:.7});
+                if (heldPowerUp instanceof newMajorPowerUp){
+                    powerUpList.splice(i,0,newPowerUpPreset(34,false));
+                }
+            }
+        }else if ((heldPowerUp instanceof newMajorPowerUp) ^ (powerUpList[i] instanceof newMajorPowerUp)){
+            //the list is the wrong one
+        }else if (heldPowerUp instanceof newMajorPowerUp){
+            if (powerUpList[0]===heldPowerUp||powerUpsGrabbed.length===0){
+                if (powerUpsGrabbed.length<powerUpSpace){
+                    powerUpsGrabbed.push(heldPowerUp); //put back
+                    audioManager.play('crunch2',{volume:.7});
+                    heldPowerUp=null;
+                }
+            }else{
+                if (powerUpList[i].PFType===34){ //34 is the placeholder, you should never be holding it
+                    powerUpsGrabbed.splice(i,1,heldPowerUp)[0];
+                    powerUpsGrabbed.push(newPowerUpPreset(34,false));
+                    heldPowerUp=null;
+                    audioManager.play('crunch2',{volume:.7});
+                    showHUD.health=true;
+                }else{
+                    heldPowerUp=powerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
+                    audioManager.play('crunch2',{volume:.7});
+                }
+            }
+        }else if (heldPowerUp instanceof newMinorPowerUp){
+            if (powerUpList[0]===heldPowerUp||minorPowerUpsGrabbed.length===0){
+                if (minorPowerUpsGrabbed.length<minorPowerUpSpace){
+                    minorPowerUpsGrabbed.push(heldPowerUp); //put back
+                    audioManager.play('crunch2',{volume:.7});
+                    heldPowerUp=null;
+                }
+            }else{
+                heldPowerUp=minorPowerUpsGrabbed.splice(i,1,heldPowerUp)[0]; //swapped
+                audioManager.play('crunch2',{volume:.7});
+            }
+        }else{
+            //heldPowerUp=null;//the heldPowerUp is not the correct value and so is reset
+        }
+        return i;
+    }
+    powerUpsGrabbed.splice(powerUpSpace,Infinity);//this deletes the power ups if there are more than 5, the amount of space in your inventory
+    minorPowerUpsGrabbed.splice(minorPowerUpSpace,Infinity);
+
+    for (let k=0;k<6;k++){
+        let powerUpList = [];
+        switch (k){
+            case 0:
+                if (!showHUD.sellButton){
+                    continue;
+                }
+                powerUpList = [newPowerUpPreset(8,false),newPowerUpPreset(8,false),newPowerUpPreset(8,false),newPowerUpPreset(8,false)] //this is a placeholder for the sell button
+                break
+            case 1:
+                if (!showHUD.minorPowerUps){
+                    continue;
+                }
+                powerUpList = [upgrader];
+                break
+            case 2:
+                powerUpList=powerUpsGrabbed//major power ups
+                break
+            case 3:
+                powerUpList=minorPowerUpsGrabbed//minor power ups
+                break
+            case 5:
+                if (heldPowerUp===undefined){
+                    heldPowerUp=null;//this shouldn't be nessecary but this is easier than coding it right
+                    continue;
+                }else if (heldPowerUp===null){
+                    continue;
+                }else{
+                    powerUpList = [heldPowerUp]; //held power up
+                }
+                break
+        }
+        for(let i=0;i<powerUpList.length;i++){
+            let examplePowerUp = null;
+            examplePowerUp=powerUpList[i];
+            let actionOnClick = null;
+            switch (k){
+                case 0:
+                    actionOnClick = function (i,powerUpList){
+                        if (heldPowerUp!=null){
+                            money++;
+                            heldPowerUp=null;
+                            audioManager.play('coinClinking2',{volume:.7});
+                        }
+                        return i;
+                    }
+                    checkPowerUp(examplePowerUp,i/2,.16,actionOnClick,powerUpList,sellButtonLeftX-5,false,false);//5 is subtracted to line the circles up with the entire button
+                    break
+                case 1:
+                    actionOnClick = function(i,powerUpList){
+                        upgrader.onClickEffect(player,upgrader); //the code about the held power up is handled in here
+                        return i;
+                    }
+                    if (minorPowerUpSpace<=screenPowerUpHeight){
+                        checkPowerUp(examplePowerUp,minorPowerUpSpace,-.05,actionOnClick,powerUpList,permanentLeftX+15,false,true,powerUpIconImage);
+                    }else{
+                        checkPowerUp(examplePowerUp,30*(minorPowerUpSpace)/40,screenPowerUpHeight+.5,actionOnClick,powerUpList,(permanentLeftX-5)-((screenPowerUpHeight)*30),false,false,powerUpIconImage);
+                    }
+                    break
+                case 2:
+                    let verticalOffset = 0;
+                    if (examplePowerUp===powerUpsGrabbed[0]&&buttonsArray[0]){
+                        verticalOffset-=2;
+                    }else if (examplePowerUp===powerUpsGrabbed[1]&&buttonsArray[2]){
+                        verticalOffset-=2;
+                    }
+                    i=checkPowerUp(examplePowerUp,i,verticalOffset/30,onClick,powerUpList,majorLeftX,false,false)
+                    break
+                case 3:
+                    if (i<=screenPowerUpHeight){
+                        i=checkPowerUp(examplePowerUp,i,0,onClick,powerUpList,permanentLeftX+15,false,true);
+                    }else{
+                        i=checkPowerUp(examplePowerUp,i,screenPowerUpHeight+.5,onClick,powerUpList,permanentLeftX+15-((screenPowerUpHeight+.5)*30),false,false);
+                    }
+                    break
+                case 5:
+                    i=checkPowerUp(examplePowerUp,0,0,onClick,powerUpList,0);//drawpowerup already knows this is the held power up and does the hard work for me. It pays to be lazy
+                    break
+            }
+        }
+    }
+}
+function checkPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList,leftX,powerUpSelect,stackVertical,powerUpImage){
+    let iconSize = null;
+    if (powerUp instanceof newMajorPowerUp){
+        iconSize = 13;
+    }else{
+        iconSize = 11;
+    }
+    if (powerUpImage===powerUpIconImage){
+        iconSize=13;
+    }
+    if (powerUpSelect){
+        iconSize*=3;
+    }
+    let iconPos = null;
+    if (powerUp===heldPowerUp){
+        iconPos=addToPoint(dupPoint(mouse),10,4);
+    }else if (stackVertical){
+        if (powerUp.PFType===28||powerUp instanceof newMinorPowerUp){
+            iconPos=new newPoint(leftX,c.height-20-(30*(numOnScreen+.5)));
+        }else{
+            iconPos=new newPoint(leftX,c.height-20-(40*(numOnScreen+.5)));
+        }
+    }else{
+        if (powerUp instanceof newMajorPowerUp){
+            iconPos=new newPoint(leftX+(40*(numOnScreen+.5)),c.height-20);
+        }else{
+            iconPos=new newPoint(leftX+(30*(numOnScreen+.5)),c.height-20);
+        }
+    }
+    iconPos.y-=30*(verticalNumOnScreen);
+    iconPos.x-=10;
+    if (!powerUpSelect){
+        if (powerUpImage!=powerUpIconImage){
+            if (powerUp instanceof newMinorPowerUp){
+                iconSize = 14; //this makes the hovering over hitbox larger to prevent misclicks
+            }else{
+                iconSize = 19;
+            }
+        }
+    }
+    if (findDis(iconPos,mouse)<iconSize){
+        if (mouseClickUsed){
+            //buttonsArray=[]; //this unclicks all the buttons so you can no longer shoot
+            if (numOnScreen===Math.round(numOnScreen)){
+                numOnScreen = onClick(numOnScreen,powerUpList);
+            }else{
+                onClick(numOnScreen,powerUpList);
+            }
+            mouseClickUsed=false;
+            buttonsArray = [];
         }
     }
     return numOnScreen
+}
+function autoRect(point,texts,font,maxWidth,isMoveable,autoCenter){
+    if (maxWidth===undefined){
+        maxWidth=c.width;
+    }
+    let finalWidth = 1;
+    let finalHeight = 1;
+    let textToDraw = [];
+    ctx.font = font;
+    for (text of texts){
+        let metrics = ctx.measureText(text);
+        let height = metrics.fontBoundingBoxAscent+metrics.fontBoundingBoxDescent;
+        addText(text,new newPoint(5,metrics.fontBoundingBoxAscent+finalHeight),font,'black',maxWidth,textToDraw);
+        if (metrics.width>finalWidth){
+            finalWidth = metrics.width;
+        }
+        finalHeight+=height;
+    }
+    if (autoCenter){
+        point.x=(c.width/2)-((finalWidth+10)/2)
+    }
+    return new newRect(point,finalWidth+10,finalHeight,'white',textToDraw,isMoveable);
 }

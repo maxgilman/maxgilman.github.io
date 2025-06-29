@@ -88,12 +88,15 @@ function powerUpSelect(){
                 }else if (money>=maybePrice){
                     takeMinor = true;
                     price = minorPriceScaling(playerEnemyRoom.numMinorsCollected)
+                }else{
+                    refreshNoMoneySign();
                 }
             }
             if (takeMinor){
                 money-=price;
                 heldPowerUp=powerUpList[i];
                 powerUpList.splice(i,1,newPowerUpPreset(34,false));
+                audioManager.play('crunch2',{volume:.7});
                 playerEnemyRoom.numMinorsCollected++;
             }
         }
@@ -103,6 +106,7 @@ function powerUpSelect(){
         }else{
             onClick = function(i,powerUpList){ //its a major power up. Should be the first room, so you can't grab a ton of modiifers
                 heldPowerUp=powerUpList[i];
+                audioManager.play('crunch2',{volume:.7});
                 switchMode(0);
             }
         }
@@ -113,7 +117,8 @@ function powerUpSelect(){
             if (player.enemyRoom.roomNum>1){
                 showHUD.sellButton=true;
             }
-            drawPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,false,true,false,false);
+            drawPowerUp(examplePowerUp,i,12,iconPos.x,true,false,false);
+            checkPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,true,false);
         }
     }
     doButtons();
@@ -134,7 +139,11 @@ function doButtons(){
                 button.onHover(button);
             }
             button.pressed = (mouseHover||button.pressedLastFrame)&&mousePressed;
+            if (button.pressed){
+                mouseClickUsed = false;
+            }
             if(!button.pressed&&button.pressedLastFrame&&mouseHover){
+                audioManager.play('crunch1',{volume:.7});
                 button.onClick(button);
             }
             let buttonText = [];
@@ -143,6 +152,43 @@ function doButtons(){
             let textPos = new newPoint(Math.round((button.width/2)-(metrics.width/2)),Number(button.font[0]+button.font[1])); //finding the size of the font may not work for some fonts
             addText(button.text,textPos,ctx.font,'black',1000000,buttonText);
             drawRect(new newRect(button,button.width,button.height,button.color,buttonText,false,true,button.pressed),true,button.pressed)
+        }
+    }
+}
+function checkShopItemSelect(){
+    let powerUps=playerEnemyRoom.shopPowerUps;
+    if (powerUps.length===0){
+        while (powerUps.length<3){
+            let powerUpType = eligibleMajorPowerUps[Math.floor(Math.random()*eligibleMajorPowerUps.length)];
+            //this is a easy, bad way to do this, better would be to do like room generation power ups
+            if (undefined!=powerUps.find((examplePowerUp)=>examplePowerUp.PFType===powerUpType)){
+                continue;
+            }
+            powerUps.push(newPowerUpPreset(powerUpType,true));
+        }
+    }
+    for(let i=0;i<powerUps.length;i++){
+        let iconPos=new newPoint((3*c.width/4)-(200*i)-200,c.height/2);
+        let examplePowerUp = powerUps[i];
+        let onClick = function(i,powerUpList){
+            if (heldPowerUp===null){
+                if (money>=powerUpList[i].price){
+                    heldPowerUp=powerUpList.splice(i,1,newPowerUpPreset(34,false))[0];
+                    money-=heldPowerUp.price;
+                    audioManager.play('crunch2',{volume:.7});
+                }else{
+                    refreshNoMoneySign();
+                }
+            }
+        }
+        if (examplePowerUp.PFType!=34){
+            if (playerEnemyRoom.roomNum>0){
+                showHUD.minorPowerUps=true;
+            }
+            if (playerEnemyRoom.roomNum>1){
+                showHUD.sellButton=true;
+            }
+            checkPowerUp(examplePowerUp,i,12,onClick,powerUps,iconPos.x,true);
         }
     }
 }

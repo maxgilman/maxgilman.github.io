@@ -64,6 +64,12 @@ function floorPoint(point,divisor){
     }
     return new newPoint(Math.floor(point.x / divisor)*divisor,Math.floor(point.y / divisor)*divisor)
 }
+function ceilPoint(point,divisor){
+    if (divisor===undefined){
+        divisor=1;
+    }
+    return new newPoint(Math.ceil(point.x / divisor)*divisor,Math.ceil(point.y / divisor)*divisor)
+}
 function roundPoint(point,divisor){
     return new newPoint(Math.round(point.x / divisor)*divisor,Math.round(point.y / divisor)*divisor)
 }
@@ -146,4 +152,16 @@ function findAngleDis(angle1,angle2){
 function refreshNoMoneySign(){
     audioManager.play('dryClick',{volume:.5});
     permanentRects.find((checkEntireRect)=>checkEntireRect.type===0).timeLeft=60;
+}
+function findPointsOnCurve(c0,c1,c2,c3,numPoints){
+    let points = [];
+    for (let i=0;i<=1;i+=(1/numPoints)){
+        points.push(new newPoint(
+            (Math.pow(1-i,3)*c0.x) + (3*Math.pow(1-i,2)*i*c1.x) + (3*(1-i)*Math.pow(i,2)*c2.x) + (Math.pow(i,3)*c3.x),
+            (Math.pow(1-i,3)*c0.y) + (3*Math.pow(1-i,2)*i*c1.y) + (3*(1-i)*Math.pow(i,2)*c2.y) + (Math.pow(i,3)*c3.y)
+        ))
+    }
+    //console.log(points);
+    //B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃ 
+    return points;
 }

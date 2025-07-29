@@ -209,9 +209,6 @@ function enemyMovement(enemiesToRemove,skipPlayer){
                         enemyAngle = findAngle(enemy,enemy.target);
                         enemy.x-=Math.sin(enemyAngle)*enemy.speed;
                         enemy.y-=Math.cos(enemyAngle)*enemy.speed;
-                        if (textToDraw.length===0&&enemy.timer2!=0&&heldPowerUp===null){
-                            rectsToDraw.push(autoRect(new newPoint(c.width/2,3*c.height/4),['Hold to Shoot Continuously'],'32px Courier New',undefined,false,true));
-                        }
                     }
                 }
             }else if (enemy.PFType===9){

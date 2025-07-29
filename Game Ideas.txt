@@ -286,6 +286,14 @@ optimazation ideas:
     draw less images? this may not be feasible
     make things draw on the pixel so they don't need to be blurred/anti-aliased
     remove transparent things?
+    use javascript workers to keep framerate up during long game physics?
+
+what to do:
+    when drawing a image tile, checking againist every other tile is slow. Short term: remove edges. Long Term: instead of writing every tile as seperate, send over a huge box so it doesn't have to check for edges. Maybe super long term, edges could be baked in
+    tiles don't line up on room borders. Add a black blur on those areas or a background color to cover it
+    maybe in the future only draw the rooms the player is in
+    make each room have its own tiles
+    if redrawBackground is set to multiple rooms on 1 frame, only 1 will be updated
 
 add arrow or something like a glow showing where to go. Or something showing where to NOT go(maybe walls)
 

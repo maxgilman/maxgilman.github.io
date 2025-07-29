@@ -166,6 +166,7 @@ function generateRooms(targetNumOfRooms,finalDifficulty,bossRush){
         }
     }
     addToEnemyRooms(player);
+    renderBackground();
     /*for (let i=0;i<originalLength;i++){
         addToEnemyRooms(enemies[i]);
     }*/
@@ -175,12 +176,26 @@ function consoleChallengeRooms(){
         console.log('challenge:'+enemyRoom.challengeRoom+' Room Num:'+enemyRoom.roomNum);
     }
 }
+function generateTileMatrix(){
+    let tileMatrix = {};
+    for (let i=-80;i<(roomWidth+(doorLength*2)+tileSize);i+=tileSize){ //it adds an extra tile besides just covering the entire room
+        tileMatrix[i] = [];
+        for (let j=-80;j<(roomHeight+(doorLength*2)+tileSize);j+=tileSize){
+            tileMatrix[i][j]=0;
+        }
+    }
+    return tileMatrix;
+}
 function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,difficulty,bossesSpawned,bossRush){
     //this aligns the cordinates as (-1,1) is the room one to the left of the beginning, not at the actual cordiate (-1,0)
     let enemyRoom = turnIntoRoomPos(roomPos);
+    enemyRoom.realPos = roomPos;
     enemyRoom.enemies=[];
     enemyRoom.enemyPickUps=[];
     enemyRoom.walls=[];
+    enemyRoom.unShiftedWalls=[]; //used for rendering
+    enemyRoom.unShiftedTiles = generateTileMatrix();
+    enemyRoom.bitmap = null; //updated later. Used to draw the entire room
     enemyRoom.wallBoxes = [];
     enemyRoom.difficulty = difficulty;
     enemyRoom.roomNum=roomNum;
@@ -282,6 +297,7 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         }
     }else{
         roomOption = roomOptions[Math.floor(Math.random()*(roomOptions.length))];
+        //roomOption = emptyRoom;
     } 
     enemyRoom.walls = JSON.parse(JSON.stringify(roomOption.walls));
     let room = enemyRoom.walls;
@@ -379,18 +395,17 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         room.push(new newWall(0,0,0,roomHeight));
     }
     enemyRoom.extraWalls=shiftWallsBy(enemyRoom.extraWalls,roomPos.x,roomPos.y);
+    enemyRoom.unShiftedWalls=enemyRoom.walls;
     enemyRoom.walls=shiftWallsBy(enemyRoom.walls,roomPos.x,roomPos.y);
-    enemyRoom.wallBoxes=generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes);
+    enemyRoom.wallBoxes=generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes,enemyRoom.unShiftedTiles);
     return enemyRoom.walls;
 }
 function shiftWallsBy(wallsList,x,y){
+    let shiftedWalls = [];
     for (wall of wallsList){
-        wall.first.x+=x;
-        wall.first.y+=y;
-        wall.second.x+=x;
-        wall.second.y+=y;
+        shiftedWalls.push(new newWall(wall.first.x+x,wall.first.y+y,wall.second.x+x,wall.second.y+y))
     }
-    return wallsList
+    return shiftedWalls;
 }
 function findRandomEnemy(roomNum,difficulty){
     let enemyType = 4;
@@ -406,7 +421,7 @@ function findRandomEnemy(roomNum,difficulty){
         }else{
             enemyType=4;
         }
-    }else if(roomNum<6){
+    }else if(roomNum<7){
         if (scaledRandomNum<.7){
             enemyType = 4;
         }else {

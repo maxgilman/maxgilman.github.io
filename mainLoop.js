@@ -1,6 +1,5 @@
-let c = document.getElementById("myCanvas");
-let ctx = c.getContext("2d");
-c.style.margin = "30px 10px";
+//let bgctx = backgroundCanvas.getContext("2d");
+
 //ctx.imageSmoothingEnabled = false;
 
 ctx.fillStyle='black';
@@ -28,6 +27,7 @@ let roomOptions = [
     JSON.parse("{\"walls\":[{\"first\":{\"x\":850,\"y\":400},\"second\":{\"x\":850,\"y\":650}},{\"first\":{\"x\":450,\"y\":500},\"second\":{\"x\":450,\"y\":650}},{\"first\":{\"x\":450,\"y\":400},\"second\":{\"x\":450,\"y\":250}},{\"first\":{\"x\":200,\"y\":250},\"second\":{\"x\":850,\"y\":250}},{\"first\":{\"x\":200,\"y\":400},\"second\":{\"x\":200,\"y\":250}},{\"first\":{\"x\":200,\"y\":500},\"second\":{\"x\":0,\"y\":500}},{\"first\":{\"x\":1050,\"y\":400},\"second\":{\"x\":850,\"y\":400}},{\"first\":{\"x\":850,\"y\":100},\"second\":{\"x\":850,\"y\":250}},{\"first\":{\"x\":400,\"y\":0},\"second\":{\"x\":400,\"y\":150}}],\"spawnPoints\":[{\"x\":950,\"y\":500},{\"x\":100,\"y\":600},{\"x\":350,\"y\":300},{\"x\":450,\"y\":50},{\"x\":1250,\"y\":50},{\"x\":100,\"y\":100},{\"x\":700,\"y\":150}]}"),
 ]
 let walls = [];
+let tiles = [];
 let editorSpawnPoints = [];
 let shop = {x:Infinity,y:Infinity};
 shop.inShop=false;
@@ -41,7 +41,7 @@ let sheild = {
     sheildStart:null
 };
 let PFBoxes = [];//path finding boxes
-let boxSize = 35;
+let boxSize = 40;
 const doorWidth = 100;
 const doorLength = 50
 const roomWidth = 1300;
@@ -51,7 +51,8 @@ let HUDHeight = 0;
 let cam = {
     x:0,
     y:0,
-    zoom:1
+    zoom:1,
+    lastPosition: new newPoint(0,0),
 }
 let devMode = sessionStorage.getItem('devMode');
 if (devMode==='true'){
@@ -117,72 +118,6 @@ let wallsCopy = [];
 let particles = [];
 let player = newEnemyPreset(new newPoint(roomWidth/2,roomHeight-200),1,1,'',1,new newPoint());
 //enemies.push(player);
-let explosionImages = [new Image(),new Image(),new Image(),new Image()];
-for (let i=0;i<4;i++){
-    explosionImages[i].src='Explosion_Frames/Explosion_'+(i+1)+'.png';
-}
-let playerImages = {
-    back:new Image(),
-    front:new Image(),
-    left:new Image(),
-    right:new Image(),
-    imagesList:null,
-    chargingList:[new Image(),new Image(),new Image(),new Image(),new Image(),new Image()],
-}
-for (let i=0;i<6;i++){
-    playerImages.chargingList[i].src = 'Player_Images/Player_Charging_'+(-(i-6))+'.png';
-}
-playerImages.front.src = 'Player_Images/Player_front_V2_cropped.png';
-playerImages.right.src = 'Player_Images/Player_front_V2_cropped.png';
-playerImages.left.src = 'Player_Images/Player_front_V2_cropped.png';
-playerImages.back.src = 'Player_Images/Player_front_V2_cropped.png';
-
-let enemyImages = {
-    nonMoving:[],
-    nonMovingOffset:[],//array of points that the image uses to aline itself
-}
-for (let i=0;i<8;i++){
-    enemyImages.nonMoving.push(new Image());
-    enemyImages.nonMoving[i].src = 'Enemy_Images/Non_Moving/'+i+'.png';
-}
-enemyImages.nonMovingOffset[0] = new newPoint(-4,0)
-enemyImages.nonMovingOffset[1] = new newPoint(-4,0)
-enemyImages.nonMovingOffset[2] = new newPoint(-4,0)
-enemyImages.nonMovingOffset[3] = new newPoint(-4,0)
-enemyImages.nonMovingOffset[4] = new newPoint(-4,0)
-enemyImages.nonMovingOffset[5] = new newPoint(-9,0)
-enemyImages.nonMovingOffset[6] = new newPoint(-12,0)
-enemyImages.nonMovingOffset[7] = new newPoint(-7,0)
-let tileImages = [
-    new Image(),new Image(),new Image(), //organized into 3 by 3 grid of box of tiles
-    new Image(),new Image(),new Image(),
-    new Image(),new Image(),new Image(),
-]
-tileImages[0].src = 'Tile_Images/Top_Left_Border.png';
-tileImages[2].src = 'Tile_Images/Top_Right_Border.png';
-tileImages[4].src = 'Tile_Images/Not_Border.png'; //middle
-tileImages[6].src = 'Tile_Images/Bottom_Left_Border.png';
-tileImages[8].src = 'Tile_Images/Bottom_Right_Border.png';
-let pipeImage = new Image();
-pipeImage.src = 'Tile_Images/Pipe.png';
-let pipeCorner = new Image();
-pipeCorner.src = 'Tile_Images/Top_Left_Pipe_Corner.png';
-
-let bulletImage=new Image();
-bulletImage.src='Bullet_test.png';
-playerImages.imagesList=[playerImages.front,playerImages.right,playerImages.back,playerImages.left];
-let powerUpIconImage = new Image();
-powerUpIconImage.src = 'powerUpIcon.png';
-let bombImage = new Image();
-bombImage.src = 'Bomb.png';
-let shopImage = new Image();
-shopImage.src = 'Shop.png';
-let soulImage = new Image();
-soulImage.src = 'Soul.png';
-let creditCardImage = new Image();
-creditCardImage.src = 'Credit_Card.png';
-let portalImage = new Image();
-portalImage.src = 'Portal.png';
 let shootingAngle = 0;
 let maximumDashCoolDown = 20;
 let dashCooldown = 0;
@@ -218,6 +153,7 @@ let showHUD = {
 }
 let beatGame = false;
 let timerGo = false;
+let redrawBackground = false;
 let rerollButton = new newButton((c.width/2)-300,(c.height/2)+140,170,29,'Reroll for $4','24px impact',function(thisButton){
     let price = (playerEnemyRoom.rerollNum+1)*4;
     if (money>=price){
@@ -246,7 +182,7 @@ function offSetByCam(point,passedCam){
     if (passedCam===undefined){
         passedCam=cam;
     }
-    return new newPoint((point.x-cam.x)*cam.zoom,(point.y-cam.y)*cam.zoom)
+    return new newPoint((point.x-passedCam.x)*passedCam.zoom,(point.y-passedCam.y)*passedCam.zoom);
 }
 function removeFromEnemyRooms(enemy){
     for (enemyRoom of enemyRooms){
@@ -366,7 +302,7 @@ function updateTilesList(toBeExported,exportLocation){
 }
 let dashFramesLeft = 0;
 let dashDirection = null;
-let wallBoxes = [];
+//let wallBoxes = [];
 function removeDuplicates(arr) {
     let unique = [];
     arr.forEach(element => {
@@ -376,11 +312,23 @@ function removeDuplicates(arr) {
     });
     return unique;
 }
-function generateWallBoxes(precision,wallsToGenerate,wallBoxes){
+function generateWallBoxes(precision,wallsToGenerate,wallBoxes,tiles){
+    wallBoxes = [];
+    let i=0;
+    while (tiles[i]!=undefined){
+        let j=0;
+        while (tiles[i][j]!=undefined){
+            if (tiles[i][j]===1){
+                wallBoxes.push(floorPoint(new newPoint(i-80,j-80),boxSize));
+            }
+            j+=tileSize;
+        }
+        i+=tileSize;
+    }
+    return wallBoxes;
     if (precision===undefined){
         precision=1;
     }
-    wallBoxes = [];
     savedwallBoxes.forEach(wallTile =>{wallBoxes.push(wallTile)});
     for (wall of wallsToGenerate){
         let currentPoint = new newPoint(wall.first.x,wall.first.y);
@@ -437,7 +385,7 @@ function editor(){
                 enemyRoom.walls.push(walls[walls.length-1]);
                 lastMousePos = null;
                 keysUsed['c']=false;
-                enemyRoom.wallBoxes = generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes);
+                enemyRoom.wallBoxes = generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes,enemyRoom.unShiftedTiles);
             }
         }
     }
@@ -454,7 +402,7 @@ function editor(){
             }
             i++;
         }
-        wallBoxes = generateWallBoxes(2,walls,wallBoxes);
+        wallBoxes = generateWallBoxes(2,walls,wallBoxes,enemyRoom.unShiftedTiles);
     }
     if (keysUsed['h']){
         keysUsed['h']=false;
@@ -490,7 +438,7 @@ function editor(){
     }
 }
 function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScreen,screenShake){
-    if (updateScreenSize){
+    /*if (updateScreenSize){
         if (keepAspectRatio){
             const aspectRatio = 1400/750;
             if ((window.innerWidth/1400)<(window.innerHeight/750)){
@@ -509,13 +457,16 @@ function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScr
         screenSize= Math.min((c.height-HUDHeight)/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
         cam.zoom=screenSize;
         c.style.margin = margin.y+"px "+margin.x+"px";
-    }
+        backgroundCanvas.style.margin = margin.y+"px "+margin.x+"px";
+    }*/
+    cam.lastPosition = dupPoint(cam);
     if (resetScreen){
         c.width=1400;
         c.height=750+HUDHeight;
         screenSize= Math.min((c.height-HUDHeight)/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
         cam.zoom=screenSize;
         c.style.margin = margin.y+"px "+margin.x+"px";
+        //backgroundCanvas.style.margin = margin.y+"px "+margin.x+"px";
     }
     if (keys['u']&&devMode){
         cam.zoom*=1+(.1*deltaTime);
@@ -1369,7 +1320,7 @@ function startGame(weaponChoice){
         generateRooms(targetNumOfRooms,10);
         playerEnemyRoom = enemyRooms[0];
     }
-    wallBoxes = generateWallBoxes(2,walls,wallBoxes);//after the room generates, the lag is so much if holding 'w' you can "teleport" into the first room
+    //wallBoxes = generateWallBoxes(2,walls,wallBoxes);//after the room generates, the lag is so much if holding 'w' you can "teleport" into the first room
     for (enemyRoom of enemyRooms){
         for (enemy of enemyRoom.enemies){
             enemy.enemyRoom = enemyRoom;
@@ -1561,7 +1512,7 @@ function challengeRooms(){
         switch(challengeRoom){ //0 means no challenge room
             case 1:
                 playerEnemyRoom.timer1-=deltaTime;
-                if (playerEnemyRoom.timer1<-25){
+                if (playerEnemyRoom.timer1<-50){
                     playerEnemyRoom.timer1=25;
                     for (let i=0;i<10;i++){
                         let spawnPoint = randomPosInRoom(playerEnemyRoom,10);//the 10 is the size of the bomb
@@ -1637,6 +1588,60 @@ function updatePermanenetRects(){
         }
     }
 }
+function switchTile(x,y,tileType){
+    let enemyRoom = enemyRooms.find((checkEnemyRoom)=>boundingBox(addToPoint(checkEnemyRoom.realPos,-doorLength,-doorLength),addToPoint(checkEnemyRoom.realPos,roomWidth+(doorLength*2),roomHeight+(doorLength*2)),new newPoint(x,y),0,0));
+    if (enemyRoom!=undefined){
+        let checkPos = floorPoint(new newPoint(x-enemyRoom.realPos.x+80,y-enemyRoom.realPos.y+80),tileSize);
+        enemyRoom.unShiftedTiles[checkPos.x][checkPos.y] = tileType;
+        redrawBackground = enemyRoom;
+        enemyRoom.wallBoxes = generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes,enemyRoom.unShiftedTiles);
+    }
+    return enemyRoom
+}
+/*function addTile(x,y){
+    let enemyRoom = enemyRooms.find((checkEnemyRoom)=>boundingBox(addToPoint(checkEnemyRoom.realPos,-doorLength,-doorLength),addToPoint(checkEnemyRoom.realPos,roomWidth+(doorLength*2),roomHeight+(doorLength*2)),new newPoint(x,y),0,0));
+    if (enemyRoom!=undefined){
+        let checkPos = ceilPoint(new newPoint(x-enemyRoom.realPos.x,y-enemyRoom.realPos.y),tileSize);
+        let addTile = true;
+        for (tile of enemyRoom.unShiftedTiles){
+            if (isSamePoint(checkPos,tile)){
+                addTile = false
+            }
+        }
+        if (addTile){
+            enemyRoom.unShiftedTiles.push(checkPos);
+            redrawBackground = enemyRoom;
+        }
+    }
+    return enemyRoom
+}
+function removeTile(x,y){
+    let enemyRoom = enemyRooms.find((checkEnemyRoom)=>boundingBox(addToPoint(checkEnemyRoom.realPos,-doorLength,-doorLength),addToPoint(checkEnemyRoom.realPos,roomWidth+(doorLength*2),roomHeight+(doorLength*2)),new newPoint(x,y),0,0));
+    if (enemyRoom!=undefined){
+        for (let i=0;i<enemyRoom.unShiftedTiles.length;i++){
+            if (isSamePoint(enemyRoom.unShiftedTiles[i],ceilPoint(new newPoint(x-enemyRoom.realPos.x,y-enemyRoom.realPos.y),tileSize))){
+                enemyRoom.unShiftedTiles.splice(i,1);
+                i--;
+                redrawBackground = enemyRoom;
+            }
+        }
+    }
+    return enemyRoom
+}*/
+function editorTiles(){
+    if (keys['2']&&devMode){
+        switchTile(mouseShifted.x,mouseShifted.y,0);
+    }
+    if (keys['3']&&devMode){
+        switchTile(mouseShifted.x,mouseShifted.y,1);
+    }
+    if (keys['4']&&devMode){
+        switchTile(mouseShifted.x,mouseShifted.y,2);
+    }
+    if (keys['5']&&devMode){
+        switchTile(mouseShifted.x,mouseShifted.y,3);
+    }
+}
 let frameNum = 0;
 let enemiesToRemove = [];
 let bulletsToRemove = [];
@@ -1690,7 +1695,6 @@ function repeat(){
     }*/
     enemyMovement(enemiesToRemove);
     enemySounds();
-    updateShopPos();
     if (!(keysToggle['n']&&devMode)){
         fullEnemyWallColl();
         if (!keys['t']){
@@ -1699,6 +1703,7 @@ function repeat(){
         }
         fullEnemyWallColl();
     }
+    updateShopPos();
     updateEnemiesEnemyRoom();
     gunEnemyMovement(player);
     //drawBullets(cam,false);
@@ -1766,6 +1771,7 @@ function repeat(){
             }
         }
     }
+    editorTiles();
 }
 function switchMode(modeTarget){
     if (modeTarget===8){
@@ -1779,7 +1785,7 @@ function switchMode(modeTarget){
             console.log(JSON.stringify({walls:walls,spawnPoints:editorSpawnPoints}));
             spawnerExport=updateTilesList(editorSpawnPoints,spawnerExport);
             walls=wallsCopy;
-            wallBoxes = generateWallBoxes(2,walls,wallBoxes);
+            //wallBoxes = generateWallBoxes(2,walls,wallBoxes);
         }else if (mode===8&&playerEnemyRoom.roomNum===0&&!beatGame){ //counts out boss rush
             buttons.push(rerollButton,skipButton);
         }
@@ -1791,11 +1797,11 @@ function switchMode(modeTarget){
             editorSpawnPoints=[];
         }
         mode=3;
-        wallBoxes = generateWallBoxes(2,walls,wallBoxes);
+        //wallBoxes = generateWallBoxes(2,walls,wallBoxes);
     }else if (modeTarget===1&&mode===3){
         mode=4;
         //importWalls(basicRoomTemplate,walls);
-        wallBoxes = generateWallBoxes(2,walls,wallBoxes);
+        //wallBoxes = generateWallBoxes(2,walls,wallBoxes);
     }else if (modeTarget===1&&mode===4){
         switchMode(5);
     }else if(modeTarget===1&&mode===5){
@@ -1891,7 +1897,7 @@ function repeat2(){
             checkShopItemSelect();
         }
         repeat();
-        renderEverything(keys['g']&&devMode,cam);
+        mainRender(keys['g']&&devMode,cam);
         drawHUD();
         if (controller!=undefined&&mouse.show){
             drawMouse();
@@ -1901,11 +1907,11 @@ function repeat2(){
             bulletsToRemove=[];
             circlesToDraw = [];
             repeat();
-            renderEverything(false,cam);
+            mainRender(false,cam);
             drawHUD();
             keysUsed['o']=false;
         }else{
-            renderEverything(false,cam);
+            mainRender(false,cam);
             drawHUD();
         }
     }else if (mode===2){
@@ -1913,7 +1919,7 @@ function repeat2(){
         mouseShifted.x=((mouse.x+10)/cam.zoom)+(cam.x);
         mouseShifted.y=((mouse.y/cam.zoom)+cam.y);
         editor();
-        renderEverything(false,cam);
+        mainRender(false,cam);
         updateWallsList(walls);
         updateTilesList(savedwallBoxes,tilesExport);
     }else if (mode===3){
@@ -1930,13 +1936,13 @@ function repeat2(){
             }
         }
         editor();
-        renderEverything(!keysToggle['i'],cam);
+        mainRender(!keysToggle['i'],cam);
         updateWallsList(walls);
         updateTilesList(savedwallBoxes,tilesExport);
     }else if (mode===6){
         //camControl(true,player,false,!false,keys['z'],0);
         moveParticles();
-        renderEverything(false,cam);
+        mainRender(false,cam);
         drawHUD();
         ctx.fillStyle='#000000';
         ctx.font = '48px Courier New';
@@ -1990,7 +1996,7 @@ function repeat2(){
         if (player.health>player.maxHealth){
             player.health=player.maxHealth;
         }
-        renderEverything(false,cam);
+        mainRender(false,cam);
         if (particles.length===0){
             powerUpSelect();
         }
@@ -1998,6 +2004,12 @@ function repeat2(){
         drawHUD();
         if (controller!=undefined&&mouse.show){
             drawMouse();
+        }
+    }
+    if (keysUsed['c']){
+        keysUsed['c'] = false;
+        if (devMode){
+            console.log(mouse)
         }
     }
     if (keysToggle['1']){ //the timer

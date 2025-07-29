@@ -61,24 +61,26 @@ function drawHalfMouse(points,buttonPressed,holeXPos){
     ctx.fillStyle='white';
     ctx.fill();
 }
+let leftMousePoints = [];
+let rightMousePoints = [];
 function drawHUDMouse(majorLeftX,majorRightX){
     let majorCenter = ((majorRightX-majorLeftX)/2)+majorLeftX;
 
-    let points = [
+    leftMousePoints = [
         new newPoint(majorLeftX,c.height),
         new newPoint(majorLeftX+2,c.height-70),
         new newPoint(majorCenter-20,c.height-75),
         new newPoint(majorCenter-1,c.height-75),
     ]
-    let otherPoints = []; //the points for the right click button
+    rightMousePoints = []; //the points for the right click button
 
-    for (point of points){
-        otherPoints.push(new newPoint((-(point.x-majorCenter))+majorCenter+2,point.y));
+    for (point of leftMousePoints){
+        rightMousePoints.push(new newPoint((-(point.x-majorCenter))+majorCenter+2,point.y));
     }
 
-    drawHalfMouse(points,buttonsArray[0],majorLeftX+20);
+    drawHalfMouse(leftMousePoints,buttonsArray[0],majorLeftX+20);
 
-    drawHalfMouse(otherPoints,buttonsArray[2],majorLeftX+60);
+    drawHalfMouse(rightMousePoints,buttonsArray[2],majorLeftX+60);
     ctx.strokeStyle = 'black';
 
     ctx.beginPath();
@@ -290,6 +292,14 @@ function drawHUD(){
                 if (heldPowerUp===undefined){
                     heldPowerUp=null;//this shouldn't be nessecary but this is easier than coding it right
                 }else if (heldPowerUp===null){
+                    if (playerEnemyRoom.enemies.length<2){
+                        continue;
+                    }
+                    if (player.enemyRoom.roomNum===0&&!beatGame&&playerEnemyRoom.enemies[1].speed<0){
+                        rectsToDraw.push(autoRect(new newPoint(c.width/2,3*c.height/4),['Hold a Mouse Button to Shoot Continuously','Hold Left Click if Weapon is in Left Click Slot','Hold Right Click if Weapon is in Right Click Slot'],'32px Courier New',undefined,false,true));
+                        drawArrow(new newPoint(220,615),new newPoint(85,710),30,Math.PI/10,true);
+                        drawArrow(new newPoint(220,660),new newPoint(130,720),30,Math.PI/10,true);
+                    }
                     continue;
                 }else{
                     if (player.enemyRoom.roomNum===0&&!beatGame){
@@ -689,7 +699,8 @@ function checkPowerUps(){
                     }else if (examplePowerUp===powerUpsGrabbed[1]&&buttonsArray[2]){
                         verticalOffset-=2;
                     }
-                    i=checkPowerUp(examplePowerUp,i,verticalOffset/30,onClick,powerUpList,majorLeftX,false,false)
+                    let boundingPointsGroups = [leftMousePoints,rightMousePoints];
+                    i=checkPowerUp(examplePowerUp,i,verticalOffset/30,onClick,powerUpList,majorLeftX,false,false,undefined,new newPoint(majorLeftX+(majorRightX-majorLeftX)/2,c.height),boundingPointsGroups[i]);
                     break
                 case 3:
                     if (i<=screenPowerUpHeight){
@@ -705,7 +716,7 @@ function checkPowerUps(){
         }
     }
 }
-function checkPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList,leftX,powerUpSelect,stackVertical,powerUpImage){
+function checkPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpList,leftX,powerUpSelect,stackVertical,powerUpImage,stableBoundingPoint,boundingPoints){
     let iconSize = null;
     if (powerUp instanceof newMajorPowerUp){
         iconSize = 13;
@@ -745,7 +756,17 @@ function checkPowerUp(powerUp,numOnScreen,verticalNumOnScreen,onClick,powerUpLis
             }
         }
     }
-    if (findDis(iconPos,mouse)<iconSize){
+    let hoverOver = false;
+    if (boundingPoints===undefined){
+        hoverOver = findDis(iconPos,mouse)<iconSize;
+    }else{
+        for (point of boundingPoints){
+            if (boundingBox(point,stableBoundingPoint,addToPoint(mouse,10,0),0,0)){
+                hoverOver = true;
+            }
+        }
+    }
+    if (hoverOver){
         if (mouseClickUsed){
             //buttonsArray=[]; //this unclicks all the buttons so you can no longer shoot
             if (numOnScreen===Math.round(numOnScreen)){

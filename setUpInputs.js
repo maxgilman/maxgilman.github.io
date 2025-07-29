@@ -21,9 +21,12 @@ if (false){
         }
     }
 });*/
-document.addEventListener('contextmenu', event => {
+document.getElementById("spriteCanvas").addEventListener('contextmenu', event => {
     event.preventDefault();
-});//this stops right clicking from opening the right click menu
+});//this stops right clicking on the canvas from opening the right click menu(so i can still right click somewhere on the page)
+document.addEventListener('contextmenu', event => {
+    keys = {};
+});
 let keys = {};
 let keysUsed = {};
 let keysToggle = {};

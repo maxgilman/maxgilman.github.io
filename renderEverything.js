@@ -1,16 +1,37 @@
-function renderEverything(skipPlayers,camera){
+let c = document.getElementById("spriteCanvas");
+let ctx = c.getContext("2d");
+//let oldBackgroundCanvas = document.getElementById("backgroundCanvas");
+//let backgroundCanvas = oldBackgroundCanvas.transferControlToOffscreen();
+let backgroundCanvas = new OffscreenCanvas(1400,750);
+//let bgctx = backgroundCanvas.getContext("2d");
+let backgroundWidth = backgroundCanvas.width;
+let backgroundHeight = backgroundCanvas.height;
+function mainRender(skipPlayers,camera){
+    /*if (!isSamePoint(cam,cam.lastPosition)){
+        bgctx.clearRect(0,0,backgroundCanvas.width,(backgroundCanvas.height-HUDHeight));
+        renderBackground()
+    }*/
+    if (redrawBackground){
+        renderBackground(redrawBackground);
+        redrawBackground = false;
+    }
+    updateBackground();
+    renderSprites(skipPlayers,camera);
+}
+function renderSprites(skipPlayers,camera){
+    if (enemyRooms[0].bitmap===null){
+        return; //don't draw the sprites until the background is also ready to be drawn
+    }
     updatePermanenetRects();
     waterBullets = [];
-    drawBackground();
     //the camera mechanic is unfinished and probally doesn't work cause variables share names
     drawDebug(camera);
-    drawWalls(camera,false);
-    //drawEnemyRooms();
+    drawExtraWalls(cam,false);
     if (!skipPlayers){
         drawEnemies(camera);
     }
     drawBullets(camera,false);
-    drawShop();
+    drawShop(); //this might be able to go in the background if it didn't go over the player. It could have its own canvas with item select and tint
     drawCircles(camera);
     drawParticles();
     drawScreenTint();
@@ -19,21 +40,67 @@ function renderEverything(skipPlayers,camera){
         drawShopItemSelect();
     }
 }
-function drawBackground(){
-    //ctx.fillStyle = background; //this is a color, maybe in the future this may be an image
+const worker = new Worker('workerDrawBackground.js');
+//worker.postMessage({ type: "init", canvas:backgroundCanvas}, [backgroundCanvas]);
+function renderBackground(enemyRoom){
+    if (enemyRoom===undefined){
+        for (otherEnemyRoom of enemyRooms){
+            renderBackground(otherEnemyRoom)
+        }
+    }else{
+        Promise.all(tileImages.map(img => createImageBitmap(img)))
+            .then(imageBitmaps/*,enemyRoom*/ => 
+                worker.postMessage(
+                { tileSize, tiles:enemyRoom.unShiftedTiles, walls: enemyRoom.unShiftedWalls, tileImages: imageBitmaps, roomIndex:enemyRooms.findIndex((checkRoom)=>checkRoom===enemyRoom)},
+                imageBitmaps // transferable list
+                )
+            );
+
+        worker.onmessage = (e) => {
+            enemyRooms[e.data.roomIndex].bitmap = e.data.bitmap;
+        };
+    }
+}
+function requestWorker(imageBitmaps,enemyRoom){
+    let roomIndex = enemyRooms.findIndex((checkRoom)=>checkRoom===enemyRoom)
+    worker.postMessage(
+    { tileSize, tiles, walls: enemyRoom.unShiftedWalls, tileImages: imageBitmaps, roomIndex},
+    imageBitmaps // transferable list
+    );
+}
+function updateBackground(){
+    //const imageData = bgctx.getImageData(cam.x+(backgroundCanvas.width/2), cam.y+(backgroundCanvas.height/2), c.width, c.height);
+
+    //ctx.putImageData(imageData, 0,0);
+    //ctx.drawImage(backgroundCanvas,-(cam.x+(backgroundWidth/2)), -(cam.y+(backgroundHeight/2)));
+    for (enemyRoom of enemyRooms){ //maybe in the future only draw the rooms the player is in
+        if (enemyRoom.bitmap!=null){
+            let realPos = turnRoomIntoRealPos(enemyRoom);
+            if (cam.zoom===1){
+                ctx.drawImage(enemyRoom.bitmap,realPos.x-cam.x,realPos.y-cam.y); //doorlength would be the offset, but the realpos already is offset for some reason
+            }else{ //it checks the zoom before doing this, as i believe resizing images is slow, so it doesn't happen for every room for no reason every frame
+                let screenRoomPos = offSetByCam(realPos);
+                ctx.drawImage(enemyRoom.bitmap,screenRoomPos.x,screenRoomPos.y,((doorLength*2)+roomWidth)*cam.zoom,((doorLength*2)+roomHeight)*cam.zoom); //doorlength would be the offset, but the realpos already is offset for some reason
+            }
+            
+        }
+    }
+}
+/*function drawBackground(){
+    //bgctx.fillStyle = background; //this is a color, maybe in the future this may be an image
     switch(Math.floor(Math.max(player.enemyRoom.roomNum-1,0)/10)){
         case 0:
-            ctx.fillStyle='white';
+            bgctx.fillStyle='white';
         break
         case 1:
-            ctx.fillStyle='#BBBBBB';
+            bgctx.fillStyle='#BBBBBB';
         break
         case 2:
-            ctx.fillStyle='#757575';
+            bgctx.fillStyle='#757575';
         break
     }
-    ctx.fillRect(0,0,c.width,c.height);
-}
+    bgctx.fillRect(0,0,c.width,c.height); //make this draw over the rooms, not the entire screen
+}*/
 function drawScreenTint(){
     ctx.globalAlpha = screenTint.opacity;
     ctx.fillStyle = screenTint.color; //this is a color, maybe in the future this may be an image
@@ -111,13 +178,7 @@ function drawDebug(cam){
         }
     }
 }
-function drawWalls(cam,draw3d){
-    let i = 0;
-    //this is an example of a crisp line, I can't figure out how to get the walls to look like this
-    /*ctx.beginPath();
-    ctx.moveTo(100.5,100);
-    ctx.lineTo(100.5,200);
-    ctx.stroke();*/
+function drawExtraWalls(cam,draw3d){
     for (enemyRoom of enemyRooms){
         if (enemyRoom.useExtraWalls===1){
             for (wall of enemyRoom.extraWalls){
@@ -145,45 +206,45 @@ function drawWalls(cam,draw3d){
                 }
             }
         }
+    }
+}
+/*function drawWalls(wallsCam,draw3d){
+    let i = 0;
+    //this is an example of a crisp line, I can't figure out how to get the walls to look like this
+    /*bgctx.beginPath();
+    bgctx.moveTo(100.5,100);
+    bgctx.lineTo(100.5,200);
+    bgctx.stroke();*/
+    /*for (enemyRoom of enemyRooms){
         for (wall of enemyRoom.walls){
-
             i++;
-            //this is for debug
-            //drawCircle(wall.first.x,wall.first.y,'red');
-            //drawCircle(wall.second.x,wall.second.y,'red');
-            //let mid = findMidPoint(wall.first,wall.second);
-            /*ctx.beginPath();
-            ctx.moveTo((((mid.x)-cam.x)*cam.zoom),((mid.y)-cam.y)*cam.zoom);
-            ctx.lineTo(((mid.x+(5*i))-cam.x)*cam.zoom,((mid.y+(5*i))-cam.y)*cam.zoom);
-            ctx.stroke();*/
-    
             //this draws the wall id
-            //ctx.fillText(i,(mid.x-cam.x)*cam.zoom,(mid.y-cam.y)*cam.zoom);
+            //bgctx.fillText(i,(mid.x-wallsCam.x)*wallsCam.zoom,(mid.y-wallsCam.y)*wallsCam.zoom);
             if (!draw3d){
-                ctx.beginPath();
-                ctx.moveTo(((wall.first.x-cam.x)*cam.zoom),(wall.first.y-cam.y)*cam.zoom);
-                ctx.lineTo((wall.second.x-cam.x)*cam.zoom,(wall.second.y-cam.y)*cam.zoom);
-                ctx.stroke();
+                bgctx.beginPath();
+                bgctx.moveTo(((wall.first.x-wallsCam.x)*wallsCam.zoom),(wall.first.y-wallsCam.y)*wallsCam.zoom);
+                bgctx.lineTo((wall.second.x-wallsCam.x)*wallsCam.zoom,(wall.second.y-wallsCam.y)*wallsCam.zoom);
+                bgctx.stroke();
             }else{
                 let newFirst = accountForZ(wall.first,47);
                 let newSecond = accountForZ(wall.second,47);
                 let newFirst2 = accountForZ(wall.first,53);
                 let newSecond2 = accountForZ(wall.second,53);
-                ctx.beginPath();
-                ctx.moveTo(newFirst.x,newFirst.y);
-                ctx.lineTo(newSecond.x,newSecond.y);
-                ctx.moveTo(newFirst2.x,newFirst2.y);
-                ctx.lineTo(newSecond2.x,newSecond2.y);
+                bgctx.beginPath();
+                bgctx.moveTo(newFirst.x,newFirst.y);
+                bgctx.lineTo(newSecond.x,newSecond.y);
+                bgctx.moveTo(newFirst2.x,newFirst2.y);
+                bgctx.lineTo(newSecond2.x,newSecond2.y);
         
-                ctx.moveTo(newFirst.x,newFirst.y);
-                ctx.lineTo(newFirst2.x,newFirst2.y);
-                ctx.moveTo(newSecond.x,newSecond.y);
-                ctx.lineTo(newSecond2.x,newSecond2.y);
-                ctx.stroke();
+                bgctx.moveTo(newFirst.x,newFirst.y);
+                bgctx.lineTo(newFirst2.x,newFirst2.y);
+                bgctx.moveTo(newSecond.x,newSecond.y);
+                bgctx.lineTo(newSecond2.x,newSecond2.y);
+                bgctx.stroke();
             }
         }
     }
-}
+}*/
 function drawTintOnEnemy(enemy,drawHealthTint,offset,maxHealth){
     let screenEnemyPos = offSetByCam(enemy);
     ctx.beginPath();
@@ -586,7 +647,7 @@ function drawMouse(){
     ctx.drawCircle(mouse.x,mouse.y,'grey',true,10);
     //add a plus to make it look like a screw
 }
-function drawArrow(tail,point,prongLength,prongAngle){
+function drawArrow(tail,point,prongLength,prongAngle,drawWhiteOutline){
     ctx.beginPath();
     ctx.moveTo(tail.x,tail.y);
     ctx.lineTo(point.x,point.y);
@@ -594,19 +655,13 @@ function drawArrow(tail,point,prongLength,prongAngle){
     ctx.lineTo(point.x+(prongLength*Math.sin(arrowAngle+prongAngle)),point.y+(prongLength*Math.cos(arrowAngle+prongAngle)))
     ctx.moveTo(point.x,point.y);
     ctx.lineTo(point.x+(prongLength*Math.sin(arrowAngle-prongAngle)),point.y+(prongLength*Math.cos(arrowAngle-prongAngle)))
+    if (drawWhiteOutline){
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+    }
     ctx.stroke();
 }
-function drawEnemyRooms(){
-    let tileSize = 28;
-    let pos = new newPoint(100,100);
-    pos = offSetByCam(pos);
-    ctx.drawImage(tileImages[0],pos.x,pos.y);
-    ctx.drawImage(tileImages[2],pos.x+tileSize,pos.y);
-    ctx.drawImage(tileImages[6],pos.x,pos.y+tileSize);
-    ctx.drawImage(tileImages[8],pos.x+tileSize,pos.y+tileSize);
-
-    for (let i=0;i<3;i++){
-        ctx.drawImage(pipeImage,200+(i*tileSize),100);
-    }
-    ctx.drawImage
-}
+let tileSize = 40;

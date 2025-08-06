@@ -51,7 +51,7 @@ function renderBackground(enemyRoom){
         Promise.all(tileImages.map(img => createImageBitmap(img)))
             .then(imageBitmaps/*,enemyRoom*/ => 
                 worker.postMessage(
-                { tileSize, tiles:enemyRoom.unShiftedTiles, walls: enemyRoom.unShiftedWalls, tileImages: imageBitmaps, roomIndex:enemyRooms.findIndex((checkRoom)=>checkRoom===enemyRoom)},
+                { tileSize, tiles:enemyRoom.unShiftedTiles, walls: enemyRoom.unShiftedWalls, tileImages: imageBitmaps, roomIndex:enemyRooms.findIndex((checkRoom)=>checkRoom===enemyRoom),doorLength},
                 imageBitmaps // transferable list
                 )
             );
@@ -77,10 +77,10 @@ function updateBackground(){
         if (enemyRoom.bitmap!=null){
             let realPos = turnRoomIntoRealPos(enemyRoom);
             if (cam.zoom===1){
-                ctx.drawImage(enemyRoom.bitmap,realPos.x-cam.x,realPos.y-cam.y); //doorlength would be the offset, but the realpos already is offset for some reason
+                ctx.drawImage(enemyRoom.bitmap,realPos.x-cam.x,realPos.y+20-cam.y); //background is offset 20 to make it so you can walk over the walls a bit. also evens out the top and bottom
             }else{ //it checks the zoom before doing this, as i believe resizing images is slow, so it doesn't happen for every room for no reason every frame
                 let screenRoomPos = offSetByCam(realPos);
-                ctx.drawImage(enemyRoom.bitmap,screenRoomPos.x,screenRoomPos.y,((doorLength*2)+roomWidth)*cam.zoom,((doorLength*2)+roomHeight)*cam.zoom); //doorlength would be the offset, but the realpos already is offset for some reason
+                ctx.drawImage(enemyRoom.bitmap,screenRoomPos.x,screenRoomPos.y,((doorLength*2)+roomWidth)*cam.zoom,((doorLength*2)+roomHeight)*cam.zoom);
             }
             
         }
@@ -126,6 +126,9 @@ function drawDebug(cam){
     }
     if (keysToggle['k']&&devMode){
         for (enemyRoom of enemyRooms){
+            if (enemyRoom!=playerEnemyRoom){
+                continue;
+            }
             for (box of enemyRoom.wallBoxes){
                 ctx.beginPath();
                 ctx.rect((box.x-cam.x)*cam.zoom,(box.y-cam.y)*cam.zoom,boxSize*cam.zoom,boxSize*cam.zoom);
@@ -133,6 +136,13 @@ function drawDebug(cam){
                 ctx.fill();
                 ctx.stroke();
             }
+            /*for (box of enemyRoom.unShiftedWallBoxes){
+                ctx.beginPath();
+                ctx.rect((box.x+enemyRoom.realPos.x-cam.x)*cam.zoom,(box.y+enemyRoom.realPos.y-cam.y)*cam.zoom,boxSize*cam.zoom,boxSize*cam.zoom);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.stroke();
+            }*/
         }
         if (PFBoxes.length>0){
             for (box of PFBoxes){
@@ -537,18 +547,22 @@ function drawBorder(){
 
     ctx.fillStyle = ctx.createLinearGradient(0, screenRoomPos.y, 0, screenRoomPos.y+doorLength);//top
     ctx.fillStyle.addColorStop(0, borderColor);
+    ctx.fillStyle.addColorStop(.3, 'rgb('+(healthRatio/2)+' 0 0 / 30%)');
     ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x, screenRoomPos.y, roomWidth+(doorLength*2), doorLength);
     ctx.fillStyle = ctx.createLinearGradient(0, screenRoomPos.y+roomHeight+(doorLength*2), 0, screenRoomPos.y+roomHeight+doorLength);//bottom
     ctx.fillStyle.addColorStop(0, borderColor);
+    ctx.fillStyle.addColorStop(.3, 'rgb('+(healthRatio/2)+' 0 0 / 30%)');
     ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x, screenRoomPos.y+roomHeight+doorLength, roomWidth+(doorLength*2), doorLength);
     ctx.fillStyle = ctx.createLinearGradient(screenRoomPos.x, 0, screenRoomPos.x+doorLength, 0);//left
     ctx.fillStyle.addColorStop(0, borderColor);
+    ctx.fillStyle.addColorStop(.3, 'rgb('+(healthRatio/2)+' 0 0 / 30%)');
     ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x, screenRoomPos.y, doorLength, roomHeight+(doorLength*2));
     ctx.fillStyle = ctx.createLinearGradient(screenRoomPos.x+roomWidth+(doorLength*2), 0, screenRoomPos.x+roomWidth+doorLength, 0);//right
     ctx.fillStyle.addColorStop(0, borderColor);
+    ctx.fillStyle.addColorStop(.3, 'rgb('+(healthRatio/2)+' 0 0 / 30%)');
     ctx.fillStyle.addColorStop(1, 'rgb('+healthRatio+' 0 0 / 0%)');
     ctx.fillRect(screenRoomPos.x+roomWidth+doorLength, screenRoomPos.y, doorLength, roomHeight+(doorLength*2));
 }

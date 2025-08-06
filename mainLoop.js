@@ -42,11 +42,12 @@ let sheild = {
 };
 let PFBoxes = [];//path finding boxes
 let boxSize = 40;
-const doorWidth = 100;
-const doorLength = 50
-const roomWidth = 1300;
-const roomHeight = 650;
-let margin=new newPoint(10,30);
+const doorWidth = 120;
+const doorLength = 80;
+const roomWidth = 1760;
+const roomHeight = 920;
+const roomOffset = 20; //makes the room walls x closer to the center of the room(lines up the room with the wallboxes better)
+let margin=new newPoint(0,0);
 let HUDHeight = 0;
 let cam = {
     x:0,
@@ -313,7 +314,7 @@ function removeDuplicates(arr) {
     return unique;
 }
 function generateWallBoxes(precision,wallsToGenerate,wallBoxes,tiles){
-    wallBoxes = [];
+    /*wallBoxes = [];
     let i=0;
     while (tiles[i]!=undefined){
         let j=0;
@@ -325,7 +326,7 @@ function generateWallBoxes(precision,wallsToGenerate,wallBoxes,tiles){
         }
         i+=tileSize;
     }
-    return wallBoxes;
+    return wallBoxes;*/
     if (precision===undefined){
         precision=1;
     }
@@ -461,10 +462,10 @@ function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScr
     }*/
     cam.lastPosition = dupPoint(cam);
     if (resetScreen){
-        c.width=1400;
-        c.height=750+HUDHeight;
+        c.width=1920;
+        c.height=1080+HUDHeight;
         screenSize= Math.min((c.height-HUDHeight)/((doorLength*2)+roomHeight),c.width/((doorLength*2)+roomWidth));
-        cam.zoom=screenSize;
+        cam.zoom=1;
         c.style.margin = margin.y+"px "+margin.x+"px";
         //backgroundCanvas.style.margin = margin.y+"px "+margin.x+"px";
     }
@@ -478,8 +479,8 @@ function camControl(snapToRooms,target,updateScreenSize,keepAspectRatio,resetScr
         cam.x = (target.x-(c.width/2/cam.zoom));
         cam.y = (target.y-((c.height-HUDHeight)/2/cam.zoom));
     }else{
-        cam.x=(floorTo((target.x+50),(roomWidth+(doorLength*2)))-50)-(c.width/2/cam.zoom)+(roomWidth/2)+doorLength;
-        cam.y=(floorTo((target.y+50),(roomHeight+(doorLength*2)))-50)-((c.height-HUDHeight)/2/cam.zoom)+(roomHeight/2)+doorLength;
+        cam.x=(floorTo((target.x+doorLength),(roomWidth+(doorLength*2)))-doorLength)-(c.width/2/cam.zoom)+(roomWidth/2)+doorLength;
+        cam.y=(floorTo((target.y+doorLength),(roomHeight+(doorLength*2)))-doorLength)-((c.height-HUDHeight)/2/cam.zoom)+(roomHeight/2)+doorLength;
 
         let z = target.x%(roomWidth+(2*doorLength));
         let u = (roomWidth+(2*doorLength))/(doorLength*2);
@@ -1591,7 +1592,7 @@ function updatePermanenetRects(){
 function switchTile(x,y,tileType){
     let enemyRoom = enemyRooms.find((checkEnemyRoom)=>boundingBox(addToPoint(checkEnemyRoom.realPos,-doorLength,-doorLength),addToPoint(checkEnemyRoom.realPos,roomWidth+(doorLength*2),roomHeight+(doorLength*2)),new newPoint(x,y),0,0));
     if (enemyRoom!=undefined){
-        let checkPos = floorPoint(new newPoint(x-enemyRoom.realPos.x+80,y-enemyRoom.realPos.y+80),tileSize);
+        let checkPos = floorPoint(new newPoint(x-enemyRoom.realPos.x+120,y-enemyRoom.realPos.y+120),tileSize);
         enemyRoom.unShiftedTiles[checkPos.x][checkPos.y] = tileType;
         redrawBackground = enemyRoom;
         enemyRoom.wallBoxes = generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes,enemyRoom.unShiftedTiles);
@@ -1638,9 +1639,6 @@ function editorTiles(){
     if (keys['4']&&devMode){
         switchTile(mouseShifted.x,mouseShifted.y,2);
     }
-    if (keys['5']&&devMode){
-        switchTile(mouseShifted.x,mouseShifted.y,3);
-    }
 }
 let frameNum = 0;
 let enemiesToRemove = [];
@@ -1650,8 +1648,8 @@ let gunAngle = 0;
 let pressedLastFrame=false;
 function repeat(){
     frameNum++;
-    mouseShifted.x=((mouse.x+10)/cam.zoom)+(cam.x);
-    mouseShifted.y=((mouse.y/cam.zoom)+cam.y);
+    mouseShifted.x=((mouse.x)/cam.zoom)+cam.x;
+    mouseShifted.y=((mouse.y)/cam.zoom)+cam.y;
     if (screenShake>0){
         screenShake-=deltaTime;
     }
@@ -2032,7 +2030,9 @@ let previousFps = [];
 let computingStartTime = 0;
 function repeat3(){
     computingStartTime = Date.now();
-    ctx.clearRect(0,0,c.width,(c.height-HUDHeight));
+    //ctx.clearRect(0,0,c.width,(c.height-HUDHeight));
+    ctx.fillStyle = '#5A3807'; //the color of the bricks to cover the seams between rooms
+    ctx.fillRect(0,0,c.width,c.height)
     repeat2();
     deltaTime = (Date.now()-startTime)/(1000/targetFPS);
     if ((Math.abs(1-screenSize)<.3)&&devMode){ //this just makes it so if the screen is deformed, it just won't draw the debug info

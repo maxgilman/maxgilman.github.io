@@ -287,13 +287,23 @@ optimazation ideas:
     make things draw on the pixel so they don't need to be blurred/anti-aliased
     remove transparent things?
     use javascript workers to keep framerate up during long game physics?
+    instead of checking every wall for everything, catalog all the walls(maybe do the tiles instead) in a matrix, then only check the wall cells in a 3x3 box around the subject
 
 what to do:
     when drawing a image tile, checking againist every other tile is slow. Short term: remove edges. Long Term: instead of writing every tile as seperate, send over a huge box so it doesn't have to check for edges. Maybe super long term, edges could be baked in
-    tiles don't line up on room borders. Add a black blur on those areas or a background color to cover it
     maybe in the future only draw the rooms the player is in
-    make each room have its own tiles
     if redrawBackground is set to multiple rooms on 1 frame, only 1 will be updated
+    make the screen area that isn't being used for the room larger.(make room size smaller, while doorlength longer)
+    increase player speed to compensate for larger room
+    scale up the enemy sprite in the actual sprite, not during runtime
+    figure out why its lagging
+        something is running in the other rooms? lots more walls to check? But I don't know what would be running in the unloaded rooms
+    optimize wall collision, or whatever it is that stops lagging when 'n' is pressed
+    change room generation generate tiles instead of walls(lock down room size first)
+    make the player go behind the above wall areas(split the image into two, the above wall area, and the walls and floor as another)
+    split doorlength into two variables: horizontal and vertical
+    fix the split in the above wall areas between screens
+    make pathfinding more variable so there can be a greater variety of enemies
 
 add arrow or something like a glow showing where to go. Or something showing where to NOT go(maybe walls)
 

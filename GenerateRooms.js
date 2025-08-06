@@ -176,15 +176,150 @@ function consoleChallengeRooms(){
         console.log('challenge:'+enemyRoom.challengeRoom+' Room Num:'+enemyRoom.roomNum);
     }
 }
-function generateTileMatrix(){
+function generateTileMatrix1(){
     let tileMatrix = {};
-    for (let i=-80;i<(roomWidth+(doorLength*2)+tileSize);i+=tileSize){ //it adds an extra tile besides just covering the entire room
+    for (let i=0;i<(roomWidth+(doorLength*2)+tileSize);i+=tileSize){ //it adds an extra tile besides just covering the entire room
         tileMatrix[i] = [];
-        for (let j=-80;j<(roomHeight+(doorLength*2)+tileSize);j+=tileSize){
+        for (let j=0;j<(roomHeight+(doorLength*2)+tileSize);j+=tileSize){
             tileMatrix[i][j]=0;
         }
     }
     return tileMatrix;
+}
+function generateTileMatrix(wallBoxes,offSetPos){
+    let wallBoxesCopy = [];
+    for (wallBox of wallBoxes){
+        wallBoxesCopy.push(new newPoint(wallBox.x+doorLength-offSetPos.x,wallBox.y+doorLength-offSetPos.y));
+    }
+    let inRoom = false;
+    let tileMatrix = generateTileMatrix1();
+    for (let j=(roomHeight+(doorLength*2)+tileSize);j>=0;j-=tileSize){
+        for (let i=0;i<(roomWidth+(doorLength*2)+tileSize);i+=tileSize){ //it adds an extra tile besides just covering the entire room
+            let thisTile = wallBoxesCopy.find((wallBox)=>isSamePoint(wallBox,new newPoint(i,j)));
+            if ((i<doorLength||i>roomWidth+doorLength-roomOffset||j<doorLength||j>roomHeight+doorLength-roomOffset)&&false){
+                if (thisTile!=undefined){
+                    tileMatrix[i][j] = 4;
+                    inRoom = !inRoom;
+                }else if (inRoom){
+                    tileMatrix[i][j] = 3;
+                }else{
+                    tileMatrix[i][j] = 4;
+                }
+            }else{
+                let tileBelow = wallBoxesCopy.find((wallBox)=>isSamePoint(wallBox,new newPoint(i,j+tileSize)))
+                if (undefined!=tileBelow){ //wall below this one
+                    tileMatrix[i][j]=2; //above wall area
+                }else if (undefined===thisTile){
+                    tileMatrix[i][j]=0; //floor
+                }else{
+                    if (2===tileMatrix[i][j+tileSize]&&tileBelow!=undefined){ //wall below this one
+                        tileMatrix[i][j]=2; //above wall area
+                    }else{
+                        tileMatrix[i][j]=1; //wall
+                    }
+                }
+            }
+        }
+    }
+    return tileMatrix;
+}
+/*function iterateThroughTiles(tiles,action){ //just an example of how to use the data structure
+    let i=0;
+    while (tiles[i]!=undefined){
+        let j=0;
+        while (tiles[i][j]!=undefined){
+            action(tiles[i][j]);
+            j+=tileSize;
+        }
+        i+=tileSize;
+    }
+}*/
+/*function convertWallBoxesToTiles(wallBoxes,tiles,enemyRoomOffset){
+    for (wallBox of wallBoxes){
+        tiles[wallBox.x+doorLength-enemyRoomOffset.x][wallBox.y+doorLength-enemyRoomOffset.y] = 1;
+    }
+}*/
+function makeWallsFromWallBoxes(wallBoxes){
+    let walls = [];
+    for (box of wallBoxes){ //put all walls in initially
+        walls.push(new newWall(box.x,box.y,box.x+tileSize,box.y));
+        walls.push(new newWall(box.x,box.y,box.x,box.y+tileSize));
+        walls.push(new newWall(box.x,box.y+tileSize,box.x+tileSize,box.y+tileSize));
+        walls.push(new newWall(box.x+tileSize,box.y,box.x+tileSize,box.y+tileSize));
+    }
+    for (let i=0;i<walls.length;i++){ //removes overlapping walls
+        let wall = walls[i];
+        for (let j=0;j<walls.length;j++){
+            let otherWall = walls[j];
+            if (wall===otherWall){ //same wall
+                continue;
+            }
+            //checks for "overlapping" walls. It then removes both walls. If they are overlapping, it must be on the inside of a shape and so the walls can be discarded
+            if ((isSamePoint(wall.first,otherWall.first)&&isSamePoint(wall.second,otherWall.second))||(isSamePoint(wall.second,otherWall.first)&&isSamePoint(wall.first,otherWall.second))){ //checking both permutations may not actually be neccasary
+                if (i>j){ //i is later in the list
+                    walls.splice(i,1);
+                    walls.splice(j,1);
+                }else{ //j is later in the list
+                    walls.splice(j,1);
+                    walls.splice(i,1);
+                }
+                i--;
+                j--;
+                break;
+            }
+        }
+    } //276 after this
+    for (let i=0;i<walls.length;i++){ //combines walls that are next to each other
+        let wall = walls[i];
+        for (let j=0;j<walls.length;j++){
+            let otherWall = walls[j];
+            if (wall===otherWall){ //same wall
+                continue;
+            }
+            let wallVertical = wall.first.x===wall.second.x;
+            let otherWallVertical = otherWall.first.x===otherWall.second.x;
+            if (wallVertical===otherWallVertical){
+                if (isSamePoint(wall.first,otherWall.first)){ //first two may not be neccassary if other things are changed
+                    walls.push(new newWall(wall.second.x,wall.second.y,otherWall.second.x,otherWall.second.y));
+                    removeTwoItems(i,j,walls);
+                    i--;
+                    j--;
+                    break;
+                }
+                if (isSamePoint(wall.second,otherWall.second)){
+                    walls.push(new newWall(wall.first.x,wall.first.y,otherWall.first.x,otherWall.first.y));
+                    removeTwoItems(i,j,walls);
+                    i--;
+                    j--;
+                    break;
+                }
+                if (isSamePoint(wall.second,otherWall.first)){
+                    walls.push(new newWall(wall.first.x,wall.first.y,otherWall.second.x,otherWall.second.y));
+                    removeTwoItems(i,j,walls);
+                    i--;
+                    j--;
+                    break;
+                }
+                if (isSamePoint(wall.first,otherWall.second)){
+                    walls.push(new newWall(wall.second.x,wall.second.y,otherWall.first.x,otherWall.first.y));
+                    removeTwoItems(i,j,walls);
+                    i--;
+                    j--;
+                    break;
+                }
+            }
+        }
+    } //16 after this
+    return walls;
+}
+function removeTwoItems(i,j,list){
+    if (i>j){ //i is later in the list
+        list.splice(i,1);
+        list.splice(j,1);
+    }else{ //j is later in the list
+        list.splice(j,1);
+        list.splice(i,1);
+    }
 }
 function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,difficulty,bossesSpawned,bossRush){
     //this aligns the cordinates as (-1,1) is the room one to the left of the beginning, not at the actual cordiate (-1,0)
@@ -194,7 +329,8 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
     enemyRoom.enemyPickUps=[];
     enemyRoom.walls=[];
     enemyRoom.unShiftedWalls=[]; //used for rendering
-    enemyRoom.unShiftedTiles = generateTileMatrix();
+    enemyRoom.unShiftedTiles = {}; //updated later
+    enemyRoom.unShiftedWallBoxes = [];
     enemyRoom.bitmap = null; //updated later. Used to draw the entire room
     enemyRoom.wallBoxes = [];
     enemyRoom.difficulty = difficulty;
@@ -343,61 +479,55 @@ function generateRoom(topOpen,rightOpen,bottomOpen,leftOpen,roomPos,roomNum,diff
         enemyRoom.enemies.push(newEnemyPreset(new newPoint(roomWidth/2+roomPos.x,350+roomPos.y),14,0,'Or enter the Portal to Fight a Boss Rush'));
         enemyRoom.enemies.push(newEnemyPreset(addToPoint(roomPos,roomWidth/2,(roomHeight/2)+100),13,undefined,undefined,difficulty)); //portal
     }
-    //door length is twice as long to cover the entire wall and make a seamless wall
+    //extra walls don't have roomoffset as it locks you out of rooms since the code to check if you are in a room doesn't account for it
     if (topOpen){
-        room.push(new newWall(0,0,roomWidth/2-(doorWidth/2),0));
-        room.push(new newWall(roomWidth/2+(doorWidth/2),0,roomWidth,0));
+        room.push(new newWall(roomOffset,roomOffset,roomWidth/2-(doorWidth/2),roomOffset));
+        room.push(new newWall(roomWidth/2+(doorWidth/2),roomOffset,roomWidth-roomOffset,roomOffset));
         extraWalls.push(new newWall(roomWidth/2-(doorWidth/2),0,roomWidth/2+(doorWidth/2),0));
-        room.push(new newWall(roomWidth/2-(doorWidth/2),0,roomWidth/2-(doorWidth/2),-(doorLength)));
-        room.push(new newWall(roomWidth/2+(doorWidth/2),0,roomWidth/2+(doorWidth/2),-(doorLength)));
-        //these tiles only work with a specific room size and boxSize
-        /*savedwallBoxes.push(new newPoint(roundTo(roomWidth/2+roomPos.x,boxSize),roundTo(-35+roomPos.y,boxSize)));
-        savedwallBoxes.push(new newPoint(roundTo(roomWidth/2-boxSize+roomPos.x,boxSize),roundTo(-35+roomPos.y,boxSize)));*/
+        room.push(new newWall(roomWidth/2-(doorWidth/2),roomOffset,roomWidth/2-(doorWidth/2),-(doorLength)));
+        room.push(new newWall(roomWidth/2+(doorWidth/2),roomOffset,roomWidth/2+(doorWidth/2),-(doorLength)));
     }else{
-        room.push(new newWall(0,0,roomWidth,0));
+        room.push(new newWall(roomOffset,roomOffset,roomWidth-roomOffset,roomOffset));
     }
     if (rightOpen){
-        room.push(new newWall(roomWidth,0,roomWidth,roomHeight/2-(doorWidth/2)));
-        room.push(new newWall(roomWidth,roomHeight/2+(doorWidth/2),roomWidth,roomHeight));
+        room.push(new newWall(roomWidth-roomOffset,roomOffset,roomWidth-roomOffset,roomHeight/2-(doorWidth/2)));
+        room.push(new newWall(roomWidth-roomOffset,roomHeight/2+(doorWidth/2),roomWidth-roomOffset,roomHeight-roomOffset));
         extraWalls.push(new newWall(roomWidth,roomHeight/2-(doorWidth/2),roomWidth,roomHeight/2+(doorWidth/2)));
-        room.push(new newWall(roomWidth,roomHeight/2-(doorWidth/2),roomWidth+(doorLength),roomHeight/2-(doorWidth/2)));
-        room.push(new newWall(roomWidth,roomHeight/2+(doorWidth/2),roomWidth+(doorLength),roomHeight/2+(doorWidth/2)));
-        //these tiles only work with a specific room size and boxSize
-        //savedwallBoxes.push(new newPoint(1330+roomPos.x,280+roomPos.y));
-        //savedwallBoxes.push(new newPoint(1330+roomPos.x,315+roomPos.y));
-        /*savedwallBoxes.push(new newPoint(roundTo(roomWidth+roomPos.x,boxSize),roundTo(roomHeight/2+roomPos.y,boxSize)));
-        savedwallBoxes.push(new newPoint(roundTo(roomWidth+roomPos.x,boxSize),roundTo(roomHeight/2-boxSize+roomPos.y,boxSize)));*/
+        room.push(new newWall(roomWidth-roomOffset,roomHeight/2-(doorWidth/2),roomWidth+(doorLength),roomHeight/2-(doorWidth/2)));
+        room.push(new newWall(roomWidth-roomOffset,roomHeight/2+(doorWidth/2),roomWidth+(doorLength),roomHeight/2+(doorWidth/2)));
     }else{
-        room.push(new newWall(roomWidth,0,roomWidth,roomHeight));
+        room.push(new newWall(roomWidth-roomOffset,roomOffset,roomWidth-roomOffset,roomHeight-roomOffset));
     }
     if (bottomOpen){
-        room.push(new newWall(0,roomHeight,roomWidth/2-(doorWidth/2),roomHeight));
-        room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight,roomWidth,roomHeight));
+        room.push(new newWall(roomOffset,roomHeight-roomOffset,roomWidth/2-(doorWidth/2),roomHeight-roomOffset));
+        room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight-roomOffset,roomWidth-roomOffset,roomHeight-roomOffset));
         extraWalls.push(new newWall(roomWidth/2-(doorWidth/2),roomHeight,roomWidth/2+(doorWidth/2),roomHeight));
-        room.push(new newWall(roomWidth/2-(doorWidth/2),roomHeight,roomWidth/2-(doorWidth/2),roomHeight+(doorLength)));
-        room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight,roomWidth/2+(doorWidth/2),roomHeight+(doorLength)));
-        //these tiles only work with a specific room size and boxSize
-        /*savedwallBoxes.push(new newPoint(roundTo(roomWidth/2+roomPos.x,boxSize),roundTo(roomHeight+roomPos.y,boxSize)));
-        savedwallBoxes.push(new newPoint(roundTo(roomWidth/2-boxSize+roomPos.x,boxSize),roundTo(roomHeight+roomPos.y,boxSize)));*/
+        room.push(new newWall(roomWidth/2-(doorWidth/2),roomHeight-roomOffset,roomWidth/2-(doorWidth/2),roomHeight+(doorLength)));
+        room.push(new newWall(roomWidth/2+(doorWidth/2),roomHeight-roomOffset,roomWidth/2+(doorWidth/2),roomHeight+(doorLength)));
     }else{
-        room.push(new newWall(0,roomHeight,roomWidth,roomHeight));
+        room.push(new newWall(roomOffset,roomHeight-roomOffset,roomWidth-roomOffset,roomHeight-roomOffset));
+        //room.push(new newWall(0,roomHeight+tileSize,roomWidth,roomHeight+tileSize)); //walls just to add blocks
+        //room.push(new newWall(0,roomHeight+(tileSize*2),roomWidth,roomHeight+(tileSize*2)));
     }
     if (leftOpen){
-        room.push(new newWall(0,0,0,roomHeight/2-(doorWidth/2)));
-        room.push(new newWall(0,roomHeight/2+(doorWidth/2),0,roomHeight));
+        room.push(new newWall(roomOffset,roomOffset,roomOffset,roomHeight/2-(doorWidth/2)));
+        room.push(new newWall(roomOffset,roomHeight/2+(doorWidth/2),roomOffset,roomHeight-roomOffset));
         extraWalls.push(new newWall(0,roomHeight/2-(doorWidth/2),0,roomHeight/2+(doorWidth/2)));
-        room.push(new newWall(0,roomHeight/2-(doorWidth/2),-(doorLength),roomHeight/2-(doorWidth/2)));
-        room.push(new newWall(0,roomHeight/2+(doorWidth/2),-(doorLength),roomHeight/2+(doorWidth/2)));
-        //these tiles only work with a specific room size and boxSize
-        /*savedwallBoxes.push(new newPoint(roundTo(-35+roomPos.x,boxSize),roundTo(roomHeight/2+roomPos.y,boxSize)));
-        savedwallBoxes.push(new newPoint(roundTo(-35+roomPos.x,boxSize),roundTo(roomHeight/2-boxSize+roomPos.y,boxSize)));*/
+        room.push(new newWall(roomOffset,roomHeight/2-(doorWidth/2),-doorLength,roomHeight/2-(doorWidth/2))); //one is subtracted to stop it from making a wall box that sticks out
+        room.push(new newWall(roomOffset,roomHeight/2+(doorWidth/2),-doorLength,roomHeight/2+(doorWidth/2)));
     }else{
-        room.push(new newWall(0,0,0,roomHeight));
+        room.push(new newWall(roomOffset,roomOffset,roomOffset,roomHeight-roomOffset));
     }
     enemyRoom.extraWalls=shiftWallsBy(enemyRoom.extraWalls,roomPos.x,roomPos.y);
     enemyRoom.unShiftedWalls=enemyRoom.walls;
-    enemyRoom.walls=shiftWallsBy(enemyRoom.walls,roomPos.x,roomPos.y);
-    enemyRoom.wallBoxes=generateWallBoxes(2,enemyRoom.walls,enemyRoom.wallBoxes,enemyRoom.unShiftedTiles);
+    enemyRoom.unShiftedWallBoxes = generateWallBoxes(2,enemyRoom.unShiftedWalls,enemyRoom.unShiftedWallBoxes);
+    enemyRoom.unShiftedTiles = generateTileMatrix(enemyRoom.unShiftedWallBoxes,new newPoint(0,0));
+
+    enemyRoom.unShiftedWalls=makeWallsFromWallBoxes(enemyRoom.unShiftedWallBoxes);
+    enemyRoom.walls=shiftWallsBy(enemyRoom.unShiftedWalls,roomPos.x,roomPos.y);
+
+    enemyRoom.wallBoxes=shiftPointsBy(enemyRoom.unShiftedWallBoxes,roomPos.x,roomPos.y);
+    //convertWallBoxesToTiles(enemyRoom.wallBoxes,enemyRoom.unShiftedTiles,enemyRoom.realPos);
     return enemyRoom.walls;
 }
 function shiftWallsBy(wallsList,x,y){
@@ -406,6 +536,13 @@ function shiftWallsBy(wallsList,x,y){
         shiftedWalls.push(new newWall(wall.first.x+x,wall.first.y+y,wall.second.x+x,wall.second.y+y))
     }
     return shiftedWalls;
+}
+function shiftPointsBy(points,x,y){
+    let shiftedPoints = [];
+    for (point of points){
+        shiftedPoints.push(new newPoint(point.x+x,point.y+y));
+    }
+    return shiftedPoints;
 }
 function findRandomEnemy(roomNum,difficulty){
     let enemyType = 4;

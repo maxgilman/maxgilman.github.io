@@ -25,7 +25,7 @@ function drawTiles(tiles,bgCam){
                 if (tileType===2){
                     addRoofEdges(i,j,bgCam);
                 }
-                addShadows(i,j,shadowsToDraw,bgCam);
+                addShadows(i,j,shadowsToDraw);
             }
             j+=tileSize;
         }
@@ -35,26 +35,32 @@ function drawTiles(tiles,bgCam){
         bgctx.drawImage(tileImages[shadow.type],shadow.x-bgCam.x,shadow.y-bgCam.y);
     }
 }
-function addShadows(x,y,shadowsToDraw,bgCam){
-    if (0===tiles[x+tileSize][y]){
-        shadowsToDraw.push({x:x+tileSize,y:y,type:6});
-    }
-    if (0===tiles[x-tileSize][y]){
-        shadowsToDraw.push({x:x-tileImages[8].width,y:y,type:8});
-    }
-    if (0===tiles[x][y+tileSize]){
-        if (1===tiles[x][y]){ //make this also trigger if the one below is a roof
-            shadowsToDraw.push({x:x,y:y+tileSize-tileImages[5].height,type:5});
+function addShadows(x,y,shadowsToDraw){
+    if (tiles[x-tileSize]!=undefined){
+        if (0===tiles[x-tileSize][y]){
+            shadowsToDraw.push({x:x-tileImages[8].width,y:y,type:8});
         }
-        shadowsToDraw.push({x:x,y:y+tileSize,type:7});
+    }
+    if (tiles[x+tileSize]!=undefined){
+        if (0===tiles[x+tileSize][y]){
+            shadowsToDraw.push({x:x+tileSize,y:y,type:6});
+        }
+    }
+    if (1!=tiles[x][y+tileSize]&&1===tiles[x][y]){
+        shadowsToDraw.push({x:x,y:y+tileSize-tileImages[5].height,type:5});
+        shadowsToDraw.push({x:x,y:y+tileSize,type:7});//may want to not have this shadow if the wall is not on top of the above wall area
     }
 }
 function addRoofEdges(x,y,bgCam){
-    if (2!=tiles[x+tileSize][y]){
-        bgctx.drawImage(tileImages[4],x+tileSize-tileImages[4].width-bgCam.x,y-bgCam.y);
+    if (undefined!=tiles[x+tileSize]){
+        if (2!=tiles[x+tileSize][y]){
+            bgctx.drawImage(tileImages[4],x+tileSize-tileImages[4].width-bgCam.x,y-bgCam.y);
+        }
     }
-    if (2!=tiles[x-tileSize][y]){
-        bgctx.drawImage(tileImages[4],x-bgCam.x,y-bgCam.y);
+    if (undefined!=tiles[x-tileSize]){
+        if (2!=tiles[x-tileSize][y]){
+            bgctx.drawImage(tileImages[4],x-bgCam.x,y-bgCam.y);
+        }
     }
     if (2!=tiles[x][y+tileSize]){
         bgctx.drawImage(tileImages[3],x-bgCam.x,y+tileSize-tileImages[3].height-bgCam.y);
@@ -167,6 +173,10 @@ function drawWalls(wallsCam,draw3d){
             bgctx.moveTo(((wall.first.x-wallsCam.x)*wallsCam.zoom),(wall.first.y-wallsCam.y)*wallsCam.zoom);
             bgctx.lineTo((wall.second.x-wallsCam.x)*wallsCam.zoom,(wall.second.y-wallsCam.y)*wallsCam.zoom);
             bgctx.stroke();
+            bgctx.beginPath();
+            bgctx.fillStyle = 'red';
+            bgctx.arc(wall.first.x-wallsCam.x,wall.first.y-wallsCam.y,5,0,Math.PI*2);
+            bgctx.fill();
         }else{
             let newFirst = accountForZ(wall.first,47);
             let newSecond = accountForZ(wall.second,47);
@@ -186,13 +196,15 @@ function drawWalls(wallsCam,draw3d){
         }
     }
 }
-let backgroundCanvas = new OffscreenCanvas(1400,750);
+//let backgroundCanvas = new OffscreenCanvas(1400,750);
+let backgroundCanvas = new OffscreenCanvas(1920,1080); //its given a huge buffer so it doesn't run out of space
 let bgctx = backgroundCanvas.getContext('2d');
 let tileSize = null;
 let tiles = null;
 let walls = null;
 let tileImages = null;
 let roomIndex = null;
+let doorLength = null;
 self.onmessage = async function(event) {
     /*if (event.data.type==='init'){
         backgroundCanvas = event.data.canvas;
@@ -203,10 +215,11 @@ self.onmessage = async function(event) {
         walls = event.data.walls;
         tileImages = event.data.tileImages;
         roomIndex = event.data.roomIndex;
+        doorLength = event.data.doorLength;
         bgctx.clearRect(0,0,backgroundCanvas.width,backgroundCanvas.height);
         //drawBackground();
-        drawTiles(tiles,{zoom:1,x:30,y:30});
-        drawWalls({zoom:1,x:-50,y:-50},false); //the doorlength is 50 and they get cut off if this isn't here(it's offset when being drawn)
+        drawTiles(tiles,{zoom:1,x:0,y:0});
+        //drawWalls({zoom:1,x:-doorLength,y:-doorLength},false); //the doorlength is 50 and they get cut off if this isn't here(it's offset when being drawn)
 
         const bitmap = await backgroundCanvas.transferToImageBitmap();
 

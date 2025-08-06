@@ -98,8 +98,8 @@ function handleMouseMove1(event) {
                 (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
                 (doc && doc.clientTop  || body && body.clientTop  || 0 );
         }
-        mouse.x = event.pageX-30;
-        mouse.y = event.pageY-40;
+        mouse.x = event.pageX-10;
+        mouse.y = event.pageY;
     }else{
         let axes = controller.axes;
         mouse.x+=axes[2]*2;
